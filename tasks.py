@@ -8,6 +8,7 @@ import requests
 import pandas as pd
 
 import psycopg2
+from psycopg2 import sql
 
 # import schedule
 from bs4 import BeautifulSoup
@@ -94,7 +95,7 @@ def save_raw_data_locally(rawData: dict) -> dict:
     for month_text, content in rawData.items(): 
         download_dir = os.path.join('downloads/', f"year={content['year']}/")
         os.makedirs(download_dir, exist_ok=True)
-        file_path = os.path.join(download_dir, f"{month_text}.{content['type']}")
+        file_path = os.path.join(download_dir, f"month={month_text}.{content['type']}")
         log('Diretótio para armazenar localmente os dados no padrão de particionamento Hive criado com sucesso!')
 
         # Salve localmente os dados baixados
@@ -174,7 +175,7 @@ def save_parsed_data_as_csv_locally(parsedData: dict) -> dict:
             }
     """
     saved_files = {
-        saved_files: []
+        'saved_files': []
     }
 
     # Crie o diretório no padrão de particionamento Hive
@@ -189,62 +190,75 @@ def save_parsed_data_as_csv_locally(parsedData: dict) -> dict:
 
 
 @task
-def upload_csv_to_database(files: list) -> None:
+def upload_csv_to_database(files: list) -> dict:
     """
     Faz o Upload dos arquivos CSV para o banco de dados PostgreSQL.
 
     Args:
-        files (list): Lista contendo os nomes dos arquivos CSV locais, já tratados.
+        files (dict): Dicionário contendo chaves-valores:
+            {
+                'files': Lista contendo os caminhos para arquivos CSV locais, já tratados. (list de strings),
+                'error': Possíveis erros propagados (string)
+            }
+        
     """
+    tables_updated = {}
+
     # Informações referentes à conexão com PostgreSQL vindas das variáveis de ambiente .env
-    print(os.getenv("DB_NAME"))
-    # conn = psycopg2.connect(
-    #     host=os.getenv("DB_HOST"),
-    #     port=os.getenv("DB_PORT"),
-    #     dbname=os.getenv("DB_NAME"),
-    #     user=os.getenv("DB_USER"),
-    #     password=os.getenv("DB_PASSWORD")
-    # )
-    # cur = conn.cursor()
+    conn = psycopg2.connect(
+        host=os.getenv("DB_HOST"),
+        port=os.getenv("DB_PORT"),
+        dbname=os.getenv("DB_NAME"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD")
+    )
+    cur = conn.cursor()
 
-    # for file in files:
-    #     try:
-    #         df = pd.read_csv(file)
-    #         table_name = os.path.splitext(os.path.basename(file))[0]
-    #         create_table_query = psycopg2.sql.SQL("""
-    #             CREATE TABLE IF NOT EXISTS {table} (
-    #                 {columns}
-    #             )
-    #         """).format(
-    #             table=psycopg2.sql.Identifier(table_name),
-    #             columns=psycopg2.sql.SQL(', ').join([
-    #                 psycopg2.sql.SQL('{} {}').format(
-    #                     psycopg2.sql.Identifier(col), psycopg2.sql.SQL('TEXT')
-    #                 ) for col in df.columns
-    #             ])
-    #         )
-    #         cur.execute(create_table_query)
-    #         conn.commit()
+    for file in files:
+        try:
+            # Extraia ano e mês de caminho do arquivo
+            year, month = extract_year_month_from_path(file)
+            table_name = f"year={year}/month={month}"
 
-    #         # Inserting data
-    #         for index, row in df.iterrows():
-    #             insert_query = psycopg2.sql.SQL("""
-    #                 INSERT INTO {table} ({fields})
-    #                 VALUES ({values})
-    #             """).format(
-    #                 table=psycopg2.sql.Identifier(table_name),
-    #                 fields=psycopg2.sql.SQL(', ').join(map(psycopg2.sql.Identifier, df.columns)),
-    #                 values=psycopg2.sql.SQL(', ').join(psycopg2.sql.Placeholder() * len(df.columns))
-    #             )
-    #             cur.execute(insert_query, list(row))
+            # Leia o arquivo e crie uma tabela no PostgresSQL caso não exista
+            df = pd.read_csv(file)
+            create_table_query = sql.SQL("""
+                CREATE TABLE IF NOT EXISTS {table} (
+                    {columns}
+                )
+            """).format(
+                table= sql.Identifier(table_name),
+                columns=sql.SQL(', ').join([
+                    sql.SQL('{} {}').format(
+                        sql.Identifier(col), sql.SQL('TEXT')
+                    ) for col in df.columns
+                ])
+            )
+            cur.execute(create_table_query)
+            conn.commit()
 
-    #         conn.commit()
-    #     except Exception as e:
-    #         log(f"Falha no upload do arquivo {file} para o PostgreSQL: {e}")
-    #         conn.rollback()
+            # Insere dados
+            for index, row in df.iterrows():
+                insert_query = sql.SQL("""
+                    INSERT INTO {table} ({fields})
+                    VALUES ({values})
+                """).format(
+                    table=sql.Identifier(table_name),
+                    fields=sql.SQL(', ').join(map(sql.Identifier, df.columns)),
+                    values=sql.SQL(', ').join(sql.Placeholder() * len(df.columns))
+                )
+                cur.execute(insert_query, list(row))
+            conn.commit()
 
-    # cur.close()
-    # conn.close()
+        except Exception as e:
+            error = f"Falha no upload do arquivo {file} para o PostgreSQL: {e}"
+            log_and_propagate_error(error, tables_updated)
+            conn.rollback()
+
+    cur.close()
+    conn.close()
+
+    return tables_updated
 
 @task
 def upload_logs_to_database() -> dict:
@@ -310,8 +324,9 @@ def upload_logs_to_database() -> dict:
 
 # Extrai ano e mês de caminho do arquivo através de expressões regulares.
 def extract_year_month_from_path(filePath):
-    match = re.search(r'year=(\d{4})/(\w+)\.', filePath)
+    match = re.search(r'year=(\d{4})/month=(\w+)\.csv', filePath)
     if match:
         year = match.group(1)
         month = match.group(2)
         return year, month
+    return None, None

@@ -12,16 +12,16 @@ from tasks import (
 )
 
 with Flow("Dados Abertos de Terceirizados de Órgãos Federais - Captura") as capture:
-    # EXTRACT #
-    raw_data = download_new_data()
-    raw_filepaths = save_raw_data_locally(raw_data)
+    # # EXTRACT #
+    # raw_data = download_new_data()
+    # raw_filepaths = save_raw_data_locally(raw_data)
     
-    # CLEAN #
-    dataframes = parse_data_into_dataframes(raw_filepaths)
-    filenames = save_parsed_data_as_csv_locally(dataframes)
+    # # CLEAN #
+    # dataframes = parse_data_into_dataframes(raw_filepaths)
+    # filenames = save_parsed_data_as_csv_locally(dataframes)
 
     # LOAD #
-    # filenames = ['downloads/year=2024/month=Janeiro.csv', 'downloads/year=2024/month=Maio.csv']
+    filenames = ['downloads/year=2024/month=Maio.xlsx_parsed.csv']
     status = upload_csv_to_database(filenames)
     # upload_logs_to_database(status)
 
@@ -29,5 +29,5 @@ with Flow("Dados Abertos de Terceirizados de Órgãos Federais - Materializaçã
     # data = download_data()
     # dataframes = parse_data(data)
     # filenames = save_as_csv_locally(dataframes)
-    filenames = ['downloads/year=2024/month=Janeiro.csv', 'downloads/year=2024/month=Maio.csv']
+    filenames = ['downloads/year=2024/month=Maio.xlsx_parsed.csv']
     upload_csv_to_database(filenames)
