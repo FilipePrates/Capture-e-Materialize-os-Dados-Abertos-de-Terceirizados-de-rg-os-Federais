@@ -12,40 +12,12 @@ from tasks import (
 )
 
 with Flow("Dados Abertos de Terceirizados de Órgãos Federais - Captura") as capture:
-    #     # EXTRACT #
-    # raw_status = get_raw(url)
-
-    # raw_filepath = save_raw_local(status=raw_status, file_path=filepath)
-
-    # # CLEAN #
-    # treated_status = pre_treatment_br_rj_riodejaneiro_onibus_gps(
-    #     status=raw_status, timestamp=timestamp, version=version
-    # )
-
-    # treated_filepath = save_treated_local(status=treated_status, file_path=filepath)
-
-    # # LOAD #
-    # error = bq_upload(
-    #     dataset_id=constants.GPS_SPPO_RAW_DATASET_ID.value,
-    #     table_id=constants.GPS_SPPO_RAW_TABLE_ID.value,
-    #     filepath=treated_filepath,
-    #     raw_filepath=raw_filepath,
-    #     partitions=partitions,
-    #     status=treated_status,
-    # )
-
-    # upload_logs_to_bq(
-    #     dataset_id=constants.GPS_SPPO_RAW_DATASET_ID.value,
-    #     parent_table_id=constants.GPS_SPPO_RAW_TABLE_ID.value,
-    #     error=error,
-    #     timestamp=timestamp,
-    # )
-
     # EXTRACT #
     raw_data = download_new_data()
-    raw_filepath = save_raw_data_locally(raw_data)
+    raw_filepaths = save_raw_data_locally(raw_data)
+    
     # CLEAN #
-    dataframes = parse_data_into_dataframes(raw_filepath)
+    dataframes = parse_data_into_dataframes(raw_filepaths)
     filenames = save_parsed_data_as_csv_locally(dataframes)
 
     # LOAD #

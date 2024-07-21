@@ -4,6 +4,7 @@ pandas
 openpyxl
 datetime
 os
+re
 io
 psycopg2-binary
 python-dotenv

@@ -1,25 +1,20 @@
 # as funções que serão utilizadas no Flow.
 
-from io import BytesIO
 import os
+import re
 import pandas as pd
 from prefect import task
 import requests
 import pandas as pd
-from datetime import datetime
+
 import psycopg2
-from dotenv import load_dotenv
 
 # import schedule
 from bs4 import BeautifulSoup
 
 from utils import log
-
+from dotenv import load_dotenv
 load_dotenv()
-URL = os.getenv("URL_FOR_DATA_DOWNLOAD")
-
-# Possíveis valores de texto dos links com Dados.
-months = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
 
 @task
 def download_new_data() -> dict:
@@ -31,7 +26,7 @@ def download_new_data() -> dict:
     Returns:
         dict: Dicionário com chaves sendo o mês referente, e valores sendo um dicionário contendo bytes do conteúdo baixado, e o tipo do arquivo.
     """
-    
+    URL = os.getenv("URL_FOR_DATA_DOWNLOAD")
     response = requests.get(URL)
     soup = BeautifulSoup(response.content, 'html.parser')
     data = {}
@@ -49,11 +44,12 @@ def download_new_data() -> dict:
             if(len(links) > 0):
                 link = links[0]
 
+                month_text = link.get_text()
                 # Checagem se já temos os dados do mês referente no Banco de Dados
                     #   if yes -> log and reschedule for ~1day
                     #   if no -> keep going and reschedule for ~4 months in the end
-                month_text = link.get_text()
-                if month_text in months:
+                if month_text in ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho",
+                                   "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]:
                     file_url = link['href']
                     for attempt in range(2):  # Caso download falhe, tentativa de recaptura imediata
                         response = requests.get(file_url)
@@ -97,6 +93,7 @@ def save_raw_data_locally(rawData: dict) -> None:
         download_dir = os.path.join('downloads/', f"year={content['year']}/")
         os.makedirs(download_dir, exist_ok=True)
         file_path = os.path.join(download_dir, f"{month_text}.{content['type']}")
+        log(file_path)
         log('Diretótio para armazenar localmente os dados no padrão de particionamento Hive criado!')
 
         # Salve localmente os dados baixados
@@ -108,38 +105,44 @@ def save_raw_data_locally(rawData: dict) -> None:
     return saved_files
 
 @task
-def parse_data_into_dataframes(rawData: dict) -> pd.DataFrame:
+def parse_data_into_dataframes(rawFilePaths: list) -> pd.DataFrame:
     """
     Transforma os dados em formato CSV em um DataFrame do Pandas, para facilitar sua manipulação.
 
     Args:
-        rawData (dict): Dicionário com chaves sendo meses do ano, e valores sendo um dicionário contendo bytes do conteúdo baixado, e o tipo do arquivo
+        rawFilePaths (list): Lista contendo os caminhos para os arquivos locais (raw)
 
     Returns:
         dict: Dicionário com chaves sendo meses do ano, e valores sendo pd.DataFrames com o conteudo referente ao mês da chave.
     """
     parsedData = {}
-    for month, content in rawData.items(): 
-        try:
-            if not content:
-                print(f"Falha no tratamento dos dados, arquivo sem contéudo referente ao mês de {month}.")
-                continue
+    for filePath in rawFilePaths: 
 
-            if content['type'] == 'xlsx':
-                df = pd.read_excel(BytesIO(content['content']), engine='openpyxl')
-            elif content['type'] == 'csv':
+        # Extrai ano e mês de caminho do arquivo
+        year, month = extract_year_month_from_path(filePath)
+        try:
+            # Determine o tipo do arquivo RAW local e leia o conteúdo
+            if filePath.endswith('.xlsx'):
                 try:
-                    df = pd.read_csv(BytesIO(content['content']))
+                    df = pd.read_excel(filePath, engine='openpyxl')
+                except Exception as e:
+                    log(f"Falha ao interpretar como .xlsx os dados RAW {filePath}: {e}")
+                    continue
+            elif  filePath.endswith('.csv'):
+                try:
+                    df = pd.read_csv(filePath)
                 except pd.errors.ParserError as e:
-                    log(f"Falha ao tratar os dados referentes ao mês de {month}: {e}")
-                    # Tentar ler os dados com outra configuração possível de arquivos CSV
+                    log(f"Falha ao interpretar como .csv os dados RAW {filePath}: {e}")
+                    # Tentar ler os dados separatos por ponto e vírgulo ';', possível em alguns arquivos ""CSV""
                     try:
-                        df = pd.read_csv(BytesIO(content['content']), delimiter=';', error_bad_lines=False)
-                    except Exception as e2:
-                        log(f"Falha na segunda tentativa de tratar os dados referentes ao mês de {month}: {e2}")
+                        df = pd.read_csv(filePath, delimiter=';', error_bad_lines=False)
+                    except Exception as e:
+                        log(f"Falha ao interpretar como .csv (delimitado por ';') os dados RAW {filePath}: {e}")
                         continue
 
-            parsedData['year'] = content['year']
+            # Organizar dados tratados na memória principal
+            parsedData['year'] = year
+            parsedData['month'] = month
             parsedData['content'] = df
 
         except Exception as e:
@@ -296,3 +299,14 @@ def download_all_available_data() -> dict:
                                 log(f"Falha ao baixar dados referentes à {month_text}/{year} após tentativa(s) de recaptura.")
 
     return files
+
+# Extrai ano e mês de caminho do arquivo através de expressões regulares.
+def extract_year_month_from_path(filePath):
+    match = re.search(r'year=(\d{4})/(\w+)\.', filePath)
+    if match:
+        year = match.group(1)
+        month = match.group(2)
+        log(f"Captura de ano e mês referentes à arquivo salvo localmente em {filePath} com sucesso!")
+        return year, month
+    log(f"Falha ao capturar ano e mês referentes à arquivo salvo localmente em {filePath}")
+    return "Desconhecido", "Desconhecido"
