@@ -15,103 +15,50 @@ from bs4 import BeautifulSoup
 
 from utils import log
 
-# URL da página que contém os Dados
-URL = "https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/terceirizados"
+load_dotenv()
+URL = os.getenv("URL_FOR_DATA_DOWNLOAD")
+
 # Possíveis valores de texto dos links com Dados.
 months = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
 
 @task
 def download_new_data() -> dict:
     """
-    Baixa dados de terceirizados da Controladoria Geral da União do Ano atual
+    Baixa dados recentes de terceirizados da Controladoria Geral da União
       https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/terceirizados
     e retorna um texto em formato CSV.
 
     Returns:
-        dict: Dicionário com chaves sendo o mês referente, e valores sendo um dicionário contendo o conteúdo baixado, e o tipo do arquivo.
+        dict: Dicionário com chaves sendo o mês referente, e valores sendo um dicionário contendo bytes do conteúdo baixado, e o tipo do arquivo.
     """
-    CURRENT_YEAR = datetime.now().year
     
     response = requests.get(URL)
     soup = BeautifulSoup(response.content, 'html.parser')
-    files = {}
+    data = {}
 
-    # Ache a lista com links para download de dados referente ao ano atual
+    # Ache a lista com links para download de dados
     headers = soup.find_all('h3')
-    for header in headers:
-        if str(header.get_text()) == str(CURRENT_YEAR):
-            ul = header.find_next('ul')
-            if ul:
-                links = ul.find_all('a')
-                for link in links:
 
-                    # Colete os meses disponíveis na lista
-                    month_text = link.get_text()
-
-                    # Baixe os dados contidos nos links de cada mês
-                    if month_text in months:
-                        file_url = link['href']
-
-                        for attempt in range(2):  # Caso download falhe, tentativa de recaptura imediata
-                            response = requests.get(file_url)
-                            if response.status_code == 200:
-                                log(f'Dados referentes ao mês {month_text} baixados com sucesso!')
-
-                                content_type = response.headers.get('Content-Type', '')
-                                if 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' in content_type or \
-                                    'text/csv' in content_type or \
-                                    'application/vnd.ms-excel' in content_type:
-
-                                    # Salve o arquivo baixado, sua extensão e ano referente para tratamento posterior
-                                    file_extension = 'xlsx' if 'spreadsheetml.sheet' in content_type else 'csv'
-                                    files[month_text] = {'content': response.content, 'type': file_extension, 'year': year}
-                                    break
-
-                            else: # Caso download falhe, tentativa de recaptura imediata.
-                                log(f"Tentativa {attempt + 1}: Falha ao baixar dados referentes à {month_text}/{year}. Status code: {response.status_code}")
-
-                                if attempt == 1:
-                                    log(f"Falha ao baixar dados referentes à {month_text}/{year} após tentativa(s) de recaptura.")
-
-        return files
-
-@task
-def download_all_available_data() -> dict:
-    """
-    Baixa dados de terceirizados da Controladoria Geral da União de todos os anos
-      https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/terceirizados
-    e retorna um texto em formato CSV.
-
-    Returns:
-        dict: Dicionário com chaves sendo f"{mes}_{ano}", e valores sendo um dicionário contendo o conteúdo baixado, e o tipo do arquivo.
-    """
-
-    response = requests.get(URL)
-    soup = BeautifulSoup(response.content, 'html.parser')
-    files = {}
-
-    # Ache as listas anuais com links para download de dados
-    headers = soup.find_all('h3')
-    for header in headers:
-
-        # Colete o ano do cabeçário da lista
+    # Ache os dados mais recentes disponíveis
+    if(len(headers) > 0):
+        header = headers[0]
         year = header.get_text()
         ul = header.find_next('ul')
         if ul:
             links = ul.find_all('a')
-            for link in links:
+            if(len(links) > 0):
+                link = links[0]
 
-                # Colete os meses disponíveis na lista do ano
+                # Checagem se já temos os dados do mês referente no Banco de Dados
+                    #   if yes -> log and reschedule for ~1day
+                    #   if no -> keep going and reschedule for ~4 months in the end
                 month_text = link.get_text()
                 if month_text in months:
                     file_url = link['href']
-
                     for attempt in range(2):  # Caso download falhe, tentativa de recaptura imediata
-
-                        # Baixe os dados contidos no link do mês
                         response = requests.get(file_url)
                         if response.status_code == 200:
-                            log(f'Dados referentes ao mês {month_text} do ano {year} baixados com sucesso!')
+                            log(f'Dados referentes ao mês de {month_text} baixados com sucesso!')
 
                             content_type = response.headers.get('Content-Type', '')
                             if 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' in content_type or \
@@ -120,7 +67,7 @@ def download_all_available_data() -> dict:
 
                                 # Salve o arquivo baixado, sua extensão e ano referente para tratamento posterior
                                 file_extension = 'xlsx' if 'spreadsheetml.sheet' in content_type else 'csv'
-                                files[f"{month_text}_{year}"] = {'content': response.content, 'type': file_extension, 'year': year}
+                                data[month_text] = {'content': response.content, 'type': file_extension, 'year': year}
                                 break
 
                         else: # Caso download falhe, tentativa de recaptura imediata.
@@ -129,51 +76,80 @@ def download_all_available_data() -> dict:
                             if attempt == 1:
                                 log(f"Falha ao baixar dados referentes à {month_text}/{year} após tentativa(s) de recaptura.")
 
-    return files
+        return data
 
 @task
-def parse_data(files: dict) -> pd.DataFrame:
+def save_raw_data_locally(rawData: dict) -> None:
+    """
+    Salva o DataFrame em um arquivo CSV.
+
+    Args:
+        rawData (dict): Dicionário com chaves sendo o mês referente, e valores sendo um dicionário contendo bytes do conteúdo baixado, e o tipo do arquivo.
+    
+    Returns:
+        list: Lista contendo os nomes dos arquivos locais.
+
+    """
+    saved_files = []
+
+    # Crie o diretório no padrão de particionamento Hive
+    for month_text, content in rawData.items(): 
+        download_dir = os.path.join('downloads/', f"year={content['year']}/")
+        os.makedirs(download_dir, exist_ok=True)
+        file_path = os.path.join(download_dir, f"{month_text}.{content['type']}")
+        log('Diretótio para armazenar localmente os dados no padrão de particionamento Hive criado!')
+
+        # Salve localmente os dados baixados
+        with open(file_path, 'wb') as file:
+            file.write(content['content'])
+            log(f"Dados salvos localmente em {file_path} com sucesso!")
+        saved_files.append(file_path)
+
+    return saved_files
+
+@task
+def parse_data_into_dataframes(rawData: dict) -> pd.DataFrame:
     """
     Transforma os dados em formato CSV em um DataFrame do Pandas, para facilitar sua manipulação.
 
     Args:
-        data (fict): Dicionário com chaves sendo os meses do ano, e valores sendo bytes conténdo o conteúdo baixado.
+        rawData (dict): Dicionário com chaves sendo meses do ano, e valores sendo um dicionário contendo bytes do conteúdo baixado, e o tipo do arquivo
 
     Returns:
-        dict: Dicionário com chaves sendo os meses do ano, e valores sendo pd.DataFrames com o conteudo referente ao mês da chave.
+        dict: Dicionário com chaves sendo meses do ano, e valores sendo pd.DataFrames com o conteudo referente ao mês da chave.
     """
-    parsed_data = {}
-
-    for dataId, file_info in files.items():
+    parsedData = {}
+    for month, content in rawData.items(): 
         try:
-            if not file_info['content']:
-                print(f"No content found for {dataId}")
+            if not content:
+                print(f"Falha no tratamento dos dados, arquivo sem contéudo referente ao mês de {month}.")
                 continue
 
-            if file_info['type'] == 'xlsx':
-                df = pd.read_excel(BytesIO(file_info['content']), engine='openpyxl')
-            elif file_info['type'] == 'csv':
+            if content['type'] == 'xlsx':
+                df = pd.read_excel(BytesIO(content['content']), engine='openpyxl')
+            elif content['type'] == 'csv':
                 try:
-                    df = pd.read_csv(BytesIO(file_info['content']))
+                    df = pd.read_csv(BytesIO(content['content']))
                 except pd.errors.ParserError as e:
-                    log(f"Falha ao tratar os dados referentes ao mês {dataId}: {e}")
+                    log(f"Falha ao tratar os dados referentes ao mês de {month}: {e}")
                     # Tentar ler os dados com outra configuração possível de arquivos CSV
                     try:
-                        df = pd.read_csv(BytesIO(file_info['content']), delimiter=';', error_bad_lines=False)
+                        df = pd.read_csv(BytesIO(content['content']), delimiter=';', error_bad_lines=False)
                     except Exception as e2:
-                        log(f"Falha na segunda tentativa de tratar os dados referentes ao mês {dataId}: {e2}")
+                        log(f"Falha na segunda tentativa de tratar os dados referentes ao mês de {month}: {e2}")
                         continue
 
-            parsed_data[dataId]["content"] = df
+            parsedData['year'] = content['year']
+            parsedData['content'] = df
 
         except Exception as e:
-            log(f"Falha ao tratar os dados referentes ao mês {dataId}: {e}")
+            log(f"Falha ao tratar os dados referentes ao mês de {month}: {e}")
 
     log("Dados convertidos em DataFrames com sucesso!")
-    return parsed_data
+    return parsedData
 
 @task
-def save_as_csv_locally(parsedData: dict) -> None:
+def save_parsed_data_as_csv_locally(parsedData: dict) -> None:
     """
     Salva o DataFrame em um arquivo CSV.
 
@@ -187,28 +163,20 @@ def save_as_csv_locally(parsedData: dict) -> None:
     saved_files = []
 
     # Crie o diretório no padrão de particionamento Hive
-    for dataId, content in parsedData.items(): 
-        download_dir = os.path.join('downloads/', f"year={dataId["year"]}/", f"month={month_text}")
+    for month_text, content in parsedData.items(): 
+        download_dir = os.path.join('downloads/', f"year={content['year']}/", f"month={month_text}")
         os.makedirs(download_dir, exist_ok=True)
-        file_path = os.path.join(download_dir, f"{month_text}.{file_extension}")
+        file_path = os.path.join(download_dir, f"{month_text}.{content['file_extension']}")
         log('Diretótio para armazenar localmente os dados no padrão de particionamento Hive criado!')
 
         # Salve localmente os dados baixados
         with open(file_path, 'wb') as file:
-            file.write(response.content)
-            log(f'Dados referentes ao mês {month_text} do ano {year} em formato {file_extension} baixados com sucesso!')
-        files.append(file_path)
-
-
-
-    for month, dataframe in parsedData.items(): 
-        filename = f"{DOWNLOAD_DIR}/month={month}.csv"
-        dataframe.to_csv(filename, index=False)
-        saved_files.append(filename)
-    log(f"Dados salvos localmente em {DOWNLOAD_DIR}/month={month}.csv com sucesso!")
-    print(saved_files)
+            file.write(content['content'])
+            log(f"Dados salvos localmente em {file_path} com sucesso!")
+        saved_files.append(file_path)
 
     return saved_files
+
 
 @task
 def upload_csv_to_database(files: list) -> None:
@@ -267,3 +235,64 @@ def upload_csv_to_database(files: list) -> None:
 
     # cur.close()
     # conn.close()
+
+@task
+def upload_logs_to_database() -> dict:
+    log('@TODO')
+
+
+@task
+def download_all_available_data() -> dict:
+    """
+    Baixa dados de terceirizados da Controladoria Geral da União de todos os anos
+      https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/terceirizados
+    e retorna um texto em formato CSV.
+
+    Returns:
+        dict: Dicionário com chaves sendo f"{mes}_{ano}", e valores sendo um dicionário contendo o conteúdo baixado, e o tipo do arquivo.
+    """
+
+    response = requests.get(URL)
+    soup = BeautifulSoup(response.content, 'html.parser')
+    files = {}
+
+    # Ache as listas anuais com links para download de dados
+    headers = soup.find_all('h3')
+    for header in headers:
+
+        # Colete o ano do cabeçário da lista
+        year = header.get_text()
+        ul = header.find_next('ul')
+        if ul:
+            links = ul.find_all('a')
+            for link in links:
+
+                # Colete os meses disponíveis na lista do ano
+                month_text = link.get_text()
+                if month_text in months:
+                    file_url = link['href']
+
+                    for attempt in range(2):  # Caso download falhe, tentativa de recaptura imediata
+
+                        # Baixe os dados contidos no link do mês
+                        response = requests.get(file_url)
+                        if response.status_code == 200:
+                            log(f'Dados referentes ao mês de {month_text} do ano {year} baixados com sucesso!')
+
+                            content_type = response.headers.get('Content-Type', '')
+                            if 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' in content_type or \
+                                'text/csv' in content_type or \
+                                'application/vnd.ms-excel' in content_type:
+
+                                # Salve o arquivo baixado, sua extensão e ano referente para tratamento posterior
+                                file_extension = 'xlsx' if 'spreadsheetml.sheet' in content_type else 'csv'
+                                files[f"{month_text}_{year}"] = {'content': response.content, 'type': file_extension, 'year': year}
+                                break
+
+                        else: # Caso download falhe, tentativa de recaptura imediata.
+                            log(f"Tentativa {attempt + 1}: Falha ao baixar dados referentes à {month_text}/{year}. Status code: {response.status_code}")
+
+                            if attempt == 1:
+                                log(f"Falha ao baixar dados referentes à {month_text}/{year} após tentativa(s) de recaptura.")
+
+    return files
