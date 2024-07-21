@@ -6,10 +6,12 @@ from tasks import (
     download_data,
     parse_data,
     save_as_csv_locally,
+    upload_csv_to_database
 )
 
 with Flow("Users report") as flow:
     # Tasks
     data = download_data()
     dataframes = parse_data(data)
-    save_as_csv_locally(dataframes)
+    filenames = save_as_csv_locally(dataframes)
+    upload_csv_to_database(filenames)
