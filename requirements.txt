@@ -1,0 +1,5 @@
+prefect==0.15.9
+requests
+pandas
+openpyxl
+datetime
