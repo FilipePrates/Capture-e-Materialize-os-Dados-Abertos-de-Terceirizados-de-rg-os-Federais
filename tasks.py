@@ -30,6 +30,7 @@ def download_new_data() -> dict:
     data = {}
     URL = os.getenv("URL_FOR_DATA_DOWNLOAD")
     response = requests.get(URL)
+    # Log site fora do ar
     soup = BeautifulSoup(response.content, 'html.parser')
 
     # Ache os dados mais recentes disponíveis
@@ -65,13 +66,15 @@ def download_new_data() -> dict:
                                 data[month_text] = {'content': response.content, 'type': file_extension, 'year': year}
                                 break
 
+                            # else log formato não reconhecido
+
                         else: # Caso download falhe, tentativa de recaptura imediata.
                             log(f"Tentativa {attempt + 1}: Falha ao baixar dados referentes à {month_text}/{year}. Status code: {response.status_code}")
 
                             if attempt == 1:
-                                error = f"Falha ao baixar dados referentes à {month_text}/{year} após tentativa(s) de recaptura."
+                                error = f"Falha ao baixar dados referentes à {month_text}/{year} após tentativa(s) de recaptura. Status code: {response.status_code}"
                                 log_and_propagate_error(error, data)
-                                
+        # log erros não encontrou                    
         return data
 
 @task
@@ -89,20 +92,29 @@ def save_raw_data_locally(rawData: dict) -> dict:
                 'error': Possíveis erros propagados (string)
             }
     """
-    saved_files = []
-
-    # Crie o diretório no padrão de particionamento Hive
-    for month_text, content in rawData.items(): 
-        download_dir = os.path.join('downloads/', f"year={content['year']}/")
-        os.makedirs(download_dir, exist_ok=True)
-        file_path = os.path.join(download_dir, f"month={month_text}.{content['type']}")
+    saved_files = {
+        saved_files: []
+    }
+    # Crie os diretórios no padrão de particionamento Hive
+    try:
+        for month_text, content in rawData.items(): 
+            download_dir = os.path.join('downloads/', f"year={content['year']}/")
+            os.makedirs(download_dir, exist_ok=True)
+            file_path = os.path.join(download_dir, f"month={month_text}.{content['type']}")
         log('Diretótio para armazenar localmente os dados no padrão de particionamento Hive criado com sucesso!')
+    except Exception as e:
+        error = f"Falha ao criar diretótios para armazenar localmente dados referentes à {month_text}/{content['year']}. {e}"
+        log_and_propagate_error(error, saved_files)
 
-        # Salve localmente os dados baixados
+    # Salve localmente os dados baixados
+    try:
         with open(file_path, 'wb') as file:
             file.write(content['content'])
+            saved_files['saved_files'].append(file_path)
             log(f"Dados salvos localmente em {file_path} com sucesso!")
-        saved_files.append(file_path)
+    except Exception as e:
+        error = f"Falha ao salvar os dados crus referentes à {month_text}/{content['year']} localmente. {e}"
+        log_and_propagate_error(error, saved_files)
 
     return saved_files
 
@@ -133,19 +145,18 @@ def parse_data_into_dataframes(rawFilePaths: dict) -> pd.DataFrame:
             try:
                 df = pd.read_excel(filePath, engine='openpyxl')
             except Exception as e:
-                error = f"Falha ao interpretar como .xlsx os dados RAW {filePath}: {e}"
+                error = f"Falha ao interpretar como .xlsx os dados crus {filePath}: {e}"
                 log_and_propagate_error(error, parsedData)
                 continue
         elif filePath.endswith('.csv'):
             try:
                 df = pd.read_csv(filePath)
             except Exception as e:
-                error = f"Falha ao interpretar como .csv os dados RAW {filePath}: {e}"
+                error = f"Falha ao interpretar como .csv os dados crus {filePath}: {e}"
                 log_and_propagate_error(error, parsedData)
                 continue
 
         # Organizar dados tratados na memória principal
-        # clean_key = re.sub(r'[^a-zA-Z0-9]', '_', filePath)
         parsedData[filePath] = {}
         parsedData[filePath]['year'] = year
         parsedData[filePath]['month'] = month
@@ -177,14 +188,16 @@ def save_parsed_data_as_csv_locally(parsedData: dict) -> dict:
     saved_files = {
         'saved_files': []
     }
-
-    # Crie o diretório no padrão de particionamento Hive
-    for filePath, data in parsedData.items(): 
-        # Salve localmente os dados baixados
-        parsedFilePath = f'{filePath}_parsed.csv'
-        data['dataframe'].to_csv(parsedFilePath, index=False)
-        log(f"Dados salvos localmente em {parsedFilePath} com sucesso!")
-        saved_files['saved_files'].append(filePath)
+    # Salve localmente os dados baixados
+    try:
+        for filePath, data in parsedData.items(): 
+            parsedFilePath = f'{filePath}_parsed.csv'
+            data['dataframe'].to_csv(parsedFilePath, index=False)
+            log(f"Dados tratados salvos localmente em {parsedFilePath} com sucesso!")
+            saved_files['saved_files'].append(filePath)
+    except Exception as e:
+        error = f"Falha ao salvar dados tratados localmente como .csv {filePath}: {e}"
+        log_and_propagate_error(error, parsedData)
 
     return saved_files
 
@@ -324,7 +337,7 @@ def upload_logs_to_database() -> dict:
 
 # Extrai ano e mês de caminho do arquivo através de expressões regulares.
 def extract_year_month_from_path(filePath):
-    match = re.search(r'year=(\d{4})/month=(\w+)\.csv', filePath)
+    match = re.search(r'year=(\d{4})/month=(\w+)', filePath)
     if match:
         year = match.group(1)
         month = match.group(2)
