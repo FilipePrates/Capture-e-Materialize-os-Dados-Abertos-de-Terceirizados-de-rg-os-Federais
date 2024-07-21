@@ -12,7 +12,7 @@ import psycopg2
 # import schedule
 from bs4 import BeautifulSoup
 
-from utils import log
+from utils import log, log_and_propagate_error
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -26,15 +26,13 @@ def download_new_data() -> dict:
     Returns:
         dict: Dicionário com chaves sendo o mês referente, e valores sendo um dicionário contendo bytes do conteúdo baixado, e o tipo do arquivo.
     """
+    data = {}
     URL = os.getenv("URL_FOR_DATA_DOWNLOAD")
     response = requests.get(URL)
     soup = BeautifulSoup(response.content, 'html.parser')
-    data = {}
-
-    # Ache a lista com links para download de dados
-    headers = soup.find_all('h3')
 
     # Ache os dados mais recentes disponíveis
+    headers = soup.find_all('h3')
     if(len(headers) > 0):
         header = headers[0]
         year = header.get_text()
@@ -70,12 +68,13 @@ def download_new_data() -> dict:
                             log(f"Tentativa {attempt + 1}: Falha ao baixar dados referentes à {month_text}/{year}. Status code: {response.status_code}")
 
                             if attempt == 1:
-                                log(f"Falha ao baixar dados referentes à {month_text}/{year} após tentativa(s) de recaptura.")
-
+                                error = f"Falha ao baixar dados referentes à {month_text}/{year} após tentativa(s) de recaptura."
+                                log_and_propagate_error(error, data)
+                                
         return data
 
 @task
-def save_raw_data_locally(rawData: dict) -> None:
+def save_raw_data_locally(rawData: dict) -> dict:
     """
     Salva o DataFrame em um arquivo CSV.
 
@@ -83,8 +82,11 @@ def save_raw_data_locally(rawData: dict) -> None:
         rawData (dict): Dicionário com chaves sendo o mês referente, e valores sendo um dicionário contendo bytes do conteúdo baixado, e o tipo do arquivo.
     
     Returns:
-        list: Lista contendo os nomes dos arquivos locais.
-
+        dict: Dicionário contendo chaves-valores:
+            {
+                'saved_files': caminhos dos arquivos locais salvos (list de strings),
+                'error': Possíveis erros propagados (string)
+            }
     """
     saved_files = []
 
@@ -93,8 +95,7 @@ def save_raw_data_locally(rawData: dict) -> None:
         download_dir = os.path.join('downloads/', f"year={content['year']}/")
         os.makedirs(download_dir, exist_ok=True)
         file_path = os.path.join(download_dir, f"{month_text}.{content['type']}")
-        log(file_path)
-        log('Diretótio para armazenar localmente os dados no padrão de particionamento Hive criado!')
+        log('Diretótio para armazenar localmente os dados no padrão de particionamento Hive criado com sucesso!')
 
         # Salve localmente os dados baixados
         with open(file_path, 'wb') as file:
@@ -105,78 +106,84 @@ def save_raw_data_locally(rawData: dict) -> None:
     return saved_files
 
 @task
-def parse_data_into_dataframes(rawFilePaths: list) -> pd.DataFrame:
+def parse_data_into_dataframes(rawFilePaths: dict) -> pd.DataFrame:
     """
     Transforma os dados em formato CSV em um DataFrame do Pandas, para facilitar sua manipulação.
 
     Args:
-        rawFilePaths (list): Lista contendo os caminhos para os arquivos locais (raw)
+        rawFilePaths (dict): Dicionário contendo chaves-valores:
+            {
+                'saved_files': caminhos dos arquivos locais salvos (list de strings),
+                'error': Possíveis erros propagados (string)
+            }
 
     Returns:
         dict: Dicionário com chaves sendo meses do ano, e valores sendo pd.DataFrames com o conteudo referente ao mês da chave.
+             Podendo conter chave error com erros propagados
     """
     parsedData = {}
     for filePath in rawFilePaths: 
 
         # Extrai ano e mês de caminho do arquivo
         year, month = extract_year_month_from_path(filePath)
-        try:
-            # Determine o tipo do arquivo RAW local e leia o conteúdo
-            if filePath.endswith('.xlsx'):
-                try:
-                    df = pd.read_excel(filePath, engine='openpyxl')
-                except Exception as e:
-                    log(f"Falha ao interpretar como .xlsx os dados RAW {filePath}: {e}")
-                    continue
-            elif  filePath.endswith('.csv'):
-                try:
-                    df = pd.read_csv(filePath)
-                except pd.errors.ParserError as e:
-                    log(f"Falha ao interpretar como .csv os dados RAW {filePath}: {e}")
-                    # Tentar ler os dados separatos por ponto e vírgulo ';', possível em alguns arquivos ""CSV""
-                    try:
-                        df = pd.read_csv(filePath, delimiter=';', error_bad_lines=False)
-                    except Exception as e:
-                        log(f"Falha ao interpretar como .csv (delimitado por ';') os dados RAW {filePath}: {e}")
-                        continue
 
-            # Organizar dados tratados na memória principal
-            parsedData['year'] = year
-            parsedData['month'] = month
-            parsedData['content'] = df
+        # Determine o tipo do arquivo RAW local e leia o conteúdo
+        if filePath.endswith('.xlsx'):
+            try:
+                df = pd.read_excel(filePath, engine='openpyxl')
+            except Exception as e:
+                error = f"Falha ao interpretar como .xlsx os dados RAW {filePath}: {e}"
+                log_and_propagate_error(error, parsedData)
+                continue
+        elif filePath.endswith('.csv'):
+            try:
+                df = pd.read_csv(filePath)
+            except Exception as e:
+                error = f"Falha ao interpretar como .csv os dados RAW {filePath}: {e}"
+                log_and_propagate_error(error, parsedData)
+                continue
 
-        except Exception as e:
-            log(f"Falha ao tratar os dados referentes ao mês de {month}: {e}")
+        # Organizar dados tratados na memória principal
+        # clean_key = re.sub(r'[^a-zA-Z0-9]', '_', filePath)
+        parsedData[filePath] = {}
+        parsedData[filePath]['year'] = year
+        parsedData[filePath]['month'] = month
+        parsedData[filePath]['dataframe'] = df
 
     log("Dados convertidos em DataFrames com sucesso!")
     return parsedData
 
 @task
-def save_parsed_data_as_csv_locally(parsedData: dict) -> None:
+def save_parsed_data_as_csv_locally(parsedData: dict) -> dict:
     """
     Salva o DataFrame em um arquivo CSV.
 
     Args:
-        parsedData (dict): Dicionário com chaves sendo os meses do ano, e valores sendo pd.DataFrames com o conteudo referente ao mês da chave.
-    
+        parsedData (dict): Dicionário com chaves sendo os caminhos dos arquivos locais já tratados, e valores sendo dicionários contendo chaves-valores:
+            {
+                'content': o conteúdo (pd.DataFrame),
+                'month': o mês referente (string),
+                'year': o ano referente (string).
+            }
+        
     Returns:
-        list: Lista contendo os nomes dos arquivos CSV locais, já tratados.
-
+        dict: Dicionário contendo chaves-valores:
+            {
+                'saved_files': caminhos para CSV locais, já tratados (list de strings),
+                'error': Possíveis erros propagados (string)
+            }
     """
-    saved_files = []
+    saved_files = {
+        saved_files: []
+    }
 
     # Crie o diretório no padrão de particionamento Hive
-    for month_text, content in parsedData.items(): 
-        download_dir = os.path.join('downloads/', f"year={content['year']}/", f"month={month_text}")
-        os.makedirs(download_dir, exist_ok=True)
-        file_path = os.path.join(download_dir, f"{month_text}.{content['file_extension']}")
-        log('Diretótio para armazenar localmente os dados no padrão de particionamento Hive criado!')
-
+    for filePath, data in parsedData.items(): 
         # Salve localmente os dados baixados
-        with open(file_path, 'wb') as file:
-            file.write(content['content'])
-            log(f"Dados salvos localmente em {file_path} com sucesso!")
-        saved_files.append(file_path)
+        parsedFilePath = f'{filePath}_parsed.csv'
+        data['dataframe'].to_csv(parsedFilePath, index=False)
+        log(f"Dados salvos localmente em {parsedFilePath} com sucesso!")
+        saved_files['saved_files'].append(filePath)
 
     return saved_files
 
@@ -244,8 +251,8 @@ def upload_logs_to_database() -> dict:
     log('@TODO')
 
 
-@task
-def download_all_available_data() -> dict:
+# @task
+# def download_all_available_data() -> dict:
     """
     Baixa dados de terceirizados da Controladoria Geral da União de todos os anos
       https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/terceirizados
@@ -296,7 +303,8 @@ def download_all_available_data() -> dict:
                             log(f"Tentativa {attempt + 1}: Falha ao baixar dados referentes à {month_text}/{year}. Status code: {response.status_code}")
 
                             if attempt == 1:
-                                log(f"Falha ao baixar dados referentes à {month_text}/{year} após tentativa(s) de recaptura.")
+                                log_and_propagate_error(f"Falha ao baixar dados referentes à {month_text}/{year} após tentativa(s) de recaptura.",
+                                                        files)
 
     return files
 
@@ -306,7 +314,4 @@ def extract_year_month_from_path(filePath):
     if match:
         year = match.group(1)
         month = match.group(2)
-        log(f"Captura de ano e mês referentes à arquivo salvo localmente em {filePath} com sucesso!")
         return year, month
-    log(f"Falha ao capturar ano e mês referentes à arquivo salvo localmente em {filePath}")
-    return "Desconhecido", "Desconhecido"
