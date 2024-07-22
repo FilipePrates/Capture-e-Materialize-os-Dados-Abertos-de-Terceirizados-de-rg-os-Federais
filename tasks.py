@@ -174,13 +174,12 @@ def save_parsed_data_as_csv_locally(parsedData: dict) -> dict:
         
     Returns:
         dict: Dicionário contendo chaves-valores:
-                'saved_files': caminhos para CSV locais, já tratados (list de strings),
+                'parsedFilePaths': caminhos para CSV locais, já tratados (list de strings),
                 'error': Possíveis erros propagados (string)
     """
     parsedFilePaths = {
         'parsedFilePaths': []
     }
-    log(parsedData['adm_terceirizados_fed_local/year=2024/month=maio.xlsx'].keys())
     try:
         for filePath, data in parsedData.items(): 
             parsedFilePath = f'{filePath}_parsed.csv'.lower()
@@ -195,17 +194,24 @@ def save_parsed_data_as_csv_locally(parsedData: dict) -> dict:
 
 
 @task
-def upload_csv_to_database(files: list) -> dict:
+def upload_csv_to_database(parsedFilePaths: dict) -> dict:
     """
     Faz o Upload dos arquivos CSV para o banco de dados PostgreSQL.
 
     Args:
-        files (dict): Dicionário contendo chaves-valores:
-                'files': Lista contendo os caminhos para arquivos CSV locais, já tratados. (list de strings),
+        parsedFilePaths (dict): Dicionário contendo chaves-valores:
+                'parsedFilePaths': caminhos para CSV locais, já tratados (list de strings),
                 'error': Possíveis erros propagados (string)
-        
+    
+    Returns:
+        dict: Dicionário contendo chaves-valores:
+                'tables': Nome das tabelas atualizadas no banco de dados,
+                'error': Possíveis erros propagados (string)
+    
     """
-    tables_updated = {}
+    status = {
+        'tables': {}
+    }
 
     # Informações referentes à conexão com PostgreSQL vindas das variáveis de ambiente .env
     conn = psycopg2.connect(
@@ -217,51 +223,53 @@ def upload_csv_to_database(files: list) -> dict:
     )
     cur = conn.cursor()
 
-    for file in files:
+    for file in parsedFilePaths['parsedFilePaths']:
         try:
             # Extraia ano e mês de caminho do arquivo
             year, month = extract_year_month_from_path(file)
-            table_name = f"year={year}/month={month}"
+            tableName = f"year={year}/month={month}".lower()
 
             # Leia o arquivo e crie uma tabela no PostgresSQL caso não exista
             df = pd.read_csv(file)
-            create_table_query = sql.SQL("""
+            createTableQuery = sql.SQL("""
                 CREATE TABLE IF NOT EXISTS {table} (
                     {columns}
                 )
             """).format(
-                table= sql.Identifier(table_name),
+                table= sql.Identifier(tableName),
                 columns=sql.SQL(', ').join([
                     sql.SQL('{} {}').format(
                         sql.Identifier(col), sql.SQL('TEXT')
                     ) for col in df.columns
                 ])
             )
-            cur.execute(create_table_query)
+            cur.execute(createTableQuery)
             conn.commit()
 
             # Insere dados
             for index, row in df.iterrows():
-                insert_query = sql.SQL("""
+                insertValuesQuery = sql.SQL("""
                     INSERT INTO {table} ({fields})
                     VALUES ({values})
                 """).format(
-                    table=sql.Identifier(table_name),
+                    table=sql.Identifier(tableName),
                     fields=sql.SQL(', ').join(map(sql.Identifier, df.columns)),
                     values=sql.SQL(', ').join(sql.Placeholder() * len(df.columns))
                 )
-                cur.execute(insert_query, list(row))
+                cur.execute(insertValuesQuery, list(row))
             conn.commit()
+            
+            status['tables'].append(tableName)
 
         except Exception as e:
             error = f"Falha no upload do arquivo {file} para o PostgreSQL: {e}"
-            log_and_propagate_error(error, tables_updated)
+            log_and_propagate_error(error, status)
             conn.rollback()
 
     cur.close()
     conn.close()
 
-    return tables_updated
+    return status
 
 @task
 def upload_logs_to_database() -> dict:
