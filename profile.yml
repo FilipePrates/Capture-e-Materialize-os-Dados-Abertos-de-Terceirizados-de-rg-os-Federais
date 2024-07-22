@@ -1,0 +1,27 @@
+local_profile:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: localhost
+      user: your_db_user
+      password: your_db_password
+      port: 5432
+      dbname: your_db_name
+      schema: public
+      threads: 4
+      keepalives_idle: 0
+      connect_timeout: 10
+      retries: 1
+    prod:
+      type: postgres
+      host: your_prod_host
+      user: your_prod_user
+      password: your_prod_password
+      port: 5432
+      dbname: your_prod_db
+      schema: public
+      threads: 4
+      keepalives_idle: 0
+      connect_timeout: 10
+      retries: 1

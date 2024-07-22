@@ -1,0 +1,19 @@
+name: CIVITAS_project
+version: 1.0.0
+profile: local_profile
+
+# This specifies where DBT will look for models
+model-paths: ["models"]
+
+# Define the models structure
+models:
+  CIVITAS_project:
+    staging:
+      materialized: view
+    marts:
+      materialized: table
+
+# Optional: Specify seeds, snapshots, etc.
+seeds:
+  CIVITAS_project:
+    enabled: true

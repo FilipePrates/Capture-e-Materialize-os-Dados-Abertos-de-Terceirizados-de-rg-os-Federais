@@ -1,4 +1,7 @@
 prefect==0.15.9
+prefect-dbt
+dbt-core
+dbt-postgres
 requests
 pandas
 openpyxl

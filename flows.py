@@ -8,10 +8,17 @@ from tasks import (
     parse_data_into_dataframes,
     save_parsed_data_as_csv_locally,
     upload_csv_to_database,
-    upload_logs_to_database
+    upload_logs_to_database,
+
+    rename_columns_following_style_manual,
+    set_columns_types
 )
 
+# Executar captura e materialização a cada ~4 meses.
 with Flow("Dados Abertos de Terceirizados de Órgãos Federais - Captura") as capture:
+    # # SETUP #
+
+
     # # EXTRACT #
     raw_data = download_new_data()
     raw_filepaths = save_raw_data_locally(raw_data)
@@ -21,18 +28,35 @@ with Flow("Dados Abertos de Terceirizados de Órgãos Federais - Captura") as ca
     filenames = save_parsed_data_as_csv_locally(dataframes)
 
     # LOAD #
-    filenames = ['downloads/year=2024/month=Maio.xlsx_parsed.csv']
+    # filenames = ['downloads/year=2024/month=Maio.xlsx_parsed.csv']
     status = upload_csv_to_database(filenames)
     # upload_logs_to_database(status)
 
+    # # DEPLOY? #
 
-with Flow("Dados Abertos de Terceirizados de Órgãos Federais - Materialização") as materialization:
-    # data = download_data()
-    # dataframes = parse_data(data)
-    # filenames = save_as_csv_locally(dataframes)
-
+with Flow("Dados Abertos de Terceirizados de Órgãos Federais - Materialização") as materialize:
     # renomear colunas no estilo
     # garantir tipagens
+    new_columns = rename_columns_following_style_manual()
+    status = set_columns_types(new_columns)
 
-    filenames = ['downloads/year=2024/month=Maio.xlsx_parsed.csv']
-    upload_csv_to_database(filenames)
+# Executar captura e materialização de dados históricos sem necessidade, a princípio, de re-execução posterior
+with Flow("Dados Abertos de Terceirizados de Órgãos Federais - Captura dos Dados Históricos") as captureAll:
+    # # EXTRACT #
+    raw_data = download_new_data()
+    raw_filepaths = save_raw_data_locally(raw_data)
+    
+    # # CLEAN #
+    dataframes = parse_data_into_dataframes(raw_filepaths)
+    filenames = save_parsed_data_as_csv_locally(dataframes)
+
+    # LOAD #
+    # filenames = ['downloads/year=2024/month=Maio.xlsx_parsed.csv']
+    status = upload_csv_to_database(filenames)
+    # upload_logs_to_database(status)
+
+with Flow("Dados Abertos de Terceirizados de Órgãos Federais - Materialização dos Dados Históricos") as materializeAll:
+    # renomear colunas no estilo
+    # garantir tipagens
+    new_columns = rename_columns_following_style_manual()
+    status = set_columns_types(new_columns)

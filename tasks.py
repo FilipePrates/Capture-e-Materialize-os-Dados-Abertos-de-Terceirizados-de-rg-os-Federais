@@ -277,6 +277,14 @@ def upload_csv_to_database(files: list) -> dict:
 def upload_logs_to_database() -> dict:
     log('@TODO')
 
+@task
+def rename_columns_following_style_manual() -> dict:
+    log('@TODO')
+
+@task
+def set_columns_types() -> dict:
+    log('@TODO')
+
 
 # @task
 # def download_all_available_data() -> dict:
