@@ -5,15 +5,16 @@ import re
 import pandas as pd
 from prefect import task
 import requests
+from bs4 import BeautifulSoup
 import pandas as pd
 
 import psycopg2
 from psycopg2 import sql
 
 # import schedule
-from bs4 import BeautifulSoup
 
 from utils import log, log_and_propagate_error
+
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -185,7 +186,7 @@ def save_parsed_data_as_csv_locally(parsedData: dict) -> dict:
             parsedFilePath = f'{filePath}_parsed.csv'.lower()
             data['dataframe'].to_csv(parsedFilePath, index=False)
             log(f"Dados tratados salvos localmente em {parsedFilePath} com sucesso!")
-            parsedFilePaths['parsedFilePaths'].append(filePath)
+            parsedFilePaths['parsedFilePaths'].append(parsedFilePath)
     except Exception as e:
         error = f"Falha ao salvar dados localmente como .csv {filePath}: {e}"
         log_and_propagate_error(error, parsedData)
@@ -210,7 +211,7 @@ def upload_csv_to_database(parsedFilePaths: dict) -> dict:
     
     """
     status = {
-        'tables': {}
+        'tables': []
     }
 
     # Informações referentes à conexão com PostgreSQL vindas das variáveis de ambiente .env
@@ -222,7 +223,7 @@ def upload_csv_to_database(parsedFilePaths: dict) -> dict:
         password=os.getenv("DB_PASSWORD")
     )
     cur = conn.cursor()
-
+    
     for file in parsedFilePaths['parsedFilePaths']:
         try:
             # Extraia ano e mês de caminho do arquivo
