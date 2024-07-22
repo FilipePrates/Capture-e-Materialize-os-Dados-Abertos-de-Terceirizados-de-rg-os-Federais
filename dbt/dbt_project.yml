@@ -1,13 +1,18 @@
-name: CIVITAS_project
+name: desafio_data_eng
+
 version: 1.0.0
 profile: local_profile
 
 # This specifies where DBT will look for models
 model-paths: ["models"]
 
+clean-targets:         # directories to be removed by `dbt clean`
+  - "target"
+  - "dbt_packages"
+
 # Define the models structure
 models:
-  CIVITAS_project:
+  desafio_data_eng:
     staging:
       materialized: view
     marts:
@@ -15,5 +20,5 @@ models:
 
 # Optional: Specify seeds, snapshots, etc.
 seeds:
-  CIVITAS_project:
+  desafio_data_eng:
     enabled: true
