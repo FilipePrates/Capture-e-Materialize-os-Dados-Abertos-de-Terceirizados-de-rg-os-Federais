@@ -27,7 +27,7 @@ def download_new_data() -> dict:
     Returns:
         dict: Dicionário com chaves sendo o mês referente, e valores sendo um dicionário contendo bytes do conteúdo baixado, e o tipo do arquivo.
     """
-    data = {}
+    rawData = {}
     URL = os.getenv("URL_FOR_DATA_DOWNLOAD")
     response = requests.get(URL)
     # Log site fora do ar
@@ -51,7 +51,7 @@ def download_new_data() -> dict:
                 if month_text in ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho",
                                    "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]:
                     file_url = link['href']
-                    for attempt in range(2):  # Caso download falhe, tentativa de recaptura imediata
+                    for attempt in range(3):  # Caso download falhe, duas tentativas de recaptura imediata
                         response = requests.get(file_url)
                         if response.status_code == 200:
                             log(f'Dados referentes ao mês de {month_text} baixados com sucesso!')
@@ -63,7 +63,7 @@ def download_new_data() -> dict:
 
                                 # Salve o arquivo baixado, sua extensão e ano referente para tratamento posterior
                                 file_extension = 'xlsx' if 'spreadsheetml.sheet' in content_type else 'csv'
-                                data[month_text] = {'content': response.content, 'type': file_extension, 'year': year}
+                                rawData[month_text] = {'content': response.content, 'type': file_extension, 'year': year}
                                 break
 
                             # else log formato não reconhecido
@@ -71,11 +71,11 @@ def download_new_data() -> dict:
                         else: # Caso download falhe, tentativa de recaptura imediata.
                             log(f"Tentativa {attempt + 1}: Falha ao baixar dados referentes à {month_text}/{year}. Status code: {response.status_code}")
 
-                            if attempt == 1:
+                            if attempt == 2:
                                 error = f"Falha ao baixar dados referentes à {month_text}/{year} após tentativa(s) de recaptura. Status code: {response.status_code}"
-                                log_and_propagate_error(error, data)
+                                log_and_propagate_error(error, rawData)
         # log erros não encontrou                    
-        return data
+        return rawData
 
 @task
 def save_raw_data_locally(rawData: dict) -> dict:
@@ -87,36 +87,34 @@ def save_raw_data_locally(rawData: dict) -> dict:
     
     Returns:
         dict: Dicionário contendo chaves-valores:
-            {
-                'saved_files': caminhos dos arquivos locais salvos (list de strings),
+                'rawFilePaths': caminhos dos arquivos locais salvos (list de strings),
                 'error': Possíveis erros propagados (string)
-            }
     """
-    saved_files = {
-        saved_files: []
+    rawFilePaths = {
+        'rawFilePaths': []
     }
     # Crie os diretórios no padrão de particionamento Hive
     try:
         for month_text, content in rawData.items(): 
-            download_dir = os.path.join('downloads/', f"year={content['year']}/")
+            download_dir = os.path.join('adm_terceirizados_fed_local/', f"year={content['year']}/")
             os.makedirs(download_dir, exist_ok=True)
-            file_path = os.path.join(download_dir, f"month={month_text}.{content['type']}")
+            file_path = os.path.join(download_dir, f"month={month_text}.{content['type']}".lower())
         log('Diretótio para armazenar localmente os dados no padrão de particionamento Hive criado com sucesso!')
     except Exception as e:
         error = f"Falha ao criar diretótios para armazenar localmente dados referentes à {month_text}/{content['year']}. {e}"
-        log_and_propagate_error(error, saved_files)
+        log_and_propagate_error(error, rawFilePaths)
 
     # Salve localmente os dados baixados
     try:
         with open(file_path, 'wb') as file:
             file.write(content['content'])
-            saved_files['saved_files'].append(file_path)
+            rawFilePaths['rawFilePaths'].append(file_path)
             log(f"Dados salvos localmente em {file_path} com sucesso!")
     except Exception as e:
         error = f"Falha ao salvar os dados crus referentes à {month_text}/{content['year']} localmente. {e}"
-        log_and_propagate_error(error, saved_files)
+        log_and_propagate_error(error, rawFilePaths)
 
-    return saved_files
+    return rawFilePaths
 
 @task
 def parse_data_into_dataframes(rawFilePaths: dict) -> pd.DataFrame:
@@ -125,25 +123,27 @@ def parse_data_into_dataframes(rawFilePaths: dict) -> pd.DataFrame:
 
     Args:
         rawFilePaths (dict): Dicionário contendo chaves-valores:
-            {
                 'saved_files': caminhos dos arquivos locais salvos (list de strings),
                 'error': Possíveis erros propagados (string)
-            }
 
     Returns:
         dict: Dicionário com chaves sendo meses do ano, e valores sendo pd.DataFrames com o conteudo referente ao mês da chave.
              Podendo conter chave error com erros propagados
     """
     parsedData = {}
-    for filePath in rawFilePaths: 
+    for filePath in rawFilePaths['rawFilePaths']: 
+        parsedData[filePath] = {}
 
         # Extrai ano e mês de caminho do arquivo
         year, month = extract_year_month_from_path(filePath)
-
+        parsedData[filePath]['year'] = year
+        parsedData[filePath]['month'] = month
         # Determine o tipo do arquivo RAW local e leia o conteúdo
         if filePath.endswith('.xlsx'):
             try:
                 df = pd.read_excel(filePath, engine='openpyxl')
+                parsedData[filePath]['dataframe'] = df
+                log("Dados crus .xlsx convertidos em DataFrames com sucesso!")
             except Exception as e:
                 error = f"Falha ao interpretar como .xlsx os dados crus {filePath}: {e}"
                 log_and_propagate_error(error, parsedData)
@@ -151,18 +151,13 @@ def parse_data_into_dataframes(rawFilePaths: dict) -> pd.DataFrame:
         elif filePath.endswith('.csv'):
             try:
                 df = pd.read_csv(filePath)
+                parsedData[filePath]['dataframe'] = df
+                log("Dados crus .csv convertidos em DataFrames com sucesso!")
             except Exception as e:
                 error = f"Falha ao interpretar como .csv os dados crus {filePath}: {e}"
                 log_and_propagate_error(error, parsedData)
                 continue
 
-        # Organizar dados tratados na memória principal
-        parsedData[filePath] = {}
-        parsedData[filePath]['year'] = year
-        parsedData[filePath]['month'] = month
-        parsedData[filePath]['dataframe'] = df
-
-    log("Dados convertidos em DataFrames com sucesso!")
     return parsedData
 
 @task
@@ -171,35 +166,32 @@ def save_parsed_data_as_csv_locally(parsedData: dict) -> dict:
     Salva o DataFrame em um arquivo CSV.
 
     Args:
-        parsedData (dict): Dicionário com chaves sendo os caminhos dos arquivos locais já tratados, e valores sendo dicionários contendo chaves-valores:
-            {
+        parsedData (dict): Dicionário com chaves sendo os caminhos dos arquivos locais crus,
+          e valores sendo dicionários contendo chaves-valores:
                 'content': o conteúdo (pd.DataFrame),
                 'month': o mês referente (string),
                 'year': o ano referente (string).
-            }
         
     Returns:
         dict: Dicionário contendo chaves-valores:
-            {
                 'saved_files': caminhos para CSV locais, já tratados (list de strings),
                 'error': Possíveis erros propagados (string)
-            }
     """
-    saved_files = {
-        'saved_files': []
+    parsedFilePaths = {
+        'parsedFilePaths': []
     }
-    # Salve localmente os dados baixados
+    log(parsedData['adm_terceirizados_fed_local/year=2024/month=maio.xlsx'].keys())
     try:
         for filePath, data in parsedData.items(): 
-            parsedFilePath = f'{filePath}_parsed.csv'
+            parsedFilePath = f'{filePath}_parsed.csv'.lower()
             data['dataframe'].to_csv(parsedFilePath, index=False)
             log(f"Dados tratados salvos localmente em {parsedFilePath} com sucesso!")
-            saved_files['saved_files'].append(filePath)
+            parsedFilePaths['parsedFilePaths'].append(filePath)
     except Exception as e:
-        error = f"Falha ao salvar dados tratados localmente como .csv {filePath}: {e}"
+        error = f"Falha ao salvar dados localmente como .csv {filePath}: {e}"
         log_and_propagate_error(error, parsedData)
 
-    return saved_files
+    return parsedFilePaths
 
 
 @task
@@ -209,10 +201,8 @@ def upload_csv_to_database(files: list) -> dict:
 
     Args:
         files (dict): Dicionário contendo chaves-valores:
-            {
                 'files': Lista contendo os caminhos para arquivos CSV locais, já tratados. (list de strings),
                 'error': Possíveis erros propagados (string)
-            }
         
     """
     tables_updated = {}
@@ -282,7 +272,7 @@ def rename_columns_following_style_manual() -> dict:
     log('@TODO')
 
 @task
-def set_columns_types() -> dict:
+def set_columns_types(newColumns) -> dict:
     log('@TODO')
 
 

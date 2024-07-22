@@ -20,16 +20,16 @@ with Flow("Dados Abertos de Terceirizados de Órgãos Federais - Captura") as ca
 
 
     # # EXTRACT #
-    raw_data = download_new_data()
-    raw_filepaths = save_raw_data_locally(raw_data)
+    rawData = download_new_data()
+    rawFilePaths = save_raw_data_locally(rawData)
     
     # # CLEAN #
-    dataframes = parse_data_into_dataframes(raw_filepaths)
-    filenames = save_parsed_data_as_csv_locally(dataframes)
+    parsedData = parse_data_into_dataframes(rawFilePaths)
+    parsedFilePaths = save_parsed_data_as_csv_locally(parsedData)
 
     # LOAD #
     # filenames = ['downloads/year=2024/month=Maio.xlsx_parsed.csv']
-    status = upload_csv_to_database(filenames)
+    status = upload_csv_to_database(parsedFilePaths)
     # upload_logs_to_database(status)
 
     # # DEPLOY? #

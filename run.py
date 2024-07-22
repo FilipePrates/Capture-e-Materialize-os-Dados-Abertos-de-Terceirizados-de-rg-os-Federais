@@ -1,4 +1,4 @@
-from flows import capture, materialization
+from flows import capture, materialize
 
 capture.run()
 

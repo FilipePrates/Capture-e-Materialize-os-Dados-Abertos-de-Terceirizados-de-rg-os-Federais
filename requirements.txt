@@ -1,13 +1,10 @@
 prefect==0.15.9
-prefect-dbt
 dbt-core
 dbt-postgres
 requests
+beautifulsoup4
 pandas
 openpyxl
 datetime
-os
-re
-io
 psycopg2-binary
 python-dotenv
