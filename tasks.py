@@ -132,30 +132,30 @@ def parse_data_into_dataframes(rawFilePaths: dict) -> pd.DataFrame:
              Podendo conter chave error com erros propagados
     """
     parsedData = {}
-    for filePath in rawFilePaths['rawFilePaths']: 
-        parsedData[filePath] = {}
+    for rawfilePath in rawFilePaths['rawFilePaths']: 
+        parsedData[rawfilePath] = {}
 
         # Extrai ano e mês de caminho do arquivo
-        year, month = extract_year_month_from_path(filePath)
-        parsedData[filePath]['year'] = year
-        parsedData[filePath]['month'] = month
+        year, month = extract_year_month_from_path(rawfilePath)
+        parsedData[rawfilePath]['year'] = year
+        parsedData[rawfilePath]['month'] = month
         # Determine o tipo do arquivo RAW local e leia o conteúdo
-        if filePath.endswith('.xlsx'):
+        if rawfilePath.endswith('.xlsx'):
             try:
-                df = pd.read_excel(filePath, engine='openpyxl')
-                parsedData[filePath]['dataframe'] = df
+                df = pd.read_excel(rawfilePath, engine='openpyxl')
+                parsedData[rawfilePath]['dataframe'] = df
                 log("Dados crus .xlsx convertidos em DataFrames com sucesso!")
             except Exception as e:
-                error = f"Falha ao interpretar como .xlsx os dados crus {filePath}: {e}"
+                error = f"Falha ao interpretar como .xlsx os dados crus {rawfilePath}: {e}"
                 log_and_propagate_error(error, parsedData)
                 continue
-        elif filePath.endswith('.csv'):
+        elif rawfilePath.endswith('.csv'):
             try:
-                df = pd.read_csv(filePath)
-                parsedData[filePath]['dataframe'] = df
+                df = pd.read_csv(rawfilePath)
+                parsedData[rawfilePath]['dataframe'] = df
                 log("Dados crus .csv convertidos em DataFrames com sucesso!")
             except Exception as e:
-                error = f"Falha ao interpretar como .csv os dados crus {filePath}: {e}"
+                error = f"Falha ao interpretar como .csv os dados crus {rawfilePath}: {e}"
                 log_and_propagate_error(error, parsedData)
                 continue
 
@@ -182,13 +182,13 @@ def save_parsed_data_as_csv_locally(parsedData: dict) -> dict:
         'parsedFilePaths': []
     }
     try:
-        for filePath, data in parsedData.items(): 
-            parsedFilePath = f'{filePath}_parsed.csv'.lower()
+        for rawFilePath, data in parsedData.items(): 
+            parsedFilePath = f'{rawFilePath}_parsed.csv'.lower()
             data['dataframe'].to_csv(parsedFilePath, index=False)
             log(f"Dados tratados salvos localmente em {parsedFilePath} com sucesso!")
             parsedFilePaths['parsedFilePaths'].append(parsedFilePath)
     except Exception as e:
-        error = f"Falha ao salvar dados localmente como .csv {filePath}: {e}"
+        error = f"Falha ao salvar dados tratados localmente como .csv {rawFilePath}: {e}"
         log_and_propagate_error(error, parsedData)
 
     return parsedFilePaths
@@ -223,7 +223,7 @@ def upload_csv_to_database(parsedFilePaths: dict) -> dict:
         password=os.getenv("DB_PASSWORD")
     )
     cur = conn.cursor()
-    
+
     for file in parsedFilePaths['parsedFilePaths']:
         try:
             # Extraia ano e mês de caminho do arquivo
