@@ -1,6 +1,3 @@
-with raw_data as (
-    select * from {{ ref('raw') }}
-)
 select
     id_terc,
     sg_orgao_sup_tabela_ug,
@@ -35,11 +32,11 @@ select
     nm_unidade_prestacao,
     vl_mensal_salario,
     vl_mensal_custo,
-    "Num_Mes_Carga",
+    -- "Num_Mes_Carga",
     "Mes_Carga",
     "Ano_Carga",
     sg_orgao,
     nm_orgao,
     cd_orgao_siafi,
     cd_orgao_siape
-from raw_data
+from {{ ref('raw') }}
