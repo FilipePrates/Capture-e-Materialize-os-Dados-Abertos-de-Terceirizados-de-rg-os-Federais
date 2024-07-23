@@ -239,7 +239,7 @@ def upload_csv_to_database(parsedFilePaths: dict, tableName: str) -> dict:
             # Crie a tabela tableName no PostgresSQL, caso não exista
             try:
                 createTableQuery = sql.SQL("""
-                    CREATE TABLE IF NOT EXISTS raw.{table} (
+                    CREATE TABLE IF NOT EXISTS {table} (
                         {columns}
                     )
                 """).format(
@@ -274,6 +274,7 @@ def upload_csv_to_database(parsedFilePaths: dict, tableName: str) -> dict:
                         values=sql.SQL(', ').join(sql.Placeholder() * len(df.columns))
                     )
                     cur.execute(insertValuesQuery, list(row))
+                    
             except Exception as e:
                 error = f"Falha ao inserir dados na tabela {tableName} no PostgreSQL: {e}"
                 log_and_propagate_error(error, status)

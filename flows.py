@@ -27,11 +27,9 @@ with Flow("Dados Abertos de Terceirizados de Órgãos Federais - Captura") as ca
     parsedFilePaths = save_parsed_data_as_csv_locally(parsedData)
 
     # LOAD #
-    status = upload_csv_to_database(parsedFilePaths, "staging")
+    status = upload_csv_to_database(parsedFilePaths, "raw")
     #logStatus = upload_logs_to_database(status)
-
-    # # DEPLOY? #
-
+    
 
 with Flow("Dados Abertos de Terceirizados de Órgãos Federais - Materialização (DBT)") as materialize:
     columns = set_columns_types()
