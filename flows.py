@@ -1,6 +1,7 @@
 # o Flow propriamente dito.
-
-from prefect import Flow, Parameter
+from prefect import Flow
+from prefect.schedules import Schedule
+from utils import cronograma_padrao_cgu_terceirizados
 from tasks import (
     setup_log_file,
     clean_log_file,
@@ -12,18 +13,20 @@ from tasks import (
     upload_csv_to_database,
     upload_logs_to_database,
 
-    run_dbt
+    run_dbt,
+
+    scheduled_capture_completed
 )
 
 # Executar Captura e Materialização a cada ~4 meses.
-with Flow("Dados Abertos de Terceirizados de Órgãos Federais - Captura") as capture:
+with Flow("Captura dos Dados Abertos de Terceirizados de Órgãos Federais",
+           schedule=Schedule(clocks=cronograma_padrao_cgu_terceirizados())) as capture:
     # # SETUP #
     logFilePath = setup_log_file("logs.txt")
     cleanStart = clean_log_file(logFilePath)
 
     # # EXTRACT #
     rawData = download_new_cgu_terceirizados_data(cleanStart)
-    # @TODO branch: if already had downloaded - reschedule for tomorrow
     rawFilePaths = save_raw_data_locally(rawData)
     
     # # CLEAN #
@@ -33,11 +36,11 @@ with Flow("Dados Abertos de Terceirizados de Órgãos Federais - Captura") as ca
     # LOAD #
     status = upload_csv_to_database(parsedFilePaths, "raw")
     logStatus = upload_logs_to_database(status, "logs.txt", "logs__capture")
+capture.register(project_name="cgu_terceirizados")
 
-
-with Flow("Dados Abertos de Terceirizados de Órgãos Federais - Materialização (DBT)") as materialize:
+with Flow("Materialização dos Dados Abertos de Terceirizados de Órgãos Federais") as materialize:
     # # SETUP #
-    logFilePath = setup_log_file("logs.txt")
+    logFilePath = setup_log_file("/logs/flow_log.txt")
     cleanStart = clean_log_file(logFilePath)
 
     # TRANSFORM #
@@ -46,6 +49,7 @@ with Flow("Dados Abertos de Terceirizados de Órgãos Federais - Materializaçã
 
     #LOAD
     logStatus = upload_logs_to_database(columns, "logs.txt", "logs__materialize")
+materialize.register(project_name="cgu_terceirizados")
 
 # Executar captura de dados históricos
 # with Flow("Dados Abertos de Terceirizados de Órgãos Federais - Captura dos Dados Históricos") as captureAll:
@@ -68,3 +72,23 @@ with Flow("Dados Abertos de Terceirizados de Órgãos Federais - Materializaçã
 # with Flow("Dados Abertos de Terceirizados de Órgãos Federais - Materialização dos Dados Históricos") as materializeAll:
 #    # columns = rename_columns_following_style_manual("historico")
 #    status = set_columns_types("123")
+
+from prefect.tasks.prefect import (
+    create_flow_run,
+    wait_for_flow_run
+)
+
+with Flow("schedule") as schedule:
+    # Captura
+    capture_flow_run = create_flow_run(
+        flow_name="Captura dos Dados Abertos de Terceirizados de Órgãos Federais",
+        project_name="cgu_terceirizados")
+    capture_flow_state = wait_for_flow_run(capture_flow_run, raise_final_state=True)
+
+    # Materialização
+    materialize_flow_run = create_flow_run(
+        flow_name="Materialização dos Dados Abertos de Terceirizados de Órgãos Federais",
+        project_name="cgu_terceirizados"
+    )
+
+schedule.register(project_name="cgu_terceirizados")

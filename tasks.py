@@ -1,26 +1,81 @@
-# as funções que serão utilizadas no Flow.
 import logging
 import os
 import subprocess
-
 import pandas as pd
 from bs4 import BeautifulSoup
 import requests
-
 from prefect import task
 from prefect.engine.state import Failed
 from prefect.triggers import all_finished
 import psycopg2
 from psycopg2 import sql
-
 from dotenv import load_dotenv
-load_dotenv()
-# import schedule
-
 from utils import (
     log,
     log_and_propagate_error
 )
+load_dotenv()
+
+# as Tarefas (@tasks) que serão utilizadas nos Flows.
+
+@task
+def setup_log_file(logFilePath: str) -> dict:
+    """
+    Configura o arquivo de log dos flows.
+
+    Args:
+        logFilePath: Caminho para o arquivo de log (string)
+    Returns:
+        dict: Dicionário contendo chaves-valores:
+                'logFilePath': Caminho para o arquivo de log (string),
+                ?'error': Possíveis erros propagados (string)
+    """
+    logs = {}
+
+    # Salve os logs do prefect + custom no arquivo .txt em logFilePath
+    try:
+        logging.basicConfig(level=logging.INFO,
+                    format='[%(asctime)s] %(levelname)s - %(name)s | %(message)s',
+                    handlers=[logging.FileHandler(logFilePath)])
+    except Exception as e:
+        error = f"Falha na configuração do arquivo de log {logFilePath}: {e}"
+        log_and_propagate_error(error, logs)
+    
+    if "error" in logs: return Failed(result=logs)
+    log(f'Configuração do arquivo de log {logFilePath} realizada com sucesso.')
+    logs['logFilePath'] = logFilePath
+    return logs
+
+@task
+def clean_log_file(logFilePath: dict) -> dict:
+    """
+    Limpa o arquivo de log para começar um novo flow.
+
+    Args:
+        logFilePath: Dicionário contendo chaves-valores:
+                        'logFilePath': Caminho para o arquivo de log (string),
+                        ?'error': Possíveis erros propagados (string)
+    Returns:
+        dict: Dicionário contendo chaves-valores:
+                'logFilePath': Caminho para o arquivo de log (string),
+                ?'error': Possíveis erros propagados (string)
+    """
+    if isinstance(logFilePath, Failed): return Failed(result=logFilePath)
+    cleanStart = {}
+
+    # Abra o arquivo logFilePath em modo escrita ('w'), apagando-o
+    try:
+        path = logFilePath['logFilePath']
+        with open(path, 'w') as _file:
+            pass
+    except Exception as e:
+        error = f"Falha na limpeza do arquivo de log local {path}: {e}"
+        log_and_propagate_error(error, cleanStart)
+
+    if "error" in cleanStart: return Failed(result=cleanStart)
+    log(f'Limpeza do arquivo de log local {path} realizada com sucesso.')
+    cleanStart['logFilePath'] = path
+    return cleanStart
 
 @task
 def download_new_cgu_terceirizados_data(cleanStart: dict) -> dict:
@@ -60,29 +115,38 @@ def download_new_cgu_terceirizados_data(cleanStart: dict) -> dict:
                 if(len(links) > 0):
                     link = links[0]
                     monthText = link.get_text()
-                    # Cheque se já temos essa informação desse mês/ano (redis?),
-                    #   se sim break e fast re-schedule (~1 dia), lançamento de dados da cgu atrasado.,
-                    #   se não continue a pipeline e re-schedule ~4 meses.
+                    # Cheque se já temos essa informação desse mês/ano (redis?) raise Exception -
+                        # Failed flow retry 1 dia pode não ter sido disponibilizado ainda
                     file_url = link['href']
 
                     # Caso download falhe, duas tentativas de recaptura imediata
-                    for attempt in range(3):  
+                    for attempt in range(os.getenv("DOWNLOAD_ATTEMPTS")):  
                         response = requests.get(file_url)
                         if response.status_code == 200:
                             # Salve o arquivo baixado, sua extensão e ano referente para tratamento posterior
                             content_type = response.headers.get('Content-Type', '')
-                            if 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' in content_type or \
+                            if \
+                                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' \
+                                    in content_type or \
                                 'text/csv' in content_type or \
                                 'application/vnd.ms-excel' in content_type:
                                 file_extension = 'xlsx' if 'spreadsheetml.sheet' in content_type else 'csv'
-                                rawData['rawData'] = {'content': response.content, 'type': file_extension, 'year': year}
+                                rawData['rawData'] = {
+                                    'content': response.content,
+                                    'type': file_extension,
+                                    'year': year
+                                }
                                 break
                             else:
                                 raise ValueError('Formato do arquivo cru fora do esperado (.csv, .xlsx).')
                         else:
-                            log(f"Tentativa {attempt + 1}: Falha ao baixar dados referentes à {monthText}/{year}. Status code: {response.status_code}")
-                            if attempt == 2:
-                                error = f"Falha ao baixar dados referentes à {monthText}/{year} após tentativa(s) de recaptura. Status code: {response.status_code}"
+                            log(f"Tentativa {attempt +1}: \
+                                    Falha ao baixar dados referentes à {monthText}/{year}. \
+                                    Status code: {response.status_code}")
+                            if attempt +1 == os.getenv("DOWNLOAD_ATTEMPTS"):
+                                error = f"Falha ao baixar dados referentes à {monthText}/{year} \
+                                    após {attempt +1} tentativa(s) de recaptura. \
+                                    Status code: {response.status_code}"
                                 log_and_propagate_error(error, rawData)
     except Exception as e:
         error = f"Falha ao baixar os dados crus mais recentes de {URL}. {e}"
@@ -435,57 +499,9 @@ def run_dbt(cleanStart: dict) -> dict:
     # """
 
 @task
-def setup_log_file(logFilePath: str) -> dict:
+def scheduled_capture_completed(flowName: str) -> bool:
     """
-    Configura o arquivo de log.
-    Args:
-        logFilePath: Caminho para o arquivo de log (string)
-    Returns:
-        dict: Dicionário contendo chaves-valores:
-                'logFilePath': Caminho para o arquivo de log (string),
-                ?'error': Possíveis erros propagados (string)
+    @task de Sucesso para Flow de Captura
     """
-    logs = {}
-
-    try:
-        logging.basicConfig(level=logging.INFO,
-                    format='[%(asctime)s] %(levelname)s - %(name)s | %(message)s',
-                    handlers=[logging.FileHandler(logFilePath)])
-    except Exception as e:
-        error = f"Falha na configuração do arquivo de log {logFilePath}: {e}"
-        log_and_propagate_error(error, logs)
-    
-    if "error" in logs: return Failed(result=logs)
-    log(f'Configuração do arquivo de log {logFilePath} realizada com sucesso.')
-    logs['logFilePath'] = logFilePath
-    return logs
-
-@task
-def clean_log_file(logFilePath: dict) -> dict:
-    """
-    Limpa o arquivo de log.
-    Args:
-        logFilePath: Dicionário contendo chaves-valores:
-                        'logFilePath': Caminho para o arquivo de log (string),
-                        ?'error': Possíveis erros propagados (string)
-    Returns:
-        dict: Dicionário contendo chaves-valores:
-                'logFilePath': Caminho para o arquivo de log (string),
-                ?'error': Possíveis erros propagados (string)
-    """
-    
-    if isinstance(logFilePath, Failed): return Failed(result=logFilePath)
-    cleanStart = {}
-
-    try:
-        path = logFilePath['logFilePath']
-        with open(path, 'w') as file:
-            pass
-    except Exception as e:
-        error = f"Falha na limpeza do arquivo de log local {path}: {e}"
-        log_and_propagate_error(error, cleanStart)
-
-    if "error" in cleanStart: return Failed(result=cleanStart)
-    log(f'Limpeza do arquivo de log local {path} realizada com sucesso.')
-    cleanStart['logFilePath'] = path
-    return cleanStart
+    print("Capture flow completed successfully, triggering materialize flow.")
+    return True
