@@ -1,8 +1,10 @@
 # o Flow propriamente dito.
 
 from prefect import Flow, Parameter
-from utils import clean_log_file
 from tasks import (
+    setup_log_file,
+    clean_log_file,
+
     download_new_cgu_terceirizados_data,
     save_raw_data_locally,
     parse_data_into_dataframes,
@@ -17,10 +19,11 @@ from tasks import (
 # Executar captura e materialização a cada ~4 meses.
 with Flow("Dados Abertos de Terceirizados de Órgãos Federais - Captura") as capture:
     # # SETUP #
-    clean_log_file("flow_logs.txt")
+    logFilePath = setup_log_file("flow_logs.txt")
+    cleanStart = clean_log_file(logFilePath)
 
     # # EXTRACT #
-    rawData = download_new_cgu_terceirizados_data()
+    rawData = download_new_cgu_terceirizados_data(cleanStart)
     rawFilePaths = save_raw_data_locally(rawData)
     
     # # CLEAN #
@@ -29,8 +32,8 @@ with Flow("Dados Abertos de Terceirizados de Órgãos Federais - Captura") as ca
 
     # LOAD #
     status = upload_csv_to_database(parsedFilePaths, "raw")
-    logStatus = upload_logs_to_database("flow_logs.txt")
-    
+    logStatus = upload_logs_to_database(status, "flow_logs.txt", "logs__prefect_flow")
+
 
 with Flow("Dados Abertos de Terceirizados de Órgãos Federais - Materialização (DBT)") as materialize:
     # # SETUP #
