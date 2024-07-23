@@ -1,18 +1,19 @@
 # as funções que serão utilizadas no Flow.
 import logging
 import os
-import re
-import pandas as pd
-from prefect import task
-import requests
-from bs4 import BeautifulSoup
-import pandas as pd
-from dotenv import load_dotenv
-load_dotenv()
 
+import pandas as pd
+from bs4 import BeautifulSoup
+import requests
+
+from prefect import task
+from prefect.engine.state import Failed
+from prefect.triggers import all_finished
 import psycopg2
 from psycopg2 import sql
 
+from dotenv import load_dotenv
+load_dotenv()
 # import schedule
 
 from utils import (
@@ -38,7 +39,7 @@ def download_new_cgu_terceirizados_data(cleanStart: dict) -> dict:
                     'year': Ano do arquivo para particionamento,
                 ?'error': Possíveis erros propagados (string)    
     """
-    if 'error' in cleanStart: return cleanStart
+    if isinstance(cleanStart, Failed): return Failed(result=cleanStart)
     rawData = {}
 
     try:
@@ -86,8 +87,8 @@ def download_new_cgu_terceirizados_data(cleanStart: dict) -> dict:
         error = f"Falha ao baixar os dados crus mais recentes de {URL}. {e}"
         log_and_propagate_error(error, rawData)
 
-    if not 'errors' in rawData:
-        log(f'Dados referentes ao mês de {monthText} baixados com sucesso!')
+    if 'errors' in rawData: return Failed(result=rawData)
+    log(f'Dados referentes ao mês de {monthText} baixados com sucesso!')
     return rawData
 
 @task
@@ -107,12 +108,10 @@ def save_raw_data_locally(rawData: dict) -> dict:
                 'rawFilePaths': caminhos dos arquivos locais salvos (list de strings),
                 ?'error': Possíveis erros propagados (string)
     """
-    if 'error' in rawData: return rawData
-    rawFilePaths = {
-        'rawFilePaths': []
-    }
+    if isinstance(rawData, Failed): return Failed(result=rawData)
+    rawFilePaths = { 'rawFilePaths': [] }
 
-    # Crie os diretórios no padrão de particionamento Hive
+    # Crie os diretórios no padrão de particionamento por ano
     try:
         DB_NAME = os.getenv("DB_NAME")
         for _key, content in rawData.items(): 
@@ -132,9 +131,9 @@ def save_raw_data_locally(rawData: dict) -> dict:
         error = f"Falha ao salvar os dados crus localmente. {e}"
         log_and_propagate_error(error, rawFilePaths)
 
-    if not 'errors' in rawFilePaths:
-        log(f"Dados salvos localmente em {filePath} com sucesso!")
-        rawFilePaths['rawFilePaths'].append(filePath)
+    if 'errors' in rawFilePaths: return Failed(result=rawFilePaths)
+    log(f"Dados salvos localmente em {filePath} com sucesso!")
+    rawFilePaths['rawFilePaths'].append(filePath)
     return rawFilePaths
 
 @task
@@ -152,9 +151,9 @@ def parse_data_into_dataframes(rawFilePaths: dict) -> pd.DataFrame:
                 'content': pd.DataFrame,
                 ?'error': Possíveis erros propagados (string)
     """
-    if 'error' in rawFilePaths: return rawFilePaths
-
+    if isinstance(rawFilePaths, Failed): return Failed(result=rawFilePaths)
     parsedData = {}
+
     for rawfilePath in rawFilePaths['rawFilePaths']: 
         parsedData[rawfilePath] = {}
 
@@ -179,8 +178,8 @@ def parse_data_into_dataframes(rawFilePaths: dict) -> pd.DataFrame:
         else:
             raise ValueError('Formato de arquivo cru fora do esperado (.csv, .xlsx).')
 
-    if not 'errors' in parsedData:
-        log(f"Dados interpretados localmente em como DataFrame com sucesso!")
+    if 'errors' in parsedData: return Failed(result=parsedData)
+    log(f"Dados interpretados localmente em como DataFrame com sucesso!")
     return parsedData
 
 @task
@@ -198,11 +197,8 @@ def save_parsed_data_as_csv_locally(parsedData: dict) -> dict:
                 'parsedFilePaths': [caminhos para CSV locais (strings)],
                 ?'error': Possíveis erros propagados (string)
     """
-    if 'error' in parsedData: return parsedData
-    parsedFilePaths = {
-        'parsedFilePaths': []
-    }
-
+    if isinstance(parsedData, Failed): return Failed(result=parsedData)
+    parsedFilePaths = { 'parsedFilePaths': [] }
     try:
         for rawFilePath, data in parsedData.items(): 
             parsedFilePath = f'{rawFilePath}_parsed.csv'.lower()
@@ -211,9 +207,9 @@ def save_parsed_data_as_csv_locally(parsedData: dict) -> dict:
         error = f"Falha ao salvar dados tratados localmente como .csv {rawFilePath}: {e}"
         log_and_propagate_error(error, parsedData)
 
-    if not 'error' in parsedFilePaths:
-        log(f"Dados tratados em CSV salvos localmente em {parsedFilePath} com sucesso!")
-        parsedFilePaths['parsedFilePaths'].append(parsedFilePath)
+    if 'error' in parsedFilePaths: return Failed(result=parsedFilePaths)
+    log(f"Dados tratados em CSV salvos localmente em {parsedFilePath} com sucesso!")
+    parsedFilePaths['parsedFilePaths'].append(parsedFilePath)
     return parsedFilePaths
 
 @task
@@ -231,10 +227,9 @@ def upload_csv_to_database(parsedFilePaths: dict, tableName: str) -> dict:
                 'tables': [Nome das tabelas atualizadas no banco de dados (strings)],
                 ?'error': Possíveis erros propagados (string)
     """
-    if 'error' in parsedFilePaths: return parsedFilePaths
-    status = {
-        'tables': []
-    }
+    if isinstance(parsedFilePaths, Failed): return Failed(result=parsedFilePaths)
+    status = {'tables': [] }
+
     # Conecte com o PostgresSQL
     try:
         conn = psycopg2.connect(
@@ -313,12 +308,12 @@ def upload_csv_to_database(parsedFilePaths: dict, tableName: str) -> dict:
     cur.close()
     conn.close()
 
-    if not 'error' in status:
-        log(f"Feito upload de dados do arquivo {parsedFile} no PostgresSQL com sucesso!")
-        status['tables'].append(tableName)
+    if 'error' in status: return Failed(result=status)
+    log(f"Feito upload de dados do arquivo {parsedFile} no PostgresSQL com sucesso!")
+    status['tables'].append(tableName)
     return status
 
-@task
+@task(trigger=all_finished)
 def upload_logs_to_database(status: dict, logFilePath: str, tableName: str) -> dict:
     """
     Faz o upload dos logs da pipeline para o PostgresSQL.
@@ -334,10 +329,7 @@ def upload_logs_to_database(status: dict, logFilePath: str, tableName: str) -> d
                 'tables': Nome das tabelas atualizadas no banco de dados,
                 ?'error': Possíveis erros propagados (string)
     """
-    logStatus = {
-        'tables': []
-    }
-
+    logStatus = { 'tables': [] }
     # Conecte com o PostgresSQL
     try:
         conn = psycopg2.connect(
@@ -393,11 +385,11 @@ def upload_logs_to_database(status: dict, logFilePath: str, tableName: str) -> d
         conn.close()
         return logStatus
     
-    if not "error" in logStatus:
-        log(f"Feito upload de logs do arquivo {logFilePath} na tabela {tableName} PostgresSQL com sucesso!")
-        logStatus['tables'].append(tableName)
+    if "error" in logStatus: return Failed(result=logStatus)
+    log(f"Feito upload de logs do arquivo {logFilePath} na tabela {tableName} PostgresSQL com sucesso!")
+    logStatus['tables'].append(tableName)
     return logStatus
-
+        
 @task
 def rename_columns_following_style_manual() -> dict:
     log('@TODO')
@@ -485,11 +477,10 @@ def setup_log_file(logFilePath: str) -> dict:
     except Exception as e:
         error = f"Falha na configuração do arquivo de log {logFilePath}: {e}"
         log_and_propagate_error(error, logs)
-        return logs
     
-    if not "error" in logs:
-        log(f'Configuração do arquivo de log {logFilePath} realizada com sucesso.')
-        logs['logFilePath'] = logFilePath
+    if "error" in logs: return Failed(result=logs)
+    log(f'Configuração do arquivo de log {logFilePath} realizada com sucesso.')
+    logs['logFilePath'] = logFilePath
     return logs
 
 @task
@@ -505,7 +496,8 @@ def clean_log_file(logFilePath: dict) -> dict:
                 'logFilePath': Caminho para o arquivo de log (string),
                 ?'error': Possíveis erros propagados (string)
     """
-    if 'error' in logFilePath: return logFilePath
+    
+    if isinstance(logFilePath, Failed): return Failed(result=logFilePath)
     cleanStart = {}
 
     try:
@@ -516,9 +508,8 @@ def clean_log_file(logFilePath: dict) -> dict:
     except Exception as e:
         error = f"Falha na limpeza do arquivo de log local {path}: {e}"
         log_and_propagate_error(error, cleanStart)
-        return cleanStart
 
-    if not "error" in cleanStart:
-        log(f'Limpeza do arquivo de log local {path} realizada com sucesso.')
-        cleanStart['logFilePath'] = path
+    if "error" in cleanStart: return Failed(result=cleanStart)
+    log(f'Limpeza do arquivo de log local {path} realizada com sucesso.')
+    cleanStart['logFilePath'] = path
     return cleanStart
