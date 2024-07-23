@@ -13,7 +13,8 @@ from tasks import (
     upload_logs_to_database,
 
     rename_columns_following_style_manual,
-    set_columns_types
+    set_columns_types,
+    run_dbt_test
 )
 
 # Executar captura e materialização a cada ~4 meses.
@@ -37,11 +38,11 @@ with Flow("Dados Abertos de Terceirizados de Órgãos Federais - Captura") as ca
 
 with Flow("Dados Abertos de Terceirizados de Órgãos Federais - Materialização (DBT)") as materialize:
     # # SETUP #
-    clean_log_file("flow_logs.txt")
+    # clean_log_file("flow_logs.txt")
 
-    columns = set_columns_types()
-    columns = rename_columns_following_style_manual()
-
+    # columns = set_columns_types()
+    # columns = rename_columns_following_style_manual()
+    run_dbt_test()
 
 # # Executar captura e materialização de dados históricos sem necessidade, a princípio, de re-execução posterior
 # with Flow("Dados Abertos de Terceirizados de Órgãos Federais - Captura dos Dados Históricos") as captureAll:

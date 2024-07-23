@@ -1,20 +1,22 @@
-name: desafio_data_eng
+name: 'desafio_data_eng'
+version: 1.0.2 # Versão do Projeto
+config-version: 2  # Versão da Configuração
 
-version: 1.0.0
 profile: local_profile
 
-# This specifies where DBT will look for models
 model-paths: ["models"]
 
 clean-targets:         # directories to be removed by `dbt clean`
   - "target"
   - "dbt_packages"
 
-# Define the models structure
+
+# Estrutura dos Modelos
 models:
   desafio_data_eng:
     staging:
-      materialized: view
+      +database: "{{ var('database') }}"
+      materialized: table
     marts:
       materialized: table
 

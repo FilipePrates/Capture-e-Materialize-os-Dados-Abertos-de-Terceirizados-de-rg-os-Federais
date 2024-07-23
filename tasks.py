@@ -1,6 +1,7 @@
 # as funções que serão utilizadas no Flow.
 import logging
 import os
+import subprocess
 
 import pandas as pd
 from bs4 import BeautifulSoup
@@ -504,7 +505,6 @@ def clean_log_file(logFilePath: dict) -> dict:
         path = logFilePath['logFilePath']
         with open(path, 'w') as file:
             pass
-        print(10/0)
     except Exception as e:
         error = f"Falha na limpeza do arquivo de log local {path}: {e}"
         log_and_propagate_error(error, cleanStart)
@@ -513,3 +513,28 @@ def clean_log_file(logFilePath: dict) -> dict:
     log(f'Limpeza do arquivo de log local {path} realizada com sucesso.')
     cleanStart['logFilePath'] = path
     return cleanStart
+
+@task
+def run_dbt_test():
+    dbtResult = {}
+    originalDir = os.getcwd()
+    DB_NAME = os.getenv("DB_NAME")
+
+    dbtDir = "/dbt"
+    try:
+        os.chdir(f'{originalDir}/{dbtDir}')
+        result = subprocess.run(["dbt", "run"
+        , "--vars", f"database: {DB_NAME}"], capture_output=True, text=True)
+        log(result)
+        if result.returncode != 0:
+            raise Exception(result.stderr)
+    except Exception as e:
+        error = f"Falha na transformação (DBT): {e}"
+        log_and_propagate_error(error, dbtResult)
+    finally:
+        os.chdir(originalDir)
+    
+    if "error" in dbtResult: return Failed(result=dbtResult)
+    log(f'Transformação realizada com sucesso.')
+    dbtResult['result'] = result
+    return dbtResult

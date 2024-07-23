@@ -1,0 +1,8 @@
+version: 2
+
+sources:
+  - name: cgu_terceirizados__public
+    database: cgu_terceirizados
+    schema: public
+    tables:
+      - name: raw
