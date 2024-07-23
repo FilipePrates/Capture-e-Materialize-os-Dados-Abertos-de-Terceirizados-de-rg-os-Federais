@@ -12,19 +12,18 @@ from tasks import (
     upload_csv_to_database,
     upload_logs_to_database,
 
-    rename_columns_following_style_manual,
-    set_columns_types,
-    run_dbt_test
+    run_dbt
 )
 
-# Executar captura e materialização a cada ~4 meses.
+# Executar Captura e Materialização a cada ~4 meses.
 with Flow("Dados Abertos de Terceirizados de Órgãos Federais - Captura") as capture:
     # # SETUP #
-    logFilePath = setup_log_file("flow_logs.txt")
+    logFilePath = setup_log_file("logs.txt")
     cleanStart = clean_log_file(logFilePath)
 
     # # EXTRACT #
     rawData = download_new_cgu_terceirizados_data(cleanStart)
+    # @TODO branch: if already had downloaded - reschedule for tomorrow
     rawFilePaths = save_raw_data_locally(rawData)
     
     # # CLEAN #
@@ -33,18 +32,22 @@ with Flow("Dados Abertos de Terceirizados de Órgãos Federais - Captura") as ca
 
     # LOAD #
     status = upload_csv_to_database(parsedFilePaths, "raw")
-    logStatus = upload_logs_to_database(status, "flow_logs.txt", "logs__prefect_flow")
+    logStatus = upload_logs_to_database(status, "logs.txt", "logs__capture")
 
 
 with Flow("Dados Abertos de Terceirizados de Órgãos Federais - Materialização (DBT)") as materialize:
     # # SETUP #
-    # clean_log_file("flow_logs.txt")
+    logFilePath = setup_log_file("logs.txt")
+    cleanStart = clean_log_file(logFilePath)
 
-    # columns = set_columns_types()
+    # TRANSFORM #
+    columns = run_dbt(cleanStart)
     # columns = rename_columns_following_style_manual()
-    run_dbt_test()
 
-# # Executar captura e materialização de dados históricos sem necessidade, a princípio, de re-execução posterior
+    #LOAD
+    logStatus = upload_logs_to_database(columns, "logs.txt", "logs__materialize")
+
+# Executar captura de dados históricos
 # with Flow("Dados Abertos de Terceirizados de Órgãos Federais - Captura dos Dados Históricos") as captureAll:
 #     # # SETUP #
 #     # # EXTRACT #

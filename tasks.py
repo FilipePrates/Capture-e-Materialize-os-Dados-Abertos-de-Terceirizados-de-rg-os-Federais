@@ -387,76 +387,52 @@ def upload_logs_to_database(status: dict, logFilePath: str, tableName: str) -> d
         return logStatus
     
     if "error" in logStatus: return Failed(result=logStatus)
-    log(f"Feito upload de logs do arquivo {logFilePath} na tabela {tableName} PostgresSQL com sucesso!")
+    log(f"Feito upload do arquivo de log local {logFilePath} na tabela {tableName} PostgresSQL com sucesso!")
     logStatus['tables'].append(tableName)
     return logStatus
         
 @task
-def rename_columns_following_style_manual() -> dict:
-    log('@TODO')
+def run_dbt(cleanStart: dict) -> dict:
+    """
+    Realiza transformações com DBT no schema staging do PostgresSQL:
+        1: standard_null: Define padrão de variáveis Nulas por coluna,
+        2: casted: Define tipos das colunas
 
-@task
-def set_columns_types() -> dict:
-    log('@TODO')
+    Args:
+        cleanStart: Dicionário contendo chaves-valores:
+                'logFilePath': Caminho para o arquivo de log (string),
+                ?'error': Possíveis erros propagados (string)
+    Returns:
+        dict: Dicionário contendo chaves-valores:
+                'tables': Nome das tabelas atualizadas no banco de dados,
+                ?'error': Possíveis erros propagados (string)
+    """
+    if isinstance(cleanStart, Failed): return Failed(result=cleanStart)
+    dbtResult = {}
+    originalDir = os.getcwd()
+    dbtDir = "/dbt"
+    DB_NAME = os.getenv("DB_NAME")
+    try:
+        os.chdir(f'{originalDir}/{dbtDir}')
+        result = subprocess.run(["dbt", "run"
+        , "--vars", f"database: {DB_NAME}"], capture_output=True, text=True)
+        if result.returncode != 0:
+            raise Exception(result.stderr)
+    except Exception as e:
+        error = f"Falha na transformação (DBT): {e} {result} "
+        log_and_propagate_error(error, dbtResult)
+    finally:
+        os.chdir(originalDir)
+    
+    if "error" in dbtResult: return Failed(result=dbtResult)
+    log(f'Transformação realizada com sucesso. {result.stdout}')
+    dbtResult['result'] = result
+    return dbtResult
 
 
 # @task
 # def download_all_available_data() -> dict:
     # """
-    # Baixa dados de terceirizados da Controladoria Geral da União de todos os anos
-    #   https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/terceirizados
-    # e retorna um texto em formato CSV.
-
-    # Returns:
-    #     dict: Dicionário com chaves sendo f"{mes}_{ano}", e valores sendo um dicionário contendo o conteúdo baixado, e o tipo do arquivo.
-    # """
-
-    # response = requests.get(URL)
-    # soup = BeautifulSoup(response.content, 'html.parser')
-    # files = {}
-
-    # # Ache as listas anuais com links para download de dados
-    # headers = soup.find_all('h3')
-    # for header in headers:
-
-    #     # Colete o ano do cabeçário da lista
-    #     year = header.get_text()
-    #     ul = header.find_next('ul')
-    #     if ul:
-    #         links = ul.find_all('a')
-    #         for link in links:
-
-    #             # Colete os meses disponíveis na lista do ano
-    #             month_text = link.get_text()
-    #             if month_text in months:
-    #                 file_url = link['href']
-
-    #                 for attempt in range(2):  # Caso download falhe, tentativa de recaptura imediata
-
-    #                     # Baixe os dados contidos no link do mês
-    #                     response = requests.get(file_url)
-    #                     if response.status_code == 200:
-    #                         log(f'Dados referentes ao mês de {month_text} do ano {year} baixados com sucesso!')
-
-    #                         content_type = response.headers.get('Content-Type', '')
-    #                         if 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' in content_type or \
-    #                             'text/csv' in content_type or \
-    #                             'application/vnd.ms-excel' in content_type:
-
-    #                             # Salve o arquivo baixado, sua extensão e ano referente para tratamento posterior
-    #                             file_extension = 'xlsx' if 'spreadsheetml.sheet' in content_type else 'csv'
-    #                             files[f"{month_text}_{year}"] = {'content': response.content, 'type': file_extension, 'year': year}
-    #                             break
-
-    #                     else: # Caso download falhe, tentativa de recaptura imediata.
-    #                         log(f"Tentativa {attempt + 1}: Falha ao baixar dados referentes à {month_text}/{year}. Status code: {response.status_code}")
-
-    #                         if attempt == 1:
-    #                             log_and_propagate_error(f"Falha ao baixar dados referentes à {month_text}/{year} após tentativa(s) de recaptura.",
-    #                                                     files)
-
-    # return files
-
 
 @task
 def setup_log_file(logFilePath: str) -> dict:
@@ -513,28 +489,3 @@ def clean_log_file(logFilePath: dict) -> dict:
     log(f'Limpeza do arquivo de log local {path} realizada com sucesso.')
     cleanStart['logFilePath'] = path
     return cleanStart
-
-@task
-def run_dbt_test():
-    dbtResult = {}
-    originalDir = os.getcwd()
-    DB_NAME = os.getenv("DB_NAME")
-
-    dbtDir = "/dbt"
-    try:
-        os.chdir(f'{originalDir}/{dbtDir}')
-        result = subprocess.run(["dbt", "run"
-        , "--vars", f"database: {DB_NAME}"], capture_output=True, text=True)
-        log(result)
-        if result.returncode != 0:
-            raise Exception(result.stderr)
-    except Exception as e:
-        error = f"Falha na transformação (DBT): {e}"
-        log_and_propagate_error(error, dbtResult)
-    finally:
-        os.chdir(originalDir)
-    
-    if "error" in dbtResult: return Failed(result=dbtResult)
-    log(f'Transformação realizada com sucesso.')
-    dbtResult['result'] = result
-    return dbtResult

@@ -2,11 +2,21 @@ name: staging
 version: 2
 
 models:
-  - name: casted
-    description: "Dados de pessoal terceirizado de órgãos do Poder Executivo Federal, incluindo autarquias e fundações públicas, no padrão de estilo do Escritório de Dados"
+  - name: raw
+    description: "Dados Abertos de Terceirizados de Órgãos Federais Crus"
+
+  - name: cleaned
+    description: "Dados Abertos de Terceirizados de Órgãos Federais com NULL padrão"
     columns:
       - name: id_terc
-        description: "The primary key for this table"
-        data_tests:
+        description: "ID do Terceirizado"
+        tests:
           - unique
           - not_null
+    depends_on:
+      - ref('raw')
+
+  - name: transformed
+    description: "Dados Abertos de Terceirizados de Órgãos Federais com tipos de colunas definidos"
+    depends_on:
+      - ref('cleaned')
