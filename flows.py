@@ -28,7 +28,7 @@ with Flow("Dados Abertos de Terceirizados de Órgãos Federais - Captura") as ca
 
     # LOAD #
     status = upload_csv_to_database(parsedFilePaths, "raw")
-    #logStatus = upload_logs_to_database(status)
+    logStatus = upload_logs_to_database("flow_logs.txt")
     
 
 with Flow("Dados Abertos de Terceirizados de Órgãos Federais - Materialização (DBT)") as materialize:

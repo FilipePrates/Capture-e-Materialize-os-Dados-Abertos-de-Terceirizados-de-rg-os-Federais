@@ -27,7 +27,7 @@ def download_new_cgu_terceirizados_data() -> dict:
     Returns:
         dict: Dicionário contendo chaves-valores:
                 'rawData': Conteúdo do arquivo (bytes),
-                'error': Possíveis erros propagados (string)
+                ?'error': Possíveis erros propagados (string)
     """
     rawData = {}
     try:
@@ -89,11 +89,11 @@ def save_raw_data_locally(rawData: dict) -> dict:
     Args:
         dict: Dicionário contendo chaves-valores:
                 'rawData': Conteúdo do arquivo (bytes),
-                'error': Possíveis erros propagados (string)    
+                ?'error': Possíveis erros propagados (string)    
     Returns:
         dict: Dicionário contendo chaves-valores:
                 'rawFilePaths': caminhos dos arquivos locais salvos (list de strings),
-                'error': Possíveis erros propagados (string)
+                ?'error': Possíveis erros propagados (string)
     """
     rawFilePaths = {
         'rawFilePaths': []
@@ -131,13 +131,13 @@ def parse_data_into_dataframes(rawFilePaths: dict) -> pd.DataFrame:
     Args:
         rawFilePaths (dict): Dicionário contendo chaves-valores:
                 'rawFilePaths': caminhos dos arquivos locais salvos (list de strings),
-                'error': Possíveis erros propagados (string)
+                ?'error': Possíveis erros propagados (string)
 
     Returns:
         dict: Dicionário com chaves sendo os caminhos dos arquivos locais crus, e valores
           sendo dicionários contendo chaves-valores:
                 'content': pd.DataFrame,
-                'error': Possíveis erros propagados (string)
+                ?'error': Possíveis erros propagados (string)
     """
     parsedData = {}
     for rawfilePath in rawFilePaths['rawFilePaths']: 
@@ -174,11 +174,11 @@ def save_parsed_data_as_csv_locally(parsedData: dict) -> dict:
         dict: Dicionário com chaves sendo os caminhos dos arquivos locais crus, e valores
           sendo dicionários contendo chaves-valores:
                 'content': pd.DataFrame,
-                'error': Possíveis erros propagados (string)
+                ?'error': Possíveis erros propagados (string)
     Returns:
         dict: Dicionário contendo chaves-valores:
                 'parsedFilePaths': caminhos para CSV locais (list de strings),
-                'error': Possíveis erros propagados (string)
+                ?'error': Possíveis erros propagados (string)
     """
     parsedFilePaths = {
         'parsedFilePaths': []
@@ -204,11 +204,11 @@ def upload_csv_to_database(parsedFilePaths: dict, tableName: str) -> dict:
     Args:
         dict: Dicionário contendo chaves-valores:
                 'parsedFilePaths': caminhos para CSV locais (list de strings),
-                'error': Possíveis erros propagados (string)
+                ?'error': Possíveis erros propagados (string)
     Returns:
         dict: Dicionário contendo chaves-valores:
                 'tables': Nome das tabelas atualizadas no banco de dados,
-                'error': Possíveis erros propagados (string)
+                ?'error': Possíveis erros propagados (string)
     """
     status = {
         'tables': []
@@ -231,86 +231,88 @@ def upload_csv_to_database(parsedFilePaths: dict, tableName: str) -> dict:
         conn.close()
         return status
 
-    # Leia os arquivos
     for parsedFile in parsedFilePaths['parsedFilePaths']:
+        # Leia o arquivo
         try:
-            df = pd.read_csv(parsedFile)
-            # tableName = f"{tableName}_{re.match(r"^[^.]*", parsedFile)}" # Gere o nome da tabela único por arquivo baixado
-            # Crie a tabela tableName no PostgresSQL, caso não exista
-            try:
-                createTableQuery = sql.SQL("""
-                    CREATE TABLE IF NOT EXISTS {table} (
-                        {columns}
-                    )
-                """).format(
-                    table= sql.Identifier(tableName),
-                    columns=sql.SQL(', ').join([
-                        sql.SQL('{} {}').format(
-                            sql.Identifier(col), sql.SQL('TEXT')
-                        ) for col in df.columns
-                    ])
-                )
-                log(createTableQuery)
-                cur.execute(createTableQuery)
-                conn.commit()
-
-            except Exception as e:
-                error = f"Falha ao criar tabela {tableName} no PostgreSQL: {e}"
-                log_and_propagate_error(error, status)
-                conn.rollback()
-                cur.close()
-                conn.close()
-                return status
-
-            # Insere os dados tratados na tabela tableName
-            try:
-                for index, row in df.iterrows():
-                    insertValuesQuery = sql.SQL("""
-                        INSERT INTO {table} ({fields})
-                        VALUES ({values})
-                    """).format(
-                        table=sql.Identifier(tableName),
-                        fields=sql.SQL(', ').join(map(sql.Identifier, df.columns)),
-                        values=sql.SQL(', ').join(sql.Placeholder() * len(df.columns))
-                    )
-                    cur.execute(insertValuesQuery, list(row))
-                    
-            except Exception as e:
-                error = f"Falha ao inserir dados na tabela {tableName} no PostgreSQL: {e}"
-                log_and_propagate_error(error, status)
-                conn.rollback()
-                cur.close()
-                conn.close()
-                return status
-
-            conn.commit()
-            log(f"Dados upload no PostgresSQL na tabela {tableName} com sucesso!")
-            status['tables'].append(tableName)
-            
+            df = pd.read_csv(parsedFile) # low_memory=False
         except Exception as e:
-            error = f"Falha no upload do arquivo {parsedFile} para o PostgreSQL: {e}"
+            error = f"Falha ao ler o arquivo {parsedFile}: {e}"
             log_and_propagate_error(error, status)
             conn.rollback()
+            cur.close()
+            conn.close()
+            return status
+        
+        # Crie a tabela tableName no PostgresSQL, caso não exista
+        try:
+            createTableQuery = sql.SQL("""
+                CREATE TABLE IF NOT EXISTS {table} (
+                    {columns}
+                )
+            """).format(
+                table= sql.Identifier(tableName),
+                columns=sql.SQL(', ').join([
+                    sql.SQL('{} {}').format(
+                        sql.Identifier(col), sql.SQL('TEXT')
+                    ) for col in df.columns
+                ])
+            )
+            log(createTableQuery)
+            cur.execute(createTableQuery)
+            conn.commit()
+        except Exception as e:
+            error = f"Falha ao criar tabela {tableName} no PostgreSQL: {e}"
+            log_and_propagate_error(error, status)
+            conn.rollback()
+            cur.close()
+            conn.close()
+            return status
+
+        # Insere os dados tratados na tabela tableName
+        try:
+            for index, row in df.iterrows():
+                insertValuesQuery = sql.SQL("""
+                    INSERT INTO {table} ({fields})
+                    VALUES ({values})
+                """).format(
+                    table=sql.Identifier(tableName),
+                    fields=sql.SQL(', ').join(map(sql.Identifier, df.columns)),
+                    values=sql.SQL(', ').join(sql.Placeholder() * len(df.columns))
+                )
+                cur.execute(insertValuesQuery, list(row))
+            conn.commit()
+
+            log(f"Feito upload de dados do arquivo {parsedFile} no PostgresSQL com sucesso!")
+            status['tables'].append(tableName)
+        except Exception as e:
+            error = f"Falha ao inserir dados do arquivo {parsedFile} na tabela {tableName} no PostgreSQL: {e}"
+            log_and_propagate_error(error, status)
+            conn.rollback()
+            cur.close()
+            conn.close()
+            return status
 
     cur.close()
     conn.close()
     return status
 
 @task
-def upload_logs_to_database(status: dict) -> dict:
+def upload_logs_to_database(logFilePath: str) -> dict:
     """
-    Faz o upload dos logs da pipeline de Captura para o PostgresSQL.
+    Faz o upload dos logs da pipeline para o PostgresSQL.
 
     Args:
-        dict: Dicionário contendo chaves-valores:
-                'parsedFilePaths': caminhos para CSV locais (list de strings),
-                'error': Possíveis erros propagados (string)
-    
+        logFilePath: Caminho para o arquivo de log (string)    
     Returns:
         dict: Dicionário contendo chaves-valores:
                 'tables': Nome das tabelas atualizadas no banco de dados,
-                'error': Possíveis erros propagados (string)
+                ?'error': Possíveis erros propagados (string)
     """
+    status = {
+        'tables': []
+    }
+    tableName = os.getenv("LOGS_TABLE_NAME")
+
     # Conecte com o PostgresSQL
     try:
         conn = psycopg2.connect(
@@ -321,7 +323,6 @@ def upload_logs_to_database(status: dict) -> dict:
             password=os.getenv("DB_PASSWORD")
         )
         cur = conn.cursor()
-
     except Exception as e:
         error = f"Falha ao conectar com o PostgreSQL: {e}"
         log_and_propagate_error(error, status)
@@ -331,40 +332,46 @@ def upload_logs_to_database(status: dict) -> dict:
         return status
 
     try:
-    
-        conn = psycopg2.connect(
-            host=os.getenv("DB_HOST"),
-            port=os.getenv("DB_PORT"),
-            dbname=os.getenv("DB_NAME"),
-            user=os.getenv("DB_USER"),
-            password=os.getenv("DB_PASSWORD")
-        )
-        cur = conn.cursor()
-
-        # Create table if it does not exist
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS flow_logs (
-                id SERIAL PRIMARY KEY,
-                flow_name TEXT,
-                log_message TEXT,
-                log_level TEXT,
-                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        # Crie a tabela de logs no PostgreSQL, caso não exista
+        create_table_query = sql.SQL("""
+            CREATE TABLE IF NOT EXISTS {table} (
+                log_id SERIAL PRIMARY KEY,
+                log_content TEXT,
+                log_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
-        """)
-
-        # Insert logs into the table
-        insert_query = """
-            INSERT INTO flow_logs (flow_name, log_message, log_level)
-            VALUES (%s, %s, %s)
-        """
-        cur.executemany(insert_query, [(flow_name, log['message'], log['level']) for log in logs])
-
-        # Commit the transaction
+        """).format(table=sql.Identifier(tableName))
+        cur.execute(create_table_query)
         conn.commit()
+    except Exception as e:
+        error = f"Falha ao criar tabela de {tableName} no PostgreSQL: {e}"
+        log_and_propagate_error(error, status)
+        conn.rollback()
         cur.close()
         conn.close()
+        return status
+    
+    # Leia o arquivo de log e insira os registros na tabela
+    try:
+        with open(logFilePath, 'r') as file:
+            for line in file:
+                insert_log_query = sql.SQL("""
+                    INSERT INTO {table} (log_content)
+                    VALUES (%s)
+                """).format(table=sql.Identifier(tableName))
+                cur.execute(insert_log_query, [line])
+        conn.commit()
     except Exception as e:
-        print(f"Error uploading logs to database: {e}")
+        error = f"Falha ao inserir logs na tabela de {tableName} no PostgreSQL: {e}"
+        log_and_propagate_error(error, status)
+        conn.rollback()
+        cur.close()
+        conn.close()
+        return status
+    
+    log(f"Feito upload de logs do arquivo {logFilePath} na tabela {tableName} PostgresSQL com sucesso!")
+    status['tables'].append("logs")
+
+    return status
 
 @task
 def rename_columns_following_style_manual() -> dict:
@@ -440,3 +447,5 @@ def extract_year_month_from_path(filePath):
         month = match.group(2)
         return year, month
     return None, None
+
+# tableName = f"{tableName}_{re.match(r"^[^.]*", parsedFile)}" # Gere o nome da tabela único por arquivo baixado

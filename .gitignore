@@ -1,6 +1,7 @@
 .env
 *.csv
 *.xlsx
+*.txt
 __pycache__/
 dbt/target/
 dbt/dbt_packages/
