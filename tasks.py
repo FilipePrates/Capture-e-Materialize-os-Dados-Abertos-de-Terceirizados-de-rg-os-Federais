@@ -7,6 +7,8 @@ from prefect import task
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
+from dotenv import load_dotenv
+load_dotenv()
 
 import psycopg2
 from psycopg2 import sql
@@ -15,77 +17,79 @@ from psycopg2 import sql
 
 from utils import log, log_and_propagate_error
 
-from dotenv import load_dotenv
-load_dotenv()
 
 @task
 def download_new_cgu_terceirizados_data() -> dict:
-    """
-    Baixa dados recentes de terceirizados da Controladoria Geral da União
-      https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/terceirizados
-    e retorna um texto em formato CSV.
+    f"""
+    Baixa os Dados Abertos mais recentes dos Terceirizados de Órgãos Federais,
+      disponibilizado pela Controladoria Geral da União.
 
     Returns:
-        dict: Dicionário com chaves sendo o mês referente, e valores sendo um dicionário contendo bytes do conteúdo baixado, e o tipo do arquivo.
+        dict: Dicionário contendo chaves-valores:
+                'rawData': Conteúdo do arquivo (bytes),
+                'error': Possíveis erros propagados (string)
     """
     rawData = {}
-    URL = os.getenv("URL_FOR_DATA_DOWNLOAD")
-    response = requests.get(URL)
-    # Log site fora do ar
-    soup = BeautifulSoup(response.content, 'html.parser')
+    try:
+        # Acesse o portal de dados públicos da CGU
+        URL = os.getenv("URL_FOR_DATA_DOWNLOAD")
+        response = requests.get(URL)
+        soup = BeautifulSoup(response.content, 'html.parser')
 
-    # Ache os dados mais recentes disponíveis
-    headers = soup.find_all('h3')
-    if(len(headers) > 0):
-        header = headers[0]
-        year = header.get_text()
-        ul = header.find_next('ul')
-        if ul:
-            links = ul.find_all('a')
-            if(len(links) > 0):
-                link = links[0]
-
-                month_text = link.get_text()
-                # Checagem se já temos os dados do mês referente no Banco de Dados
-                    #   if yes -> log and reschedule for ~1day
-                    #   if no -> keep going and reschedule for ~4 months in the end
-                if month_text in ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho",
-                                   "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]:
+        # Encontre o link de download com os dados mais recentes
+        headers = soup.find_all('h3')
+        if(len(headers) > 0):
+            header = headers[0]
+            year = header.get_text()
+            ul = header.find_next('ul')
+            if ul:
+                links = ul.find_all('a')
+                if(len(links) > 0):
+                    link = links[0]
+                    monthText = link.get_text()
+                    # Cheque se já temos essa informação desse mês/ano (redis?),
+                    #   se sim break e fast re-schedule (~1 dia), lançamento de dados da cgu atrasado.,
+                    #   se não continue a pipeline e re-schedule ~4 meses.
                     file_url = link['href']
-                    for attempt in range(3):  # Caso download falhe, duas tentativas de recaptura imediata
+
+                    # Caso download falhe, duas tentativas de recaptura imediata
+                    for attempt in range(3):  
                         response = requests.get(file_url)
                         if response.status_code == 200:
-                            log(f'Dados referentes ao mês de {month_text} baixados com sucesso!')
+                            log(f'Dados referentes ao mês de {monthText} baixados com sucesso!')
 
+                            # Salve o arquivo baixado, sua extensão e ano referente para tratamento posterior
                             content_type = response.headers.get('Content-Type', '')
                             if 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' in content_type or \
                                 'text/csv' in content_type or \
                                 'application/vnd.ms-excel' in content_type:
-
-                                # Salve o arquivo baixado, sua extensão e ano referente para tratamento posterior
                                 file_extension = 'xlsx' if 'spreadsheetml.sheet' in content_type else 'csv'
-                                rawData[month_text] = {'content': response.content, 'type': file_extension, 'year': year}
+                                rawData['rawData'] = {'content': response.content, 'type': file_extension, 'year': year}
                                 break
-
-                            # else log formato não reconhecido
+                            else:
+                                raise ValueError('Formato de arquivo cru fora do esperado (.csv, .xlsx).')
 
                         else: # Caso download falhe, tentativa de recaptura imediata.
-                            log(f"Tentativa {attempt + 1}: Falha ao baixar dados referentes à {month_text}/{year}. Status code: {response.status_code}")
-
+                            log(f"Tentativa {attempt + 1}: Falha ao baixar dados referentes à {monthText}/{year}. Status code: {response.status_code}")
                             if attempt == 2:
-                                error = f"Falha ao baixar dados referentes à {month_text}/{year} após tentativa(s) de recaptura. Status code: {response.status_code}"
+                                error = f"Falha ao baixar dados referentes à {monthText}/{year} após tentativa(s) de recaptura. Status code: {response.status_code}"
                                 log_and_propagate_error(error, rawData)
-        # log erros não encontrou                    
-        return rawData
+
+    except Exception as e:
+        error = f"Falha ao baixar os dados crus mais recentes de {URL}. {e}"
+        log_and_propagate_error(error, rawData)
+                        
+    return rawData
 
 @task
 def save_raw_data_locally(rawData: dict) -> dict:
     """
-    Salva o DataFrame em um arquivo CSV.
+    Salva os dados crus localmente.
 
     Args:
-        rawData (dict): Dicionário com chaves sendo o mês referente, e valores sendo um dicionário contendo bytes do conteúdo baixado, e o tipo do arquivo.
-    
+        dict: Dicionário contendo chaves-valores:
+                'rawData': Conteúdo do arquivo (bytes),
+                'error': Possíveis erros propagados (string)    
     Returns:
         dict: Dicionário contendo chaves-valores:
                 'rawFilePaths': caminhos dos arquivos locais salvos (list de strings),
@@ -96,23 +100,25 @@ def save_raw_data_locally(rawData: dict) -> dict:
     }
     # Crie os diretórios no padrão de particionamento Hive
     try:
-        for month_text, content in rawData.items(): 
-            download_dir = os.path.join('adm_terceirizados_fed_local/', f"year={content['year']}/")
+        DB_NAME = os.getenv("DB_NAME")
+        for key, content in rawData.items(): 
+            download_dir = os.path.join(f'{DB_NAME}_local/', f"year={content['year']}/")
             os.makedirs(download_dir, exist_ok=True)
-            file_path = os.path.join(download_dir, f"month={month_text}.{content['type']}".lower())
-        log('Diretótio para armazenar localmente os dados no padrão de particionamento Hive criado com sucesso!')
+            filePath = os.path.join(download_dir, f"raw_data.{content['type']}".lower())
+            log(filePath)
+        log('Diretótio para armazenar localmente os dados crus criado com sucesso!')
     except Exception as e:
-        error = f"Falha ao criar diretótios para armazenar localmente dados referentes à {month_text}/{content['year']}. {e}"
+        error = f"Falha ao criar diretótios locais para armazenar os dados crus. {e}"
         log_and_propagate_error(error, rawFilePaths)
 
     # Salve localmente os dados baixados
     try:
-        with open(file_path, 'wb') as file:
+        with open(filePath, 'wb') as file:
             file.write(content['content'])
-            rawFilePaths['rawFilePaths'].append(file_path)
-            log(f"Dados salvos localmente em {file_path} com sucesso!")
+            rawFilePaths['rawFilePaths'].append(filePath)
+            log(f"Dados salvos localmente em {filePath} com sucesso!")
     except Exception as e:
-        error = f"Falha ao salvar os dados crus referentes à {month_text}/{content['year']} localmente. {e}"
+        error = f"Falha ao salvar os dados crus localmente. {e}"
         log_and_propagate_error(error, rawFilePaths)
 
     return rawFilePaths
@@ -120,25 +126,23 @@ def save_raw_data_locally(rawData: dict) -> dict:
 @task
 def parse_data_into_dataframes(rawFilePaths: dict) -> pd.DataFrame:
     """
-    Transforma os dados em formato CSV em um DataFrame do Pandas, para facilitar sua manipulação.
+    Transforma os dados crus em um DataFrame.
 
     Args:
         rawFilePaths (dict): Dicionário contendo chaves-valores:
-                'saved_files': caminhos dos arquivos locais salvos (list de strings),
+                'rawFilePaths': caminhos dos arquivos locais salvos (list de strings),
                 'error': Possíveis erros propagados (string)
 
     Returns:
-        dict: Dicionário com chaves sendo meses do ano, e valores sendo pd.DataFrames com o conteudo referente ao mês da chave.
-             Podendo conter chave error com erros propagados
+        dict: Dicionário com chaves sendo os caminhos dos arquivos locais crus, e valores
+          sendo dicionários contendo chaves-valores:
+                'content': pd.DataFrame,
+                'error': Possíveis erros propagados (string)
     """
     parsedData = {}
     for rawfilePath in rawFilePaths['rawFilePaths']: 
         parsedData[rawfilePath] = {}
 
-        # Extrai ano e mês de caminho do arquivo
-        year, month = extract_year_month_from_path(rawfilePath)
-        parsedData[rawfilePath]['year'] = year
-        parsedData[rawfilePath]['month'] = month
         # Determine o tipo do arquivo RAW local e leia o conteúdo
         if rawfilePath.endswith('.xlsx'):
             try:
@@ -148,7 +152,6 @@ def parse_data_into_dataframes(rawFilePaths: dict) -> pd.DataFrame:
             except Exception as e:
                 error = f"Falha ao interpretar como .xlsx os dados crus {rawfilePath}: {e}"
                 log_and_propagate_error(error, parsedData)
-                continue
         elif rawfilePath.endswith('.csv'):
             try:
                 df = pd.read_csv(rawfilePath)
@@ -157,25 +160,24 @@ def parse_data_into_dataframes(rawFilePaths: dict) -> pd.DataFrame:
             except Exception as e:
                 error = f"Falha ao interpretar como .csv os dados crus {rawfilePath}: {e}"
                 log_and_propagate_error(error, parsedData)
-                continue
+        else:
+            raise ValueError('Formato de arquivo cru fora do esperado (.csv, .xlsx).')
 
     return parsedData
 
 @task
 def save_parsed_data_as_csv_locally(parsedData: dict) -> dict:
     """
-    Salva o DataFrame em um arquivo CSV.
+    Salva DataFrames em um arquivo CSV local.
 
     Args:
-        parsedData (dict): Dicionário com chaves sendo os caminhos dos arquivos locais crus,
-          e valores sendo dicionários contendo chaves-valores:
-                'content': o conteúdo (pd.DataFrame),
-                'month': o mês referente (string),
-                'year': o ano referente (string).
-        
+        dict: Dicionário com chaves sendo os caminhos dos arquivos locais crus, e valores
+          sendo dicionários contendo chaves-valores:
+                'content': pd.DataFrame,
+                'error': Possíveis erros propagados (string)
     Returns:
         dict: Dicionário contendo chaves-valores:
-                'parsedFilePaths': caminhos para CSV locais, já tratados (list de strings),
+                'parsedFilePaths': caminhos para CSV locais (list de strings),
                 'error': Possíveis erros propagados (string)
     """
     parsedFilePaths = {
@@ -185,7 +187,7 @@ def save_parsed_data_as_csv_locally(parsedData: dict) -> dict:
         for rawFilePath, data in parsedData.items(): 
             parsedFilePath = f'{rawFilePath}_parsed.csv'.lower()
             data['dataframe'].to_csv(parsedFilePath, index=False)
-            log(f"Dados tratados salvos localmente em {parsedFilePath} com sucesso!")
+            log(f"Dados tratados em CSV salvos localmente em {parsedFilePath} com sucesso!")
             parsedFilePaths['parsedFilePaths'].append(parsedFilePath)
     except Exception as e:
         error = f"Falha ao salvar dados tratados localmente como .csv {rawFilePath}: {e}"
@@ -193,18 +195,16 @@ def save_parsed_data_as_csv_locally(parsedData: dict) -> dict:
 
     return parsedFilePaths
 
-
 @task
 def upload_csv_to_database(parsedFilePaths: dict, tableName: str) -> dict:
     """
-    Faz o upload dos arquivos tratados localizados em parsedFilePaths,
+    Faz o upload dos arquivos tratados, localizados em parsedFilePaths,
         para a tabela tableName no banco de dados PostgreSQL.
 
     Args:
-        parsedFilePaths (dict): Dicionário contendo chaves-valores:
-                'parsedFilePaths': caminhos para CSV locais, já tratados (list de strings),
+        dict: Dicionário contendo chaves-valores:
+                'parsedFilePaths': caminhos para CSV locais (list de strings),
                 'error': Possíveis erros propagados (string)
-    
     Returns:
         dict: Dicionário contendo chaves-valores:
                 'tables': Nome das tabelas atualizadas no banco de dados,
@@ -223,7 +223,6 @@ def upload_csv_to_database(parsedFilePaths: dict, tableName: str) -> dict:
             password=os.getenv("DB_PASSWORD")
         )
         cur = conn.cursor()
-
     except Exception as e:
         error = f"Falha ao conectar com o PostgreSQL: {e}"
         log_and_propagate_error(error, status)
@@ -232,43 +231,61 @@ def upload_csv_to_database(parsedFilePaths: dict, tableName: str) -> dict:
         conn.close()
         return status
 
-    # Para cada arquivo recebido:
+    # Leia os arquivos
     for parsedFile in parsedFilePaths['parsedFilePaths']:
         try:
-            # Leia o arquivo tratado
             df = pd.read_csv(parsedFile)
-
-            # Crie uma tabela tableName no PostgresSQL, caso não exista
-            createTableQuery = sql.SQL("""
-                CREATE TABLE IF NOT EXISTS {table} (
-                    {columns}
-                )
-            """).format(
-                table= sql.Identifier(tableName),
-                columns=sql.SQL(', ').join([
-                    sql.SQL('{} {}').format(
-                        sql.Identifier(col), sql.SQL('TEXT')
-                    ) for col in df.columns
-                ])
-            )
-            cur.execute(createTableQuery)
-            conn.commit()
-
-            # Insere os dados na tabela
-            for index, row in df.iterrows():
-                insertValuesQuery = sql.SQL("""
-                    INSERT INTO {table} ({fields})
-                    VALUES ({values})
+            # tableName = f"{tableName}_{re.match(r"^[^.]*", parsedFile)}" # Gere o nome da tabela único por arquivo baixado
+            # Crie a tabela tableName no PostgresSQL, caso não exista
+            try:
+                createTableQuery = sql.SQL("""
+                    CREATE TABLE IF NOT EXISTS raw.{table} (
+                        {columns}
+                    )
                 """).format(
-                    table=sql.Identifier(tableName),
-                    fields=sql.SQL(', ').join(map(sql.Identifier, df.columns)),
-                    values=sql.SQL(', ').join(sql.Placeholder() * len(df.columns))
+                    table= sql.Identifier(tableName),
+                    columns=sql.SQL(', ').join([
+                        sql.SQL('{} {}').format(
+                            sql.Identifier(col), sql.SQL('TEXT')
+                        ) for col in df.columns
+                    ])
                 )
-                cur.execute(insertValuesQuery, list(row))
-            conn.commit()
-            
-            status['tables'].append(tableName)
+                log(createTableQuery)
+                cur.execute(createTableQuery)
+                conn.commit()
 
+            except Exception as e:
+                error = f"Falha ao criar tabela {tableName} no PostgreSQL: {e}"
+                log_and_propagate_error(error, status)
+                conn.rollback()
+                cur.close()
+                conn.close()
+                return status
+
+            # Insere os dados tratados na tabela tableName
+            try:
+                for index, row in df.iterrows():
+                    insertValuesQuery = sql.SQL("""
+                        INSERT INTO {table} ({fields})
+                        VALUES ({values})
+                    """).format(
+                        table=sql.Identifier(tableName),
+                        fields=sql.SQL(', ').join(map(sql.Identifier, df.columns)),
+                        values=sql.SQL(', ').join(sql.Placeholder() * len(df.columns))
+                    )
+                    cur.execute(insertValuesQuery, list(row))
+            except Exception as e:
+                error = f"Falha ao inserir dados na tabela {tableName} no PostgreSQL: {e}"
+                log_and_propagate_error(error, status)
+                conn.rollback()
+                cur.close()
+                conn.close()
+                return status
+
+            conn.commit()
+            log(f"Dados upload no PostgresSQL na tabela {tableName} com sucesso!")
+            status['tables'].append(tableName)
+            
         except Exception as e:
             error = f"Falha no upload do arquivo {parsedFile} para o PostgreSQL: {e}"
             log_and_propagate_error(error, status)
@@ -276,12 +293,23 @@ def upload_csv_to_database(parsedFilePaths: dict, tableName: str) -> dict:
 
     cur.close()
     conn.close()
-
     return status
 
 @task
-def upload_logs_to_database() -> dict:
-    """Upload logs to the PostgreSQL database."""
+def upload_logs_to_database(status: dict) -> dict:
+    """
+    Faz o upload dos logs da pipeline de Captura para o PostgresSQL.
+
+    Args:
+        dict: Dicionário contendo chaves-valores:
+                'parsedFilePaths': caminhos para CSV locais (list de strings),
+                'error': Possíveis erros propagados (string)
+    
+    Returns:
+        dict: Dicionário contendo chaves-valores:
+                'tables': Nome das tabelas atualizadas no banco de dados,
+                'error': Possíveis erros propagados (string)
+    """
     # Conecte com o PostgresSQL
     try:
         conn = psycopg2.connect(
@@ -336,71 +364,72 @@ def upload_logs_to_database() -> dict:
         conn.close()
     except Exception as e:
         print(f"Error uploading logs to database: {e}")
+
 @task
 def rename_columns_following_style_manual() -> dict:
     log('@TODO')
 
 @task
-def set_columns_types(newColumns) -> dict:
+def set_columns_types() -> dict:
     log('@TODO')
 
 
 # @task
 # def download_all_available_data() -> dict:
-    """
-    Baixa dados de terceirizados da Controladoria Geral da União de todos os anos
-      https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/terceirizados
-    e retorna um texto em formato CSV.
+    # """
+    # Baixa dados de terceirizados da Controladoria Geral da União de todos os anos
+    #   https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/terceirizados
+    # e retorna um texto em formato CSV.
 
-    Returns:
-        dict: Dicionário com chaves sendo f"{mes}_{ano}", e valores sendo um dicionário contendo o conteúdo baixado, e o tipo do arquivo.
-    """
+    # Returns:
+    #     dict: Dicionário com chaves sendo f"{mes}_{ano}", e valores sendo um dicionário contendo o conteúdo baixado, e o tipo do arquivo.
+    # """
 
-    response = requests.get(URL)
-    soup = BeautifulSoup(response.content, 'html.parser')
-    files = {}
+    # response = requests.get(URL)
+    # soup = BeautifulSoup(response.content, 'html.parser')
+    # files = {}
 
-    # Ache as listas anuais com links para download de dados
-    headers = soup.find_all('h3')
-    for header in headers:
+    # # Ache as listas anuais com links para download de dados
+    # headers = soup.find_all('h3')
+    # for header in headers:
 
-        # Colete o ano do cabeçário da lista
-        year = header.get_text()
-        ul = header.find_next('ul')
-        if ul:
-            links = ul.find_all('a')
-            for link in links:
+    #     # Colete o ano do cabeçário da lista
+    #     year = header.get_text()
+    #     ul = header.find_next('ul')
+    #     if ul:
+    #         links = ul.find_all('a')
+    #         for link in links:
 
-                # Colete os meses disponíveis na lista do ano
-                month_text = link.get_text()
-                if month_text in months:
-                    file_url = link['href']
+    #             # Colete os meses disponíveis na lista do ano
+    #             month_text = link.get_text()
+    #             if month_text in months:
+    #                 file_url = link['href']
 
-                    for attempt in range(2):  # Caso download falhe, tentativa de recaptura imediata
+    #                 for attempt in range(2):  # Caso download falhe, tentativa de recaptura imediata
 
-                        # Baixe os dados contidos no link do mês
-                        response = requests.get(file_url)
-                        if response.status_code == 200:
-                            log(f'Dados referentes ao mês de {month_text} do ano {year} baixados com sucesso!')
+    #                     # Baixe os dados contidos no link do mês
+    #                     response = requests.get(file_url)
+    #                     if response.status_code == 200:
+    #                         log(f'Dados referentes ao mês de {month_text} do ano {year} baixados com sucesso!')
 
-                            content_type = response.headers.get('Content-Type', '')
-                            if 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' in content_type or \
-                                'text/csv' in content_type or \
-                                'application/vnd.ms-excel' in content_type:
+    #                         content_type = response.headers.get('Content-Type', '')
+    #                         if 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' in content_type or \
+    #                             'text/csv' in content_type or \
+    #                             'application/vnd.ms-excel' in content_type:
 
-                                # Salve o arquivo baixado, sua extensão e ano referente para tratamento posterior
-                                file_extension = 'xlsx' if 'spreadsheetml.sheet' in content_type else 'csv'
-                                files[f"{month_text}_{year}"] = {'content': response.content, 'type': file_extension, 'year': year}
-                                break
+    #                             # Salve o arquivo baixado, sua extensão e ano referente para tratamento posterior
+    #                             file_extension = 'xlsx' if 'spreadsheetml.sheet' in content_type else 'csv'
+    #                             files[f"{month_text}_{year}"] = {'content': response.content, 'type': file_extension, 'year': year}
+    #                             break
 
-                        else: # Caso download falhe, tentativa de recaptura imediata.
-                            log(f"Tentativa {attempt + 1}: Falha ao baixar dados referentes à {month_text}/{year}. Status code: {response.status_code}")
+    #                     else: # Caso download falhe, tentativa de recaptura imediata.
+    #                         log(f"Tentativa {attempt + 1}: Falha ao baixar dados referentes à {month_text}/{year}. Status code: {response.status_code}")
 
-                            if attempt == 1:
-                                log_and_propagate_error(f"Falha ao baixar dados referentes à {month_text}/{year} após tentativa(s) de recaptura.",
-                                                        files)
+    #                         if attempt == 1:
+    #                             log_and_propagate_error(f"Falha ao baixar dados referentes à {month_text}/{year} após tentativa(s) de recaptura.",
+    #                                                     files)
 
-    return files
+    # return files
 
 # Extrai ano e mês de caminho do arquivo através de expressões regulares.
 def extract_year_month_from_path(filePath):

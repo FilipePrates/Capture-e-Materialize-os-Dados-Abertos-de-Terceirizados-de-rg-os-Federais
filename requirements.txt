@@ -3,6 +3,7 @@ dbt-core==1.8.4
 dbt-postgres==1.8.2
 requests==2.26.0
 beautifulsoup4==4.12.3
+bs4
 pandas==2.2.2
 openpyxl==3.1.5
 datetime

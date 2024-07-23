@@ -71,3 +71,18 @@ Runtime Error
 [0m19:34:32.608453 [debug] [MainThread]: Command `dbt run` failed at 19:34:32.608348 after 0.08 seconds
 [0m19:34:32.608871 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7b91077b1330>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7b9105b7fe80>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7b9105b7fdc0>]}
 [0m19:34:32.609287 [debug] [MainThread]: Flushing usage events
+[0m22:13:59.261742 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7e35a94da860>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7e35a7bf1360>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7e35a7bf1300>]}
+
+
+============================== 22:13:59.267567 | 478092df-4ea9-4735-9e7a-968b915bbf6c ==============================
+[0m22:13:59.267567 [info ] [MainThread]: Running with dbt=1.8.4
+[0m22:13:59.269082 [debug] [MainThread]: running dbt with arguments {'printer_width': '80', 'indirect_selection': 'eager', 'log_cache_events': 'False', 'write_json': 'True', 'partial_parse': 'True', 'cache_selected_only': 'False', 'warn_error': 'None', 'version_check': 'True', 'debug': 'False', 'log_path': 'logs', 'profiles_dir': '/home/cliente/.dbt', 'fail_fast': 'False', 'use_colors': 'True', 'use_experimental_parser': 'False', 'empty': 'False', 'quiet': 'False', 'no_print': 'None', 'log_format': 'default', 'static_parser': 'True', 'warn_error_options': 'WarnErrorOptions(include=[], exclude=[])', 'introspect': 'True', 'target_path': 'None', 'invocation_command': 'dbt run', 'send_anonymous_usage_stats': 'True'}
+[0m22:13:59.270054 [error] [MainThread]: Encountered an error:
+Runtime Error
+  No dbt_project.yml found at expected path /home/cliente/Code/RIO/Desafio CIVITAS Data Engineer/dbt_project.yml
+  Verify that each entry within packages.yml (and their transitive dependencies) contains a file named dbt_project.yml
+  
+[0m22:13:59.271394 [debug] [MainThread]: Resource report: {"command_name": "run", "command_wall_clock_time": 0.07834598, "process_user_time": 1.433495, "process_kernel_time": 0.110583, "process_mem_max_rss": "85172", "process_in_blocks": "36040", "process_out_blocks": "8", "command_success": false}
+[0m22:13:59.272258 [debug] [MainThread]: Command `dbt run` failed at 22:13:59.272127 after 0.08 seconds
+[0m22:13:59.272748 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7e35a94da860>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7e35a7bf13f0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x7e35a7bf1330>]}
+[0m22:13:59.273241 [debug] [MainThread]: Flushing usage events
