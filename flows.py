@@ -3,7 +3,7 @@
 from prefect import Flow, Parameter
 
 from tasks import (
-    download_new_data,
+    download_new_cgu_terceirizados_data,
     save_raw_data_locally,
     parse_data_into_dataframes,
     save_parsed_data_as_csv_locally,
@@ -17,10 +17,8 @@ from tasks import (
 # Executar captura e materialização a cada ~4 meses.
 with Flow("Dados Abertos de Terceirizados de Órgãos Federais - Captura") as capture:
     # # SETUP #
-
-
     # # EXTRACT #
-    rawData = download_new_data()
+    rawData = download_new_cgu_terceirizados_data()
     rawFilePaths = save_raw_data_locally(rawData)
     
     # # CLEAN #
@@ -28,35 +26,35 @@ with Flow("Dados Abertos de Terceirizados de Órgãos Federais - Captura") as ca
     parsedFilePaths = save_parsed_data_as_csv_locally(parsedData)
 
     # LOAD #
-    # filenames = ['downloads/year=2024/month=Maio.xlsx_parsed.csv']
-    status = upload_csv_to_database(parsedFilePaths)
-    # upload_logs_to_database(status)
+    status = upload_csv_to_database(parsedFilePaths, "atual")
+    logStatus = upload_logs_to_database(status)
 
     # # DEPLOY? #
 
-with Flow("Dados Abertos de Terceirizados de Órgãos Federais - Materialização") as materialize:
-    # renomear colunas no estilo
-    # garantir tipagens
-    new_columns = rename_columns_following_style_manual()
-    status = set_columns_types(new_columns)
+
+with Flow("Dados Abertos de Terceirizados de Órgãos Federais - Materialização (DBT)") as materialize:
+    columns = rename_columns_following_style_manual()
+    status = set_columns_types(columns)
+
 
 # Executar captura e materialização de dados históricos sem necessidade, a princípio, de re-execução posterior
 with Flow("Dados Abertos de Terceirizados de Órgãos Federais - Captura dos Dados Históricos") as captureAll:
+    # # SETUP #
     # # EXTRACT #
-    raw_data = download_new_data()
-    raw_filepaths = save_raw_data_locally(raw_data)
+    #rawData = download_historic_cgu_terceirizados_data
+    rawFilePaths = save_raw_data_locally(rawData)
     
     # # CLEAN #
-    dataframes = parse_data_into_dataframes(raw_filepaths)
-    filenames = save_parsed_data_as_csv_locally(dataframes)
+    parsedData = parse_data_into_dataframes(rawFilePaths)
+    parsedFilePaths = save_parsed_data_as_csv_locally(parsedData)
 
     # LOAD #
-    # filenames = ['downloads/year=2024/month=Maio.xlsx_parsed.csv']
-    status = upload_csv_to_database(filenames)
-    # upload_logs_to_database(status)
+    status = upload_csv_to_database(parsedFilePaths, "historico")
+    logStatus = upload_logs_to_database(status)
+
+    # # DEPLOY? #
+
 
 with Flow("Dados Abertos de Terceirizados de Órgãos Federais - Materialização dos Dados Históricos") as materializeAll:
-    # renomear colunas no estilo
-    # garantir tipagens
-    new_columns = rename_columns_following_style_manual()
-    status = set_columns_types(new_columns)
+    columns = rename_columns_following_style_manual("historico")
+    status = set_columns_types(columns)

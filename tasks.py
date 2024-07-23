@@ -19,7 +19,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 @task
-def download_new_data() -> dict:
+def download_new_cgu_terceirizados_data() -> dict:
     """
     Baixa dados recentes de terceirizados da Controladoria Geral da União
       https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/terceirizados
@@ -195,9 +195,10 @@ def save_parsed_data_as_csv_locally(parsedData: dict) -> dict:
 
 
 @task
-def upload_csv_to_database(parsedFilePaths: dict) -> dict:
+def upload_csv_to_database(parsedFilePaths: dict, tableName: str) -> dict:
     """
-    Faz o Upload dos arquivos CSV para o banco de dados PostgreSQL.
+    Faz o upload dos arquivos tratados localizados em parsedFilePaths,
+        para a tabela tableName no banco de dados PostgreSQL.
 
     Args:
         parsedFilePaths (dict): Dicionário contendo chaves-valores:
@@ -208,30 +209,36 @@ def upload_csv_to_database(parsedFilePaths: dict) -> dict:
         dict: Dicionário contendo chaves-valores:
                 'tables': Nome das tabelas atualizadas no banco de dados,
                 'error': Possíveis erros propagados (string)
-    
     """
     status = {
         'tables': []
     }
+    # Conecte com o PostgresSQL
+    try:
+        conn = psycopg2.connect(
+            host=os.getenv("DB_HOST"),
+            port=os.getenv("DB_PORT"),
+            dbname=os.getenv("DB_NAME"),
+            user=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASSWORD")
+        )
+        cur = conn.cursor()
 
-    # Informações referentes à conexão com PostgreSQL vindas das variáveis de ambiente .env
-    conn = psycopg2.connect(
-        host=os.getenv("DB_HOST"),
-        port=os.getenv("DB_PORT"),
-        dbname=os.getenv("DB_NAME"),
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD")
-    )
-    cur = conn.cursor()
+    except Exception as e:
+        error = f"Falha ao conectar com o PostgreSQL: {e}"
+        log_and_propagate_error(error, status)
+        conn.rollback()
+        cur.close()
+        conn.close()
+        return status
 
-    for file in parsedFilePaths['parsedFilePaths']:
+    # Para cada arquivo recebido:
+    for parsedFile in parsedFilePaths['parsedFilePaths']:
         try:
-            # Extraia ano e mês de caminho do arquivo
-            year, month = extract_year_month_from_path(file)
-            tableName = f"year={year}/month={month}".lower()
+            # Leia o arquivo tratado
+            df = pd.read_csv(parsedFile)
 
-            # Leia o arquivo e crie uma tabela no PostgresSQL caso não exista
-            df = pd.read_csv(file)
+            # Crie uma tabela tableName no PostgresSQL, caso não exista
             createTableQuery = sql.SQL("""
                 CREATE TABLE IF NOT EXISTS {table} (
                     {columns}
@@ -247,7 +254,7 @@ def upload_csv_to_database(parsedFilePaths: dict) -> dict:
             cur.execute(createTableQuery)
             conn.commit()
 
-            # Insere dados
+            # Insere os dados na tabela
             for index, row in df.iterrows():
                 insertValuesQuery = sql.SQL("""
                     INSERT INTO {table} ({fields})
@@ -263,7 +270,7 @@ def upload_csv_to_database(parsedFilePaths: dict) -> dict:
             status['tables'].append(tableName)
 
         except Exception as e:
-            error = f"Falha no upload do arquivo {file} para o PostgreSQL: {e}"
+            error = f"Falha no upload do arquivo {parsedFile} para o PostgreSQL: {e}"
             log_and_propagate_error(error, status)
             conn.rollback()
 
@@ -274,8 +281,61 @@ def upload_csv_to_database(parsedFilePaths: dict) -> dict:
 
 @task
 def upload_logs_to_database() -> dict:
-    log('@TODO')
+    """Upload logs to the PostgreSQL database."""
+    # Conecte com o PostgresSQL
+    try:
+        conn = psycopg2.connect(
+            host=os.getenv("DB_HOST"),
+            port=os.getenv("DB_PORT"),
+            dbname=os.getenv("DB_NAME"),
+            user=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASSWORD")
+        )
+        cur = conn.cursor()
 
+    except Exception as e:
+        error = f"Falha ao conectar com o PostgreSQL: {e}"
+        log_and_propagate_error(error, status)
+        conn.rollback()
+        cur.close()
+        conn.close()
+        return status
+
+    try:
+    
+        conn = psycopg2.connect(
+            host=os.getenv("DB_HOST"),
+            port=os.getenv("DB_PORT"),
+            dbname=os.getenv("DB_NAME"),
+            user=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASSWORD")
+        )
+        cur = conn.cursor()
+
+        # Create table if it does not exist
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS flow_logs (
+                id SERIAL PRIMARY KEY,
+                flow_name TEXT,
+                log_message TEXT,
+                log_level TEXT,
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
+        # Insert logs into the table
+        insert_query = """
+            INSERT INTO flow_logs (flow_name, log_message, log_level)
+            VALUES (%s, %s, %s)
+        """
+        cur.executemany(insert_query, [(flow_name, log['message'], log['level']) for log in logs])
+
+        # Commit the transaction
+        conn.commit()
+        cur.close()
+        conn.close()
+    except Exception as e:
+        print(f"Error uploading logs to database: {e}")
 @task
 def rename_columns_following_style_manual() -> dict:
     log('@TODO')
