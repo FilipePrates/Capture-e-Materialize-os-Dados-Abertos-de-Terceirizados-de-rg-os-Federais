@@ -13,7 +13,24 @@ select
     nr_cpf,
     nm_terceirizado,
     nm_categoria_profissional,
-    nm_escolaridade,
+    case
+        when nm_escolaridade in (
+            'SEM EXIGENCIA',
+            'ALFABETIZADO',
+            'ENSINO FUNDAMENTAL INCOMPLETO',
+            'ENSINO FUNDAMENTAL COMPLETO',
+            'ENSINO MEDIO INCOMPLETO',
+            'ENSINO MEDIO COMPLETO',
+            'CURSO TECNICO COMPLETO',
+            'SUPERIOR INCOMPLETO',
+            'SUPERIOR COMPLETO',
+            'ESPECIALIZACAO/RESIDENCIA',
+            'POS GRADUACAO',
+            'MESTRADO',
+            'DOUTORADO'
+        ) then nm_escolaridade
+        else null
+    end as nm_escolaridade,
     nullif(nr_jornada, 'NI  ') as nr_jornada,
     nm_unidade_prestacao,
     vl_mensal_salario,
