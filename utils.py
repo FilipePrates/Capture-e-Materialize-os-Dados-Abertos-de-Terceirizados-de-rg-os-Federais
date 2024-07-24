@@ -18,11 +18,13 @@ def log(message) -> None:
     prefect.context.logger.info(f"\n{message}")
 
 def log_and_propagate_error(message, returnObj) -> None:
+    """Log e propaga falhas por erros"""
     returnObj['error'] = message
     log(message)
     raise FAIL(result=returnObj)
 
 def connect_to_postgresql():
+    """Conecta à base de dados PostgreSQL"""
     conn = psycopg2.connect(
             host=os.getenv("DB_HOST"),
             port=os.getenv("DB_PORT"),
@@ -31,10 +33,11 @@ def connect_to_postgresql():
             password=os.getenv("DB_PASSWORD")
         )
     cur = conn.cursor()
-    log(f"Conectado com PostgresSQL com sucesso!")
+    log(f"Conectado com PostgreSQL com sucesso!")
     return conn, cur
 
 def create_table(cur, conn, df, tableName):
+    """Cria uma tabela tableName com as colunas do pd.DataFrame df no PostgreSQL"""
     createTableQuery = sql.SQL("""
         CREATE TABLE IF NOT EXISTS {table} (
             {columns}
@@ -48,9 +51,10 @@ def create_table(cur, conn, df, tableName):
     )
     cur.execute(createTableQuery)
     conn.commit()
-    log(f"Tabela {tableName} criada no PostgresSQL com sucesso!")
+    log(f"Tabela {tableName} criada no PostgreSQL com sucesso!")
 
 def create_log_table(cur, conn, tableName):
+    """Cria uma tabela tableName com colunas padrão de log no PostgreSQL"""
     create_table_query = sql.SQL("""
         CREATE TABLE IF NOT EXISTS {table} (
             log_id SERIAL PRIMARY KEY,
@@ -60,9 +64,10 @@ def create_log_table(cur, conn, tableName):
     """).format(table=sql.Identifier(tableName))
     cur.execute(create_table_query)
     conn.commit()
-    log(f"Tabela de logs {tableName} criada no PostgresSQL com sucesso!")
+    log(f"Tabela de logs {tableName} criada no PostgreSQL com sucesso!")
 
 def insert_data(cur, conn, df, tableName):
+    """Insere os dados do pd.DataFrame df na tabela tableName no PostgreSQL"""
     for _index, row in df.iterrows():
         insertValuesQuery = sql.SQL("""
             INSERT INTO {table} ({fields})
@@ -77,6 +82,7 @@ def insert_data(cur, conn, df, tableName):
     log(f"Dados inseridos em {tableName} com sucesso!")
 
 def insert_log_data(conn, cur, tableName, logFilePath):
+    """Insere os dados do arquivo de log em logFilePath na tabela tableName no PostgreSQL"""
     with open(logFilePath, 'r') as file:
         for line in file:
             insert_log_query = sql.SQL("""
@@ -88,6 +94,7 @@ def insert_log_data(conn, cur, tableName, logFilePath):
     log(f"Dados de logs do Flow inseridos em {tableName} com sucesso!")
 
 def clean_table(cur, conn, tableName):
+    """Insere os dados do arquivo de log em logFilePath na tabela tableName no PostgreSQL"""
     cleanTableQuery = sql.SQL("""
         DELETE FROM {table}
     """).format(
@@ -95,7 +102,7 @@ def clean_table(cur, conn, tableName):
     )
     cur.execute(cleanTableQuery)
     conn.commit()
-    log(f"Tabela {tableName} limpa no PostgresSQL com sucesso!")
+    log(f"Tabela {tableName} limpa no PostgreSQL com sucesso!")
     
 def cronograma_padrao_cgu_terceirizados():
     """Determina o cronograma padrão de disponibilização

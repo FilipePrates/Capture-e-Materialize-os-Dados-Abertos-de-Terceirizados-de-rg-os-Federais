@@ -343,7 +343,7 @@ def upload_csv_to_database(parsedFilePaths: dict, tableName: str) -> dict:
 
         try:
             # Insere os dados tratados na tabela tableName
-            insert_data(cur, conn, df, tableName, parsedFile)
+            insert_data(cur, conn, df, tableName)
         except Exception as e:
             conn.rollback(); cur.close(); conn.close()
             error = f"Falha ao inserir dados do arquivo {parsedFile} na tabela {tableName} no PostgreSQL: {e}"
@@ -353,21 +353,21 @@ def upload_csv_to_database(parsedFilePaths: dict, tableName: str) -> dict:
     cur.close()
     conn.close()
     if 'error' in status: return Failed(result=status)
-    log(f"Feito upload de dados do arquivo {parsedFile} no PostgresSQL com sucesso!")
+    log(f"Feito upload de dados do arquivo {parsedFile} no PostgreSQL com sucesso!")
     status['tables'].append(tableName)
     return status
 
 @task(trigger=all_finished)
 def upload_logs_to_database(status: dict, logFilePath: str, tableName: str) -> dict:
     """
-    Faz o upload dos logs da pipeline para o PostgresSQL.
+    Faz o upload dos logs da pipeline para o PostgreSQL.
 
     Args:
         status: Dicionário contendo chaves-valores:
                 'tables': [Nome das tabelas atualizadas no banco de dados (strings)],
                 ?'error': Possíveis erros propagados (string)
         logFilePath: Caminho para o arquivo de log (string)
-        tableName: Nome da tabela de log no PostgresSQL (string)    
+        tableName: Nome da tabela de log no PostgreSQL (string)    
     Returns:
         dict: Dicionário contendo chaves-valores:
                 'tables': Nome das tabelas atualizadas no banco de dados,
@@ -407,14 +407,14 @@ def upload_logs_to_database(status: dict, logFilePath: str, tableName: str) -> d
         return logStatus
     
     if "error" in logStatus: return Failed(result=logStatus)
-    log(f"Feito upload do arquivo de log local {logFilePath} na tabela {tableName} PostgresSQL com sucesso!")
+    log(f"Feito upload do arquivo de log local {logFilePath} na tabela {tableName} PostgreSQL com sucesso!")
     logStatus['tables'].append(tableName)
     return logStatus
         
 @task
 def run_dbt(cleanStart: dict) -> dict:
     """
-    Realiza transformações com DBT no schema staging do PostgresSQL:
+    Realiza transformações com DBT no schema staging do PostgreSQL:
         1: standard_null: Define padrão de variáveis Nulas por coluna,
         2: casted: Define tipos das colunas
 

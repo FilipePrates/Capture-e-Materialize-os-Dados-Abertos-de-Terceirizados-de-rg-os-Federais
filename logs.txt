@@ -1,0 +1,4 @@
+[2024-07-24 01:05:04,797] INFO - prefect.clean_log_file | 
+Limpeza do arquivo de log local logs.txt realizada com sucesso.
+[2024-07-24 01:05:04,800] INFO - prefect.TaskRunner | Task 'clean_log_file': Finished task run for task with final state: 'Success'
+[2024-07-24 01:05:04,805] INFO - prefect.TaskRunner | Task 'run_dbt': Starting task run...

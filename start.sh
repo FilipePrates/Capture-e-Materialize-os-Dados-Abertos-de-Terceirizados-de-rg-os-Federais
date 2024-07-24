@@ -6,7 +6,7 @@ echo "Starting Prefect server..."
 prefect server start &
 
 # Wait a few seconds to ensure the server starts properly
-sleep 10
+sleep 15
 
 # Start the Prefect agent
 echo "Starting Prefect agent..."
