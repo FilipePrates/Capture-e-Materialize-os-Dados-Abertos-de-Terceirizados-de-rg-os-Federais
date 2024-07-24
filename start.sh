@@ -11,8 +11,8 @@ if [[ "$run" == "y" || "$run" == "Y" || "$run" == "yes" || "$run" == "Yes" || "$
 
     echo " <> Começando."
     # Remova o diretório 'orchestrator', se ele existir, evitando conflitos
-    if [ -d "orchestratorB" ]; then
-        rm -rf "orchestratorB"
+    if [ -d "orchestrator" ]; then
+        rm -rf "orchestrator"
     fi
     # Crie o ambiente virtual python do orquestrador prefect
     python -m venv orchestrator

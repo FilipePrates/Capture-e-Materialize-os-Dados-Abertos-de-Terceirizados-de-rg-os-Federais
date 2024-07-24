@@ -88,89 +88,6 @@ def clean_log_file(logFilePath: dict) -> dict:
     cleanStart['logFilePath'] = path
     return cleanStart
 
-# @task
-# def download_new_cgu_terceirizados_data(cleanStart: dict) -> dict:
-#     """
-#     Baixa os Dados Abertos mais recentes dos Terceirizados de Órgãos Federais,
-#       disponibilizado pela Controladoria Geral da União.
-
-#     Args:
-#         dict: Dicionário contendo chaves-valores:
-#                 'logFilePath': caminho dos arquivo local de log (string),
-#                 ?'error': Possíveis erros propagados (string)
-#     Returns:
-#         dict: Dicionário contendo chaves-valores:
-#                 'rawData': Dicionário contendo chaves-valores:
-#                     'content': Conteúdo do arquivo (bytes),
-#                     'type': Extensão do arquivo (.csv, .xlsx),
-#                     'year': Ano do arquivo para particionamento,
-#                 ?'error': Possíveis erros propagados (string)    
-#     """
-#     if isinstance(cleanStart, Failed): return Failed(result=cleanStart)
-#     rawData = {}
-
-#     try:
-#         # Acesse o portal de dados públicos da CGU
-#         URL = os.getenv("URL_FOR_DATA_DOWNLOAD")
-#         DOWNLOAD_ATTEMPTS = int(os.getenv("DOWNLOAD_ATTEMPTS"))
-#         # log(type(DOWNLOAD_ATTEMPTS))
-#         response = requests.get(URL)
-#         soup = BeautifulSoup(response.content, 'html.parser')
-
-#         # Encontre o link de download com os dados mais recentes
-#         headers = soup.find_all('h3')
-#         if(len(headers) > 0):
-#             header = headers[0]
-#             year = header.get_text()
-#             ul = header.find_next('ul')
-#             if ul:
-#                 links = ul.find_all('a')
-#                 if(len(links) > 0):
-#                     link = links[0]
-#                     monthText = link.get_text()
-#                     # Cheque se já temos essa informação desse mês/ano (redis?) raise Exception -
-#                         # Failed flow retry 1 dia pode não ter sido disponibilizado ainda
-#                     file_url = link['href']
-
-#                     # Caso download falhe, duas tentativas de recaptura imediata
-#                     for attempt in range(DOWNLOAD_ATTEMPTS):  
-#                         response = requests.get(file_url)
-#                         if response.status_code == 200:
-#                             # Salve o arquivo baixado, sua extensão e ano referente para tratamento posterior
-#                             content_type = response.headers.get('Content-Type', '')
-#                             if \
-#                                 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' \
-#                                     in content_type or \
-#                                 'text/csv' in content_type or \
-#                                 'application/vnd.ms-excel' in content_type:
-#                                 file_extension = 'xlsx' if 'spreadsheetml.sheet' in content_type else 'csv'
-#                                 rawData['rawData'] = {
-#                                     'content': response.content,
-#                                     'type': file_extension,
-#                                     'year': year
-#                                 }
-#                                 break
-#                             else:
-#                                 raise ValueError('Formato do arquivo cru fora do esperado (.csv, .xlsx).')
-#                         else:
-#                             log(f"Tentativa {attempt +1}: \
-#                                     Falha ao baixar dados referentes à {monthText}/{year}. \
-#                                     Status code: {response.status_code}")
-#                             if attempt +1 == DOWNLOAD_ATTEMPTS:
-#                                 error = f"Falha ao baixar dados referentes à {monthText}/{year} \
-#                                     após {attempt +1} tentativa(s) de recaptura. \
-#                                     Status code: {response.status_code}"
-#                                 log_and_propagate_error(error, rawData)
-#     except Exception as e:
-#         error = f"Falha ao baixar os dados crus mais recentes de {URL}. \n \
-#          Possível mudança de layout. {e}"
-#         log_and_propagate_error(error, rawData)
-
-#     if 'errors' in rawData:
-#         return Failed(result=rawData)
-#     log(f'Dados referentes ao mês de {monthText} baixados com sucesso!')
-#     return rawData
-
 @task
 def download_new_cgu_terceirizados_data(cleanStart: dict) -> dict:
     """
@@ -309,8 +226,7 @@ def parse_data_into_dataframes(rawFilePaths: dict) -> pd.DataFrame:
 
     for rawfilePath in rawFilePaths['rawFilePaths']: 
         parsedData[rawfilePath] = {}
-
-        # Determine o tipo do arquivo RAW local e leia o conteúdo
+        # Determine o tipo do arquivo cru e leia seu o conteúdo como pd.DataFrame
         if rawfilePath.endswith('.xlsx'):
             try:
                 df = pd.read_excel(rawfilePath, engine='openpyxl')
@@ -352,6 +268,7 @@ def save_parsed_data_as_csv_locally(parsedData: dict) -> dict:
     """
     if isinstance(parsedData, Failed): return Failed(result=parsedData)
     parsedFilePaths = { 'parsedFilePaths': [] }
+    
     try:
         for rawFilePath, data in parsedData.items(): 
             parsedFilePath = f'{rawFilePath}_parsed.csv'.lower()
@@ -512,9 +429,16 @@ def run_dbt(cleanStart: dict) -> dict:
     """
     if isinstance(cleanStart, Failed): return Failed(result=cleanStart)
     dbtResult = {}
-    originalDir = os.getcwd()
-    dbtDir = "/dbt"
-    DB_NAME = os.getenv("DB_NAME")
+
+    try:
+        # Acesse as variáveis de ambiente
+        originalDir = os.getcwd()
+        dbtDir = "/dbt"
+        DB_NAME = os.getenv("DB_NAME")
+    except Exception as e:
+        error = f"Falha ao acessar variáveis de ambiente. {e}"
+        log_and_propagate_error(error, dbtResult)
+
     try:
         os.chdir(f'{originalDir}/{dbtDir}')
         result = subprocess.run(["dbt", "run"

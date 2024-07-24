@@ -4,18 +4,26 @@
 ### Opção 1:
 1. :
    ```sh
-   chmod +x start.sh
-   ```
-2. :
-   ```sh
    ./start.sh
    ```
-<!-- ![prefect_server_and_agents_ready](images/prefect_server_and_agents_ready.png) -->
+
+2. :
+   Acompanhe a Captura e Inicialização Inicial.
 
 3. :
-   Visite [http://localhost:8080/](http://localhost:8080/) no seu browser para acompanhar os Flows.
+   Visite [htpt://localhost:8050/ (Dash App)](http://localhost:8050/) no seu browser
+    para visualizar algumas das tabelas resultantes dos Flows iniciais já no PostgreSQL.
+
+3. :
+   ```sh
+   python ./schedules.py
+   ```
+4.  :
+   Visite [http://localhost:8080/ (Prefect Server Dashboard)](http://localhost:8080/) no seu browser
+    para acompanhar o cronograma de Flows.
 
 ### Opção 2:
+Manual:
 1. :
    ```sh
    python -m venv orchestrator
@@ -62,8 +70,6 @@ Em outra janela do terminal:
    ```sh
    python ./schedules.py
    ```
-<!-- ![capture_flow_log_in_prefect_server](images/capture_flow_log_in_prefect_server.png)
-![materialize_flow_log_in_vscode_terminal](images/materialize_flow_log_in_vscode_terminal.png) -->
 
 ### Para visualizar os dados após Captura e Materialização
 
@@ -85,7 +91,7 @@ Com o Servidor Prefect local rodando:
    ```
 
 4. :
-   Visite [http://localhost:8050/](http://localhost:8050/) no seu browser.
+   Visite [http://localhost:8050/ (Dash App)](http://localhost:8050/) no seu browser.
 <!-- ![dash_visualization_staging_transformed](images/dash_visualization_staging_transformed.png) -->
 
 ### Para parar o Servidor e Agente Prefect
@@ -114,7 +120,7 @@ Com o Servidor Prefect local rodando:
 3. :
 Escreva a senha: "test-password"
 
-## 
+## help
 caso:
 ```sh
    (orchestrator) user@machine:~/path$ ./start.sh
@@ -137,14 +143,23 @@ caso:
    ```
 
    se erro permanecer, limpe todos os processos relacionados com a pipeline:
+1. 
+   ```sh
+   ./stop.sh
+   ```
+
+##
+caso:
+   Problemas ao executar shell shcripts:
 1. :
    ```sh
-   chmod +x clean.sh
-   ```
-2. :
+   sudo chmod +x start.sh
+   ```   
+1. :
    ```sh
-   ./clean.sh
-   ```
+   sudo chmod +x stop.sh
+   ```   
+
 ##
 caso:
 ```sh
@@ -152,8 +167,7 @@ caso:
    ```
 1. :
    ```sh
-   rmdir orchestrator
+   rm -rf "orchestrator"
    ```
-#
 
 by Filipe
