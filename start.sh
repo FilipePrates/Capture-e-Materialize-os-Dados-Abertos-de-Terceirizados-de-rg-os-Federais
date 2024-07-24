@@ -10,8 +10,11 @@ prefect & dbt-core & dbt-postgres & requests & bs4 & pandas & openpyxl & datetim
 if [[ "$run" == "y" || "$run" == "Y" || "$run" == "yes" || "$run" == "Yes" || "$run" == "s" || "$run" == "S" || "$run" == "sim" || "$run" == "Sim" ]]; then
 
     echo " <> Começando."
+    # Remova o diretório 'orchestrator', se ele existir, evitando conflitos
+    if [ -d "orchestrator" ]; then
+        rm -rf "orchestrator"
+    fi
     # Crie o ambiente virtual python do orquestrador prefect
-    rmdir orchestrator
     python -m venv orchestrator
     # Ative o ambiente virtual
     source orchestrator/bin/activate
