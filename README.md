@@ -98,7 +98,7 @@ Com o Servidor Prefect local rodando:
    ```sh
    ./stop.sh
    ```
-ou:
+ou,:
 
 1. :
    ```sh
@@ -107,6 +107,16 @@ ou:
 2. : 
    ```sh
    pkill -f 'prefect agent local start'
+   ```
+ou ainda, de maneira mais exigente:
+
+1. :
+   ```sh
+   chmod +x clear.sh
+   ```
+2. : 
+   ```sh
+   ./clear.sh
    ```
 
 ### Conectar diretamente ao PostgreSQL:

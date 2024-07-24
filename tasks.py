@@ -191,8 +191,9 @@ def save_raw_data_locally(rawData: dict) -> dict:
         for _key, content in rawData.items(): 
             download_dir = os.path.join(f'cgu_terceirizados_local/', f"year={content['year']}/")
             os.makedirs(download_dir, exist_ok=True)
+            log(f'Diretório para armazenar localmente os dados crus {download_dir} criado com sucesso!')
             filePath = os.path.join(download_dir, f"raw_data.{content['type']}".lower())
-        log(f'Diretótio para armazenar localmente os dados crus {filePath} criado com sucesso!')
+            log(f'Arquivo para armazenar localmente os dados crus {filePath} criado com sucesso!')
     except Exception as e:
         error = f"Falha ao criar diretótios locais para armazenar os dados crus. {e}"
         log_and_propagate_error(error, rawFilePaths)

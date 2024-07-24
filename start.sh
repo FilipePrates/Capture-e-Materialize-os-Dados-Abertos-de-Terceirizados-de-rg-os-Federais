@@ -11,8 +11,8 @@ if [[ "$run" == "y" || "$run" == "Y" || "$run" == "yes" || "$run" == "Yes" || "$
 
     echo " <> Começando."
     # Remova o diretório 'orchestrator', se ele existir, evitando conflitos
-    if [ -d "orchestrator" ]; then
-        rm -rf "orchestrator"
+    if [ -d "orchestratorB" ]; then
+        rm -rf "orchestratorB"
     fi
     # Crie o ambiente virtual python do orquestrador prefect
     python -m venv orchestrator
@@ -40,36 +40,54 @@ if [[ "$run" == "y" || "$run" == "Y" || "$run" == "yes" || "$run" == "Yes" || "$
     echo " <> Criando o projeto Prefect..."
     prefect create project cgu_terceirizados || echo "Project 'cgu_terceirizados' already exists"
     sleep 2
-    echo " <> Começando os Flows"
+    echo " <> Começando os Flows!..."
     # Começe a Captura Inicial
-    echo " <> Começando Captura incial..."
+    echo " <>  <>  <>  <>  <>  <>  <>  <>  <> "
+    echo " <> Começando Captura incial!... <> "
+    echo " <>  <>  <>  <>  <>  <>  <>  <>  <> "
     python ./capture.py
-    echo " <> Captura incial finalizada..."
+    echo " <> Captura incial finalizada!"
+
     # Começe a Materialização Inicial
-    echo " <> Começando Materialização incial..."
+    echo " <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <> "
+    echo " <> Começando Materialização incial!...  <> "
+    echo " <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <> "
+    echo " <> ..."
     python ./materialize.py
-    echo " <> Materialização incial finalizada..."
+    echo " <> Materialização incial finalizada!"
 
-    echo " <> Resultados prontos!..."
+    echo " <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <> "
+    echo " <> Resultados armazenados no PostgreSQL!... <> "
+    echo " <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <> "
+
+    echo " <> Configurando visualização..."
     # Espera input para baixar requisitos mostra de resultados
+    # Instale os requisitos
+    pip install -r requirements__view_results.txt
+    # Pare qualquer processo estudando a porta local 8050
+    stop_dash_process() {
+        pid=$(lsof -t -i:8050)
+        if [ -n "$pid" ]; then
+            echo " <> Parando processo externo $pid devido à conflitos de porta..."
+            kill $pid
+            if kill -0 $pid > /dev/null 2>&1; then
+                echo " <>  <> kill -9 (force kill)"
+                kill -9 $pid
+            fi
+
+            echo " <> Configuração de visualização finalizada!"
+        else
+            echo " <> Configuração de visualização finalizada!"
+        fi
+    }
+    stop_dash_process
+
+    # Rode o app Dash para visualização básica dos dados no PostgreSQL
+    python ./view_results.py &
+
     while true; do
-        echo " <> Deseja criar ambiente virtual e baixar os requisitos:
-         prefect & dbt-core & dbt-postgres & requests & bs4 & pandas & openpyxl & datetime & psycopg2-binary & python-dotenv
-         para realizar a captura e materialização dos Dados Abertos de Terceirizados de Órgãos Federais ? (y/n):"
-        read -t 1 -n 1 view_results
-        if [[ "$view_results" == "y" || "$view_results" == "Y" || "$view_results" == "yes" || "$view_results" == "Yes" || "$view_results" == "s" || "$view_results" == "S" || "$view_results" == "sim" || "$view_results" == "Sim" ]]; then
-            echo " <> Começando"
-
-            pip install sqlalchemy dash
-
-            echo "<> Visualizando Resultados! Visite localhost:8050 no browser de sua escolha."
-            python ./view_results.py &
-            break
-        fi
-        if [[ "$view_results" == "n" || "$view_results" == "N" || "$view_results" == "no" || "$view_results" == "No" || "$view_results" == "nao" || "$view_results" == "Não" || "$view_results" == "não" || "$view_results" == "NAO" ]]; then
-            echo "Ok.. <>"
-            break
-        fi
+        echo "<> Visualize os resultados! Visite localhost:8050 no browser de sua escolha."
+        sleep 5
     done
 
     # Pergunte ao usuário se deseja baixar requisitos para visualizar resultados
