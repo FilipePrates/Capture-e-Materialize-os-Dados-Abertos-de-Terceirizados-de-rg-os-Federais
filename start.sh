@@ -29,11 +29,11 @@ prefect create project cgu_terceirizados || echo "Project 'cgu_terceirizados' al
 echo "<> Começando Captura incial..."
 python ./capture.py &
 
-# sleep 50 # delay captura inicial 
+sleep 50 # delay captura inicial 
 
-# # Começe a Materialização Inicial
-# echo "Começando Materialização incial..."
-# python ./materialize.py &
+# Começe a Materialização Inicial
+echo "Começando Materialização incial..."
+python ./materialize.py &
 
 # Execute o Cronograma de Flows
 echo "<> Executando Cronograma de Flows..."

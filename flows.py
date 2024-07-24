@@ -81,7 +81,7 @@ from prefect.tasks.prefect import (
 # A cada 10 minutos -- demo
 
 schedule = Schedule(
-    clocks=[IntervalClock(timedelta(minutes=10))]
+    clocks=[IntervalClock(timedelta(minutes=3))]
 )
 
 with Flow("schedule", schedule=schedule) as schedule:
