@@ -101,6 +101,8 @@ def download_new_cgu_terceirizados_data(cleanStart: dict) -> dict:
     try:
         # Acesse o portal de dados públicos da CGU
         URL = os.getenv("URL_FOR_DATA_DOWNLOAD")
+        DOWNLOAD_ATTEMPTS = int(os.getenv("DOWNLOAD_ATTEMPTS"))
+        # log(type(DOWNLOAD_ATTEMPTS))
         response = requests.get(URL)
         soup = BeautifulSoup(response.content, 'html.parser')
 
@@ -120,7 +122,7 @@ def download_new_cgu_terceirizados_data(cleanStart: dict) -> dict:
                     file_url = link['href']
 
                     # Caso download falhe, duas tentativas de recaptura imediata
-                    for attempt in range(os.getenv("DOWNLOAD_ATTEMPTS")):  
+                    for attempt in range(DOWNLOAD_ATTEMPTS):  
                         response = requests.get(file_url)
                         if response.status_code == 200:
                             # Salve o arquivo baixado, sua extensão e ano referente para tratamento posterior
@@ -143,13 +145,14 @@ def download_new_cgu_terceirizados_data(cleanStart: dict) -> dict:
                             log(f"Tentativa {attempt +1}: \
                                     Falha ao baixar dados referentes à {monthText}/{year}. \
                                     Status code: {response.status_code}")
-                            if attempt +1 == os.getenv("DOWNLOAD_ATTEMPTS"):
+                            if attempt +1 == DOWNLOAD_ATTEMPTS:
                                 error = f"Falha ao baixar dados referentes à {monthText}/{year} \
                                     após {attempt +1} tentativa(s) de recaptura. \
                                     Status code: {response.status_code}"
                                 log_and_propagate_error(error, rawData)
     except Exception as e:
-        error = f"Falha ao baixar os dados crus mais recentes de {URL}. {e}"
+        error = f"Falha ao baixar os dados crus mais recentes de {URL}. \n \
+         Possível mudança de layout. {e}"
         log_and_propagate_error(error, rawData)
 
     if 'errors' in rawData: return Failed(result=rawData)
@@ -178,9 +181,8 @@ def save_raw_data_locally(rawData: dict) -> dict:
 
     # Crie os diretórios no padrão de particionamento por ano
     try:
-        DB_NAME = os.getenv("DB_NAME")
         for _key, content in rawData.items(): 
-            download_dir = os.path.join(f'{DB_NAME}_local/', f"year={content['year']}/")
+            download_dir = os.path.join(f'cgu_terceirizados_local/', f"year={content['year']}/")
             os.makedirs(download_dir, exist_ok=True)
             filePath = os.path.join(download_dir, f"raw_data.{content['type']}".lower())
         log(f'Diretótio para armazenar localmente os dados crus {filePath} criado com sucesso!')
@@ -244,7 +246,7 @@ def parse_data_into_dataframes(rawFilePaths: dict) -> pd.DataFrame:
             raise ValueError('Formato de arquivo cru fora do esperado (.csv, .xlsx).')
 
     if 'errors' in parsedData: return Failed(result=parsedData)
-    log(f"Dados interpretados localmente em como DataFrame com sucesso!")
+    log(f"Dados interpretados localmente como DataFrame com sucesso!")
     return parsedData
 
 @task

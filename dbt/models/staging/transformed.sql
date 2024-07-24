@@ -1,8 +1,8 @@
 select
     -- Chaves primárias em ordem de escopo
     cast(nr_jornada as bigint) as id_terc,
-    "Ano_Carga" as ano_captura,
-    "Mes_Carga"as mes_captura,
+    "Ano_Carga" as ano_disponibilizado,
+    "Mes_Carga"as mes_disponibilizado,
 
     -- Colunas agrupadas e ordenadas por importâncias dos temas
 

@@ -4,10 +4,10 @@ local_profile:
     dev:
       type: postgres
       host: localhost
-      user: userrio
-      password: hunter2 # @TODO secret
+      user: prefect
+      password: test-password # @TODO secret
       port: 5432
-      dbname: cgu_terceirizados
+      dbname: prefect_server
       schema: staging
       threads: 4
       keepalives_idle: 0

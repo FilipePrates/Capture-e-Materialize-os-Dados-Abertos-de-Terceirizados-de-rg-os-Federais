@@ -1,7 +1,7 @@
 # o Flow propriamente dito.
 from prefect import Flow
 from prefect.schedules import Schedule
-from utils import cronograma_padrao_cgu_terceirizados
+# from utils import cronograma_padrao_cgu_terceirizados
 from tasks import (
     setup_log_file,
     clean_log_file,
@@ -15,12 +15,11 @@ from tasks import (
 
     run_dbt,
 
-    scheduled_capture_completed
+    # scheduled_capture_completed
 )
 
 # Executar Captura e Materialização a cada ~4 meses.
-with Flow("Captura dos Dados Abertos de Terceirizados de Órgãos Federais",
-           schedule=Schedule(clocks=cronograma_padrao_cgu_terceirizados())) as capture:
+with Flow("Captura dos Dados Abertos de Terceirizados de Órgãos Federais") as capture:
     # # SETUP #
     logFilePath = setup_log_file("logs.txt")
     cleanStart = clean_log_file(logFilePath)

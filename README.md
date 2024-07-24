@@ -12,6 +12,7 @@
    ```sh
    pip install -r requirements.txt
    ```
+
 4. :
    ```sh
    prefect server start
@@ -22,11 +23,10 @@ Em outra janela do terminal:
    prefect agent local start --label default
    ```
 Em outra janela do terminal:
-5. :
+6. :
    ```sh
    python ./run.py
    ```
-
 
 ## Rode em containers com docker
 1. Garanta que tenha docker e docker-compose no seu sistema:

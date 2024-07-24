@@ -1,5 +1,5 @@
 from flows import capture, materialize, schedule
 
-# capture.run()
+capture.run()
 # materialize.run()
-schedule.run()
+# schedule.run()
