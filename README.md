@@ -29,6 +29,10 @@
    Visite [http://localhost:8080/](http://localhost:8080/) no seu browser para acompanhar os Flows.
 
 ### Opção 2:
+0. :
+   ```sh
+   cp .env.example .env
+   ```
 1. :
    ```sh
    prefect server start
