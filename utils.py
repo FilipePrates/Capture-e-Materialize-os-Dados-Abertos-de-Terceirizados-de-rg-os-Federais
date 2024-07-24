@@ -8,11 +8,12 @@ from prefect.engine.signals import FAIL
 from prefect.engine.state import Failed
 from prefect.schedules import Schedule
 from prefect.schedules.clocks import CronClock
+from prefect.agent.local import LocalAgent
 
 from bs4 import BeautifulSoup
 from datetime import timedelta, datetime
 from psycopg2 import sql
-
+from prefect.agent.local import LocalAgent
 # as funções auxiliares que serão utilizadas nos Flows.
 
 def log(message) -> None:
@@ -24,6 +25,11 @@ def log_and_propagate_error(message, returnObj) -> None:
     returnObj['error'] = message
     log(message)
     raise FAIL(result=returnObj)
+
+def start_agent():
+    """Começa um Agente Prefect local no processo"""
+    agent = LocalAgent()
+    agent.start()
 
 def connect_to_postgresql():
     """Conecta à base de dados PostgreSQL"""
