@@ -14,6 +14,20 @@
    ./start.sh
    ```
 
+### Para visualizar os resultados
+
+1. :
+   ```sh
+   pip install -r requirements__view_results.txt
+   ```
+2. :
+   ```sh
+   python ./view_results.py
+   ```
+3. :
+   Visite [http://localhost:8050/](http://localhost:8050/) no seu browser.
+
+
 ### Opção 2:
 1. :
    ```sh
