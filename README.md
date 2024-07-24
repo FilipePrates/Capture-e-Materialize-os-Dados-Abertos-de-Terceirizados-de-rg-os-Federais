@@ -23,6 +23,8 @@
    ```sh
    ./start.sh
    ```
+![prefect_server_and_agents_ready](images/prefect_server_and_agents_ready.png)
+
 3. :
    Visite [http://localhost:8080/](http://localhost:8080/) no seu browser para acompanhar os Flows.
 
@@ -45,17 +47,21 @@ Em outra janela do terminal:
    ```
 4. :
    ```sh
+   python ./capture.py
+   ```
+   ```sh
+   python ./materialize.py
+   ```
+   ```sh
    python ./run.py
    ```
+![capture_flow_log_in_prefect_server](images/capture_flow_log_in_prefect_server.png)
+![materialize_flow_log_in_vscode_terminal](images/materialize_flow_log_in_vscode_terminal.png)
 
 ### Para visualizar os dados após Captura e Materialização
 
 Com o Servidor Prefect local rodando:
 
-0. :
-   ```sh
-   python ./materialize.py
-   ```
 1. :
    ```sh
    pip install -r requirements__view_results.txt
@@ -66,6 +72,7 @@ Com o Servidor Prefect local rodando:
    ```
 3. :
    Visite [http://localhost:8050/](http://localhost:8050/) no seu browser.
+![dash_visualization_staging_transformed](images/dash_visualization_staging_transformed.png)
 
 ### Para parar o Servidor e Agente Prefect
 

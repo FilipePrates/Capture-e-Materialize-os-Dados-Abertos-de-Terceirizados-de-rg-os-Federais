@@ -3,7 +3,7 @@ select
     sg_orgao_sup_tabela_ug,
     cd_ug_gestora,
     nm_ug_tabela_ug,
-    sg_ug_gestora,
+    nullif(sg_ug_gestora, 'NULL') as sg_ug_gestora,
     nr_contrato,
     nr_cnpj,
     nm_razao_social,

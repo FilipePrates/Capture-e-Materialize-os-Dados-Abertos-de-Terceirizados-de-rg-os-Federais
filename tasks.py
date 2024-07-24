@@ -333,7 +333,7 @@ def upload_csv_to_database(parsedFilePaths: dict, tableName: str) -> dict:
             return status
 
         try:
-            # Limpe a tabela raw, se necessário
+            # Limpe a tabela
             clean_table(cur, conn, tableName)
         except Exception as e:
             conn.rollback(); cur.close(); conn.close()
