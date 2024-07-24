@@ -24,8 +24,7 @@
    ./start.sh
    ```
 3. :
-   Visite [http://localhost:8080/](http://localhost:8080/) no seu browser.
-   Para acompanhar os Flows
+   Visite [http://localhost:8080/](http://localhost:8080/) no seu browser para acompanhar os Flows.
 
 ### Opção 2:
 1. :
@@ -49,7 +48,7 @@ Em outra janela do terminal:
    python ./run.py
    ```
 
-### Para visualizar os dados transformados
+### Para visualizar os dados após Captura e Materialização
 
 Com o Servidor Prefect local rodando:
 
@@ -104,28 +103,29 @@ ou:
 4. :
 Escreva a senha: "test-password"
 
+## 
+caso:
+```sh
+   (orchestrator) user@machine:~/path$ ./start.sh
+   Pulling postgres ... done
+   Pulling hasura   ... done
+   Pulling graphql  ... done
+   Pulling apollo   ... done
+   Pulling towel    ... done
+   Pulling ui       ... done
+   Starting tmp_postgres_1 ... error
 
-caso
-(orchestrator) cliente@dell-Inspiron-5490:~/Code/RIO/Desafio CIVITAS Data Engineer$ prefect server start
-Pulling postgres ... done
-Pulling hasura   ... done
-Pulling graphql  ... done
-Pulling apollo   ... done
-Pulling towel    ... done
-Pulling ui       ... done
-Starting tmp_postgres_1 ... error
+   ERROR: for tmp_postgres_1  Cannot start service postgres: network $ID not found
 
-ERROR: for tmp_postgres_1  Cannot start service postgres: network 5102e4176c21eed9580d2faaa9dc05d3af9819c9c8a2efa74965894c00cafeba not found
-
-ERROR: for postgres  Cannot start service postgres: network 5102e4176c21eed9580d2faaa9dc05d3af9819c9c8a2efa74965894c00cafeba not found
-ERROR: Encountered errors while bringing up the project.
+   ERROR: for postgres  Cannot start service postgres: network $ID not found
+   ERROR: Encountered errors while bringing up the project.
+   ```
 1. :
    ```sh
    docker network prune -f
    ```
 
-Caso ainda esteja com o mesmo erro, pode utilizar o script que finaliza todos os processos potencialmente
-relacionados com a pipeline.
+Caso ainda esteja com o mesmo erro, utilize o script que finaliza todos os processos relacionados com a pipeline:
 1. :
    ```sh
    chmod +x clean.sh
@@ -134,10 +134,5 @@ relacionados com a pipeline.
    ```sh
    ./clean.sh
    ```
-3. :
-   ```sh
-   ./start.sh
-   ```
-
 
 by Filipe

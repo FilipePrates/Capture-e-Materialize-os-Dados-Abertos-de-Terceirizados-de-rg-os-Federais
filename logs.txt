@@ -1,56 +1,40 @@
-[2024-07-24 02:36:46,829] INFO - prefect.clean_log_file | 
+[2024-07-24 03:28:54,683] INFO - prefect.clean_log_file | 
 Limpeza do arquivo de log local logs.txt realizada com sucesso.
-[2024-07-24 02:36:46,869] INFO - prefect.CloudTaskRunner | Task 'clean_log_file': Finished task run for task with final state: 'Success'
-[2024-07-24 02:36:46,906] INFO - prefect.CloudTaskRunner | Task 'download_new_cgu_terceirizados_data': Starting task run...
-[2024-07-24 02:36:46,945] INFO - prefect.download_new_cgu_terceirizados_data | 
-Falha ao baixar os dados crus mais recentes de None. 
-          Possível mudança de layout. int() argument must be a string, a bytes-like object or a real number, not 'NoneType'
-[2024-07-24 02:36:46,945] INFO - prefect.CloudTaskRunner | FAIL signal raised: FAIL(None)
-[2024-07-24 02:36:46,982] INFO - prefect.CloudTaskRunner | Task 'download_new_cgu_terceirizados_data': Finished task run for task with final state: 'Failed'
-[2024-07-24 02:36:47,018] INFO - prefect.CloudTaskRunner | Task 'save_raw_data_locally': Starting task run...
-[2024-07-24 02:36:47,054] INFO - prefect.CloudTaskRunner | Task 'save_raw_data_locally': Finished task run for task with final state: 'TriggerFailed'
-[2024-07-24 02:36:47,080] INFO - prefect.CloudTaskRunner | Task 'parse_data_into_dataframes': Starting task run...
-[2024-07-24 02:36:47,107] INFO - prefect.CloudTaskRunner | Task 'parse_data_into_dataframes': Finished task run for task with final state: 'TriggerFailed'
-[2024-07-24 02:36:47,131] INFO - prefect.CloudTaskRunner | Task 'save_parsed_data_as_csv_locally': Starting task run...
-[2024-07-24 02:36:47,161] INFO - prefect.CloudTaskRunner | Task 'save_parsed_data_as_csv_locally': Finished task run for task with final state: 'TriggerFailed'
-[2024-07-24 02:36:47,194] INFO - prefect.CloudTaskRunner | Task 'upload_csv_to_database': Starting task run...
-[2024-07-24 02:36:47,231] INFO - prefect.CloudTaskRunner | Task 'upload_csv_to_database': Finished task run for task with final state: 'TriggerFailed'
-[2024-07-24 02:36:47,261] INFO - prefect.CloudTaskRunner | Task 'upload_logs_to_database': Starting task run...
-[2024-07-24 02:36:47,296] ERROR - prefect.CloudTaskRunner | Task 'upload_logs_to_database': Exception encountered during task execution!
-Traceback (most recent call last):
-  File "/home/cliente/Code/RIO/Desafio CIVITAS Data Engineer/tasks.py", line 380, in upload_logs_to_database
-    conn, cur = connect_to_postgresql()
-  File "/home/cliente/Code/RIO/Desafio CIVITAS Data Engineer/utils.py", line 28, in connect_to_postgresql
-    conn = psycopg2.connect(
-  File "/home/cliente/Code/RIO/Desafio CIVITAS Data Engineer/orchestrator/lib/python3.10/site-packages/psycopg2/__init__.py", line 122, in connect
-    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
-psycopg2.OperationalError: connection to server on socket "/var/run/postgresql/.s.PGSQL.5432" failed: No such file or directory
-	Is the server running locally and accepting connections on that socket?
+[2024-07-24 03:28:54,687] INFO - prefect.TaskRunner | Task 'clean_log_file': Finished task run for task with final state: 'Success'
+[2024-07-24 03:28:54,694] INFO - prefect.TaskRunner | Task 'run_dbt': Starting task run...
+[2024-07-24 03:28:59,023] INFO - prefect.run_dbt | 
+Transformação realizada com sucesso. [0m06:28:55  Running with dbt=1.8.4
+[0m06:28:56  Registered adapter: postgres=1.8.2
+[0m06:28:56  [[33mWARNING[0m]: Configuration paths exist in your dbt_project.yml file which do not apply to any resources.
+There are 2 unused configuration paths:
+- models.desafio_data_eng.marts
+- seeds.desafio_data_eng
+[0m06:28:56  Found 3 models, 2 data tests, 1 source, 415 macros
+[0m06:28:56  
+[0m06:28:56  Concurrency: 4 threads (target='dev')
+[0m06:28:56  
+[0m06:28:56  1 of 3 START sql table model staging.raw ....................................... [RUN]
+[0m06:28:57  1 of 3 OK created sql table model staging.raw .................................. [[32mSELECT 73870[0m in 0.30s]
+[0m06:28:57  2 of 3 START sql table model staging.cleaned ................................... [RUN]
+[0m06:28:57  2 of 3 OK created sql table model staging.cleaned .............................. [[32mSELECT 73870[0m in 0.25s]
+[0m06:28:57  3 of 3 START sql table model staging.transformed ............................... [RUN]
+[0m06:28:57  3 of 3 OK created sql table model staging.transformed .......................... [[32mSELECT 73870[0m in 0.31s]
+[0m06:28:57  
+[0m06:28:57  Finished running 3 table models in 0 hours 0 minutes and 1.02 seconds (1.02s).
+[0m06:28:57  
+[0m06:28:57  [32mCompleted successfully[0m
+[0m06:28:57  
+[0m06:28:57  Done. PASS=3 WARN=0 ERROR=0 SKIP=0 TOTAL=3
 
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/home/cliente/Code/RIO/Desafio CIVITAS Data Engineer/orchestrator/lib/python3.10/site-packages/prefect/engine/task_runner.py", line 876, in get_task_run_state
-    value = prefect.utilities.executors.run_task_with_timeout(
-  File "/home/cliente/Code/RIO/Desafio CIVITAS Data Engineer/orchestrator/lib/python3.10/site-packages/prefect/utilities/executors.py", line 454, in run_task_with_timeout
-    return task.run(*args, **kwargs)  # type: ignore
-  File "/home/cliente/Code/RIO/Desafio CIVITAS Data Engineer/tasks.py", line 383, in upload_logs_to_database
-    log_and_propagate_error(error, status)
-  File "/home/cliente/Code/RIO/Desafio CIVITAS Data Engineer/utils.py", line 22, in log_and_propagate_error
-    returnObj['error'] = message
-TypeError: 'TRIGGERFAIL' object does not support item assignment
-[2024-07-24 02:36:47,323] INFO - prefect.CloudTaskRunner | Task 'upload_logs_to_database': Finished task run for task with final state: 'Failed'
-[2024-07-24 02:36:47,346] INFO - prefect.CloudFlowRunner | Flow run FAILED: some reference tasks failed.
-[2024-07-24 02:36:50,109] INFO - prefect.run_dbt | 
-Falha na transformação (DBT):  CompletedProcess(args=['dbt', 'run', '--vars', 'database: None'], returncode=2, stdout='\x1b[0m05:36:48  Running with dbt=1.8.4\n\x1b[0m05:36:48  Registered adapter: postgres=1.8.2\n\x1b[0m05:36:48  [\x1b[33mWARNING\x1b[0m]: Configuration paths exist in your dbt_project.yml file which do not apply to any resources.\nThere are 2 unused configuration paths:\n- models.desafio_data_eng.marts\n- seeds.desafio_data_eng\n\x1b[0m05:36:48  Found 3 models, 2 data tests, 1 source, 415 macros\n\x1b[0m05:36:48  \n\x1b[0m05:36:48  \n\x1b[0m05:36:48  Finished running  in 0 hours 0 minutes and 0.02 seconds (0.02s).\n\x1b[0m05:36:48  Encountered an error:\nRuntime Error\n  ERROR: Cross-db references not allowed in postgres (None vs prefect_server)\n', stderr='') 
-[2024-07-24 02:36:50,110] INFO - prefect.CloudTaskRunner | FAIL signal raised: FAIL(None)
-[2024-07-24 02:36:50,142] INFO - prefect.CloudTaskRunner | Task 'run_dbt': Finished task run for task with final state: 'Failed'
-[2024-07-24 02:36:50,174] INFO - prefect.CloudTaskRunner | Task 'upload_logs_to_database': Starting task run...
-[2024-07-24 02:36:50,206] INFO - prefect.upload_logs_to_database | 
-Falha ao conectar com o PostgreSQL: connection to server on socket "/var/run/postgresql/.s.PGSQL.5432" failed: No such file or directory
-	Is the server running locally and accepting connections on that socket?
-
-[2024-07-24 02:36:50,207] INFO - prefect.CloudTaskRunner | FAIL signal raised: FAIL(None)
-[2024-07-24 02:36:50,239] INFO - prefect.CloudTaskRunner | Task 'upload_logs_to_database': Finished task run for task with final state: 'Failed'
-[2024-07-24 02:36:50,256] INFO - prefect.CloudFlowRunner | Flow run FAILED: some reference tasks failed.
+[2024-07-24 03:28:59,028] INFO - prefect.TaskRunner | Task 'run_dbt': Finished task run for task with final state: 'Success'
+[2024-07-24 03:28:59,038] INFO - prefect.TaskRunner | Task 'upload_logs_to_database': Starting task run...
+[2024-07-24 03:28:59,044] INFO - prefect.upload_logs_to_database | 
+Conectado com PostgreSQL com sucesso!
+[2024-07-24 03:28:59,045] INFO - prefect.upload_logs_to_database | 
+Tabela de logs logs__materialize criada no PostgreSQL com sucesso!
+[2024-07-24 03:28:59,058] INFO - prefect.upload_logs_to_database | 
+Dados de logs do Flow inseridos em logs__materialize com sucesso!
+[2024-07-24 03:28:59,058] INFO - prefect.upload_logs_to_database | 
+Feito upload do arquivo de log local logs.txt na tabela logs__materialize PostgreSQL com sucesso!
+[2024-07-24 03:28:59,063] INFO - prefect.TaskRunner | Task 'upload_logs_to_database': Finished task run for task with final state: 'Success'
+[2024-07-24 03:28:59,064] INFO - prefect.FlowRunner | Flow run SUCCESS: all reference tasks succeeded

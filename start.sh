@@ -29,7 +29,8 @@ prefect create project cgu_terceirizados || echo "Project 'cgu_terceirizados' al
 # Start the Capture
 echo "Começando Captura incial..."
 python ./capture.py &
-sleep 40
+
+sleep 60 # delay captura inicial 
 
 # Start the Materialization
 echo "Começando Materialização incial..."
