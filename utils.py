@@ -109,7 +109,7 @@ def download_file(file_url, attempts, monthText, year):
         else:
             log(f"Tentativa {attempt +1}: Falha ao baixar dados referentes à {monthText}/{year}. Status code: {response.status_code}")
             if attempt +1 == attempts:
-                error = f"Falha ao baixar dados referentes à {monthText}/{year} após {attempt +1} tentativa(s) de recaptura. Status code: {response.status_code}"
+                error = f"Desistência após {attempts} falhas ao baixar dados referentes à {monthText}/{year}. Status code: {response.status_code}"
                 raise Exception(error)
 
 def get_file_extension(content_type):

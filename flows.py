@@ -17,7 +17,7 @@ from tasks import (
 # Executar Captura e Materialização a cada ~4 meses.
 with Flow("Captura dos Dados Abertos de Terceirizados de Órgãos Federais") as capture:
     # # SETUP #
-    logFilePath = setup_log_file("logs.txt")
+    logFilePath = setup_log_file("logs/logs__capture.txt")
     cleanStart = clean_log_file(logFilePath)
 
     # # EXTRACT #
@@ -30,19 +30,19 @@ with Flow("Captura dos Dados Abertos de Terceirizados de Órgãos Federais") as 
 
     # LOAD #
     status = upload_csv_to_database(parsedFilePaths, "raw")
-    logStatus = upload_logs_to_database(status, "logs.txt", "logs__capture")
+    logStatus = upload_logs_to_database(status, "logs/logs__capture.txt", "logs__capture")
 
 
 with Flow("Materialização dos Dados Abertos de Terceirizados de Órgãos Federais") as materialize:
     # # SETUP #
-    logFilePath = setup_log_file("logs.txt")
+    logFilePath = setup_log_file("logs/logs__materialize.txt")
     cleanStart = clean_log_file(logFilePath)
 
     # TRANSFORM #
     columns = run_dbt(cleanStart)
 
     #LOAD
-    logStatus = upload_logs_to_database(columns, "logs.txt", "logs__materialize")
+    logStatus = upload_logs_to_database(columns, "logs/logs__materialize.txt", "logs__materialize")
 
 # Executar captura de dados históricos
 # with Flow("Dados Abertos de Terceirizados de Órgãos Federais - Captura dos Dados Históricos") as captureAll:

@@ -32,6 +32,19 @@ kill_processes() {
     }
     stop_dash_process
 
+    echo " <> Parando processo do Prefect Dashboard..."
+    stop_dash_process() {
+        pid=$(lsof -t -i:8080)
+        if [ -n "$pid" ]; then
+            kill $pid
+            if kill -0 $pid > /dev/null 2>&1; then
+                echo " <>  <> kill -9 (force kill)"
+                kill -9 $pid
+            fi
+        fi
+    }
+    stop_dash_process
+
     echo "Todos os processos relevantes foram parados. <> 
     Até a próxima."
 }
