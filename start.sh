@@ -26,6 +26,15 @@ echo "Começando os Flows"
 echo "Creating Prefect project..."
 prefect create project cgu_terceirizados || echo "Project 'cgu_terceirizados' already exists"
 
-# Run the Prefect flow
+# Start the Capture
+echo "Começando Captura incial..."
+python ./capture.py &
+sleep 40
+
+# Start the Materialization
+echo "Começando Materialização incial..."
+python ./materialize.py &
+
+# Run the Prefect Flow Schedule
 echo "Running Prefect flow..."
-python ./run.py
+python ./run.py &
