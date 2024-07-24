@@ -1,6 +1,5 @@
 # o Flow propriamente dito.
 from prefect import Flow
-from prefect.schedules import Schedule
 # from utils import cronograma_padrao_cgu_terceirizados
 from tasks import (
     setup_log_file,
@@ -71,12 +70,23 @@ with Flow("Materialização dos Dados Abertos de Terceirizados de Órgãos Feder
 #    # columns = rename_columns_following_style_manual("historico")
 #    status = set_columns_types("123")
 
+from prefect.schedules import Schedule
+from prefect.schedules.clocks import IntervalClock
+from datetime import timedelta, datetime
 from prefect.tasks.prefect import (
     create_flow_run,
     wait_for_flow_run
 )
 
-with Flow("schedule") as schedule:
+# A cada 3 minutos -- demo
+current_time = datetime.now()
+time_difference = timedelta(minutes=3, seconds=4)
+start_time = current_time - time_difference
+schedule = Schedule(
+    clocks=[IntervalClock(timedelta(minutes=3), start_date=start_time)]
+)
+
+with Flow("schedule", schedule=schedule) as schedule:
     # Captura
     capture_flow_run = create_flow_run(
         flow_name="Captura dos Dados Abertos de Terceirizados de Órgãos Federais",
