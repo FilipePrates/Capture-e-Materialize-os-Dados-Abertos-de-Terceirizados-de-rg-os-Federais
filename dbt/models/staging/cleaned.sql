@@ -35,8 +35,8 @@ select
     -- "Num_Mes_Carga",
     "Mes_Carga",
     "Ano_Carga",
-    sg_orgao,
-    nm_orgao,
-    cd_orgao_siafi,
-    cd_orgao_siape
+    nullif(sg_orgao, '<N/I>') as sg_orgao,
+    nullif(nm_orgao, '<N/I>') as nm_orgao,
+    nullif(cd_orgao_siafi, -2) as cd_orgao_siafi,
+    nullif(cd_orgao_siape, -2) as cd_orgao_siape,
 from {{ ref('raw') }}
