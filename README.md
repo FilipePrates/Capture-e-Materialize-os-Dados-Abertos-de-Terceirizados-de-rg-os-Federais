@@ -22,6 +22,28 @@
    Visite [http://localhost:8080/ (Prefect Server Dashboard)](http://localhost:8080/) no seu browser
     para acompanhar o cronograma de Flows.
 
+### Para parar o Servidor e Agente(s) Prefect
+
+1. :
+   ```sh
+   ./stop.sh
+   ```
+
+### Conectar diretamente ao PostgreSQL:
+
+Com o Servidor Prefect local rodando:
+
+1. : 
+   ```sh
+   docker exec -it $(docker ps | grep 'postgres:11' | awk '{print $1}') bash
+   ```
+2. :
+   ```sh
+   psql -U prefect -d prefect_server -W
+   ```
+3. :
+Escreva a senha: "test-password"
+
 ### Opção 2:
 Manual:
 1. :
@@ -94,31 +116,6 @@ Com o Servidor Prefect local rodando:
    Visite [http://localhost:8050/ (Dash App)](http://localhost:8050/) no seu browser.
 <!-- ![dash_visualization_staging_transformed](images/dash_visualization_staging_transformed.png) -->
 
-### Para parar o Servidor e Agente Prefect
-
-0. :
-   ```sh
-   chmod +x stop.sh
-   ```
-1. :
-   ```sh
-   ./stop.sh
-   ```
-
-### Conectar diretamente ao PostgreSQL:
-
-Com o Servidor Prefect local rodando:
-
-1. : 
-   ```sh
-   docker exec -it $(docker ps | grep 'postgres:11' | awk '{print $1}') bash
-   ```
-2. :
-   ```sh
-   psql -U prefect -d prefect_server -W
-   ```
-3. :
-Escreva a senha: "test-password"
 
 ## help
 caso:
