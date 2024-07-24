@@ -1,41 +1,40 @@
 # Activate the virtual environment
 source orchestrator/bin/activate
 
-# docker network ls
-# docker network prune
+# Crie arquivo local de variáveis de ambiente
+cp .env.example .env
 
-# Start the Prefect server
-echo "Starting Prefect server..."
+# Start do Servidor Prefect
+echo "<> Start Servidor Prefect..."
 prefect server start &
 
-# Wait a few seconds to ensure the server starts properly
 sleep 15
 # echo "Começando os Flows em 15 seconds..."
 # sleep 10
 
-# Start the Prefect agent
-echo "Starting Prefect agents..."
+# Start do(s) Agente(s) Prefect
+echo "<> Start Agente(s) Prefect..."
 prefect agent local start --label default &
 prefect agent local start --label default &
 
-echo "Começando os Flows em 5 seconds..."
+echo "<> Começando os Flows em 5 seconds..."
 sleep 5
-echo "Começando os Flows"
+echo "<> Começando os Flows"
 
-# Create the Prefect project (if not already created)
-echo "Creating Prefect project..."
+# Crie o projeto Prefect (cgu_terceirizados)
+echo "<> Criando o projeto Prefect..."
 prefect create project cgu_terceirizados || echo "Project 'cgu_terceirizados' already exists"
 
-# Start the Capture
-echo "Começando Captura incial..."
+# Começe a Captura Inicial
+echo "<> Começando Captura incial..."
 python ./capture.py &
 
-sleep 60 # delay captura inicial 
+# sleep 50 # delay captura inicial 
 
-# Start the Materialization
-echo "Começando Materialização incial..."
-python ./materialize.py &
+# # Começe a Materialização Inicial
+# echo "Começando Materialização incial..."
+# python ./materialize.py &
 
-# Run the Prefect Flow Schedule
-echo "Running Prefect flow..."
+# Execute o Cronograma de Flows
+echo "<> Executando Cronograma de Flows..."
 python ./run.py &

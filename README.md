@@ -1,10 +1,6 @@
 # Desafio Engenheiro de Dados @ Escritório de Dados
 # Capture e Materialize os Dados Abertos de Terceirizados de Órgãos Federais
 
-0. :
-   ```sh
-   cp .env.example .env
-   ```
 1. :
    ```sh
    python -m venv orchestrator
@@ -67,6 +63,10 @@ Em outra janela do terminal:
 Com o Servidor Prefect local rodando:
 
 1. :
+   ```sh
+   python ./materialize.py
+   ```
+
    ```sh
    pip install -r requirements__view_results.txt
    ```
