@@ -1,7 +1,7 @@
 select
     -- Chaves primárias em ordem de escopo
     cast(id_terc as bigint) as id_terc,
-    "Ano_Carga" as ano_disponibilizado,
+    cast("Ano_Carga" as bigint) as ano_disponibilizado,
     "Mes_Carga"as mes_disponibilizado,
 
     -- Colunas agrupadas e ordenadas por importâncias dos temas
