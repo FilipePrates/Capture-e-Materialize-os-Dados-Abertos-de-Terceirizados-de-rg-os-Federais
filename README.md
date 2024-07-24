@@ -29,11 +29,13 @@
    prefect server start
    ```
 Em outra janela do terminal:
+
 5. : 
    ```sh
    prefect agent local start --label default
    ```
 Em outra janela do terminal:
+
 6. :
    ```sh
    prefect create project cgu_terceirizados
@@ -43,9 +45,12 @@ Em outra janela do terminal:
    python ./run.py
    ```
 ### Para parar o Servidor e Agente Prefect
-1.   ```sh
+
+1. :
+   ```sh
    prefect server stop
    ```
-2.   ```sh
+2. : 
+   ```sh
    pkill -f 'prefect agent local start'
    ```
