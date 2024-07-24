@@ -27,6 +27,8 @@ engine = create_engine(f'postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT
 def fetch_table_data(engine, table_schema, table_name):
     query = f'SELECT * FROM {table_schema}.{table_name} LIMIT {limit}'
     data = pd.read_sql(query, engine)
+
+    # Acrescenta uma linha com Tipos das Colunas
     types_query = f"""
     SELECT column_name, data_type
     FROM information_schema.columns
@@ -34,7 +36,6 @@ def fetch_table_data(engine, table_schema, table_name):
     """
     types = pd.read_sql(types_query, engine)
     
-    # Add a row for column types
     types_row = {col: dtype for col, dtype in zip(types['column_name'], types['data_type'])}
     data = pd.concat([pd.DataFrame([types_row]), data], ignore_index=True)
     return data
@@ -42,10 +43,10 @@ def fetch_table_data(engine, table_schema, table_name):
 # Capture os dados da tabela schemaName.tableName
 data = fetch_table_data(engine, schemaName, tableName)
 
-# Create a Dash app
+# Crie o app Dash
 app = dash.Dash(__name__)
 
-# Define the layout of the app
+# Defina o layout do Dash
 app.layout = html.Div([
     dash_table.DataTable(
         id='table',
@@ -67,9 +68,7 @@ app.layout = html.Div([
         ]
     )
 ])
+
 if __name__ == '__main__':
     print(data.head(4))
-
-# Run the app
-if __name__ == '__main__':
     app.run_server(debug=True)

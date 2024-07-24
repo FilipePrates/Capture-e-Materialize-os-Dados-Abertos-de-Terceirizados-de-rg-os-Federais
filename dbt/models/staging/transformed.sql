@@ -6,7 +6,7 @@ select
 
     -- Colunas agrupadas e ordenadas por importâncias dos temas
 
-    -- Orgãos administrativos
+    -- Orgãos Administrativos Relevantes
     sg_orgao_sup_tabela_ug,
     cast(cd_ug_gestora as bigint) as cd_ug_gestora,
     sg_ug_gestora,

@@ -1,30 +1,19 @@
-[2024-07-24 04:00:09,632] INFO - prefect.clean_log_file | 
+[2024-07-24 04:38:52,524] INFO - prefect.clean_log_file | 
 Limpeza do arquivo de log local logs.txt realizada com sucesso.
-[2024-07-24 04:00:09,701] INFO - prefect.CloudTaskRunner | Task 'clean_log_file': Finished task run for task with final state: 'Success'
-[2024-07-24 04:00:09,704] INFO - prefect.CloudTaskRunner | Task 'clean_log_file': Finished task run for task with final state: 'Success'
-[2024-07-24 04:00:09,754] INFO - prefect.CloudTaskRunner | Task 'run_dbt': Starting task run...
-[2024-07-24 04:00:09,758] INFO - prefect.CloudTaskRunner | Task 'run_dbt': Starting task run...
-[2024-07-24 04:00:13,250] INFO - prefect.run_dbt | 
-Falha na transformação (DBT):  CompletedProcess(args=['dbt', 'run', '--vars', 'database: None'], returncode=2, stdout='\x1b[0m07:00:11  Running with dbt=1.8.4\n\x1b[0m07:00:11  Registered adapter: postgres=1.8.2\n\x1b[0m07:00:11  [\x1b[33mWARNING\x1b[0m]: Configuration paths exist in your dbt_project.yml file which do not apply to any resources.\nThere are 2 unused configuration paths:\n- models.desafio_data_eng.marts\n- seeds.desafio_data_eng\n\x1b[0m07:00:11  Found 3 models, 2 data tests, 1 source, 415 macros\n\x1b[0m07:00:11  \n\x1b[0m07:00:11  \n\x1b[0m07:00:11  Finished running  in 0 hours 0 minutes and 0.02 seconds (0.02s).\n\x1b[0m07:00:11  Encountered an error:\nRuntime Error\n  ERROR: Cross-db references not allowed in postgres (None vs prefect_server)\n', stderr='') 
-[2024-07-24 04:00:13,251] INFO - prefect.CloudTaskRunner | FAIL signal raised: FAIL(None)
-[2024-07-24 04:00:13,262] INFO - prefect.run_dbt | 
-Falha na transformação (DBT):  CompletedProcess(args=['dbt', 'run', '--vars', 'database: None'], returncode=2, stdout='\x1b[0m07:00:11  Running with dbt=1.8.4\n\x1b[0m07:00:11  Registered adapter: postgres=1.8.2\n\x1b[0m07:00:11  [\x1b[33mWARNING\x1b[0m]: Configuration paths exist in your dbt_project.yml file which do not apply to any resources.\nThere are 2 unused configuration paths:\n- models.desafio_data_eng.marts\n- seeds.desafio_data_eng\n\x1b[0m07:00:11  Found 3 models, 2 data tests, 1 source, 415 macros\n\x1b[0m07:00:11  \n\x1b[0m07:00:11  \n\x1b[0m07:00:11  Finished running  in 0 hours 0 minutes and 0.03 seconds (0.03s).\n\x1b[0m07:00:11  Encountered an error:\nRuntime Error\n  ERROR: Cross-db references not allowed in postgres (None vs prefect_server)\n', stderr='') 
-[2024-07-24 04:00:13,262] INFO - prefect.CloudTaskRunner | FAIL signal raised: FAIL(None)
-[2024-07-24 04:00:13,288] INFO - prefect.CloudTaskRunner | Task 'run_dbt': Finished task run for task with final state: 'Failed'
-[2024-07-24 04:00:13,294] INFO - prefect.CloudTaskRunner | Task 'run_dbt': Finished task run for task with final state: 'Failed'
-[2024-07-24 04:00:13,319] INFO - prefect.CloudTaskRunner | Task 'upload_logs_to_database': Starting task run...
-[2024-07-24 04:00:13,320] INFO - prefect.CloudTaskRunner | Task 'upload_logs_to_database': Starting task run...
-[2024-07-24 04:00:13,365] INFO - prefect.upload_logs_to_database | 
-Falha ao conectar com o PostgreSQL: connection to server on socket "/var/run/postgresql/.s.PGSQL.5432" failed: No such file or directory
-	Is the server running locally and accepting connections on that socket?
-
-[2024-07-24 04:00:13,365] INFO - prefect.upload_logs_to_database | 
-Falha ao conectar com o PostgreSQL: connection to server on socket "/var/run/postgresql/.s.PGSQL.5432" failed: No such file or directory
-	Is the server running locally and accepting connections on that socket?
-
-[2024-07-24 04:00:13,365] INFO - prefect.CloudTaskRunner | FAIL signal raised: FAIL(None)
-[2024-07-24 04:00:13,365] INFO - prefect.CloudTaskRunner | FAIL signal raised: FAIL(None)
-[2024-07-24 04:00:13,396] INFO - prefect.CloudTaskRunner | Task 'upload_logs_to_database': Finished task run for task with final state: 'Failed'
-[2024-07-24 04:00:13,399] INFO - prefect.CloudTaskRunner | Task 'upload_logs_to_database': Finished task run for task with final state: 'Failed'
-[2024-07-24 04:00:13,416] INFO - prefect.CloudFlowRunner | Flow run FAILED: some reference tasks failed.
-[2024-07-24 04:00:13,417] INFO - prefect.CloudFlowRunner | Flow run FAILED: some reference tasks failed.
+[2024-07-24 04:38:52,526] INFO - prefect.TaskRunner | Task 'clean_log_file': Finished task run for task with final state: 'Success'
+[2024-07-24 04:38:52,532] INFO - prefect.TaskRunner | Task 'run_dbt': Starting task run...
+[2024-07-24 04:38:56,529] INFO - prefect.run_dbt | 
+Falha na transformação (DBT):  CompletedProcess(args=['dbt', 'run', '--vars', 'database: prefect_server'], returncode=1, stdout='\x1b[0m07:38:53  Running with dbt=1.8.4\n\x1b[0m07:38:54  Registered adapter: postgres=1.8.2\n\x1b[0m07:38:54  [\x1b[33mWARNING\x1b[0m]: Deprecated functionality\nThe `tests` config has been renamed to `data_tests`. Please see\nhttps://docs.getdbt.com/docs/build/data-tests#new-data_tests-syntax for more\ninformation.\n\x1b[0m07:38:54  [\x1b[33mWARNING\x1b[0m]: Configuration paths exist in your dbt_project.yml file which do not apply to any resources.\nThere are 2 unused configuration paths:\n- models.desafio_data_eng.marts\n- seeds.desafio_data_eng\n\x1b[0m07:38:54  Found 3 models, 2 data tests, 1 source, 415 macros\n\x1b[0m07:38:54  \n\x1b[0m07:38:54  Concurrency: 4 threads (target=\'dev\')\n\x1b[0m07:38:54  \n\x1b[0m07:38:54  1 of 3 START sql table model staging.raw ....................................... [RUN]\n\x1b[0m07:38:55  1 of 3 OK created sql table model staging.raw .................................. [\x1b[32mSELECT 73870\x1b[0m in 0.36s]\n\x1b[0m07:38:55  2 of 3 START sql table model staging.cleaned ................................... [RUN]\n\x1b[0m07:38:55  2 of 3 ERROR creating sql table model staging.cleaned .......................... [\x1b[31mERROR\x1b[0m in 0.02s]\n\x1b[0m07:38:55  3 of 3 SKIP relation staging.transformed ....................................... [\x1b[33mSKIP\x1b[0m]\n\x1b[0m07:38:55  \n\x1b[0m07:38:55  Finished running 3 table models in 0 hours 0 minutes and 0.54 seconds (0.54s).\n\x1b[0m07:38:55  \n\x1b[0m07:38:55  \x1b[31mCompleted with 1 error and 0 warnings:\x1b[0m\n\x1b[0m07:38:55  \n\x1b[0m07:38:55    Database Error in model cleaned (models/staging/cleaned.sql)\n  column "-2" does not exist\n  LINE 51:     nullif(cd_orgao_siafi, "-2") as cd_orgao_siafi,\n                                      ^\n  compiled Code at target/run/desafio_data_eng/models/staging/cleaned.sql\n\x1b[0m07:38:55  \n\x1b[0m07:38:55  Done. PASS=1 WARN=0 ERROR=1 SKIP=1 TOTAL=3\n', stderr='') 
+[2024-07-24 04:38:56,529] INFO - prefect.TaskRunner | FAIL signal raised: FAIL(None)
+[2024-07-24 04:38:56,533] INFO - prefect.TaskRunner | Task 'run_dbt': Finished task run for task with final state: 'Failed'
+[2024-07-24 04:38:56,541] INFO - prefect.TaskRunner | Task 'upload_logs_to_database': Starting task run...
+[2024-07-24 04:38:56,546] INFO - prefect.upload_logs_to_database | 
+Conectado com PostgreSQL com sucesso!
+[2024-07-24 04:38:56,547] INFO - prefect.upload_logs_to_database | 
+Tabela de logs logs__materialize criada no PostgreSQL com sucesso!
+[2024-07-24 04:38:56,556] INFO - prefect.upload_logs_to_database | 
+Dados de logs do Flow inseridos em logs__materialize com sucesso!
+[2024-07-24 04:38:56,556] INFO - prefect.upload_logs_to_database | 
+Feito upload do arquivo de log local logs.txt na tabela logs__materialize PostgreSQL com sucesso!
+[2024-07-24 04:38:56,560] INFO - prefect.TaskRunner | Task 'upload_logs_to_database': Finished task run for task with final state: 'Success'
+[2024-07-24 04:38:56,560] INFO - prefect.FlowRunner | Flow run SUCCESS: all reference tasks succeeded

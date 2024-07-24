@@ -1,6 +1,10 @@
 # Desafio Engenheiro de Dados @ Escritório de Dados
 # Capture e Materialize os Dados Abertos de Terceirizados de Órgãos Federais
 
+0. :
+   ```sh
+   cp .env.example .env
+   ```
 1. :
    ```sh
    python -m venv orchestrator
@@ -76,6 +80,16 @@ Com o Servidor Prefect local rodando:
 
 ### Para parar o Servidor e Agente Prefect
 
+0. :
+   ```sh
+   chmod +x stop.sh
+   ```
+1. :
+   ```sh
+   ./stop.sh
+   ```
+ou:
+
 1. :
    ```sh
    prefect server stop
@@ -84,30 +98,20 @@ Com o Servidor Prefect local rodando:
    ```sh
    pkill -f 'prefect agent local start'
    ```
-ou:
 
-1. :
-   ```sh
-   chmod +x stop.sh
-   ```
-2. :
-   ```sh
-   ./stop.sh
-   ```
 ### Conectar diretamente ao PostgreSQL:
-1. :
-   ```sh
-   prefect server stop
-   ```
-2. : 
+
+Com o Servidor Prefect local rodando:
+
+1. : 
    ```sh
    docker exec -it $(docker ps | grep 'postgres:11' | awk '{print $1}') bash
    ```
-3. :
+2. :
    ```sh
    psql -U prefect -d prefect_server -W
    ```
-4. :
+3. :
 Escreva a senha: "test-password"
 
 ## 
