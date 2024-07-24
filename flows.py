@@ -78,12 +78,10 @@ from prefect.tasks.prefect import (
     wait_for_flow_run
 )
 
-# A cada 3 minutos -- demo
-current_time = datetime.now()
-time_difference = timedelta(minutes=3, seconds=4)
-start_time = current_time - time_difference
+# A cada 10 minutos -- demo
+
 schedule = Schedule(
-    clocks=[IntervalClock(timedelta(minutes=3), start_date=start_time)]
+    clocks=[IntervalClock(timedelta(minutes=10))]
 )
 
 with Flow("schedule", schedule=schedule) as schedule:

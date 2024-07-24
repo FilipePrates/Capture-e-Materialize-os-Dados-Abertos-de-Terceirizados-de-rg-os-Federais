@@ -1,6 +1,6 @@
 kill_processes() {
-    echo "Killing all Python processes..."
-    pkill -f python
+    # echo "Killing all Python processes..."
+    # pkill -f python
 
     echo "Killing all Docker containers..."
     docker stop $(docker ps -q)
