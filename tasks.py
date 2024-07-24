@@ -4,14 +4,18 @@ import requests
 import os
 import subprocess
 import pandas as pd
-from bs4 import BeautifulSoup
 from prefect import task
 from prefect.engine.signals import FAIL
 from prefect.engine.state import Failed
 from prefect.triggers import all_finished
+
+from bs4 import BeautifulSoup
 from psycopg2 import sql
 from dotenv import load_dotenv
 from utils import (
+    download_file,
+    get_file_extension,
+
     log,
     log_and_propagate_error,
     create_table,
@@ -86,7 +90,7 @@ def clean_log_file(logFilePath: dict) -> dict:
 
 @task
 def download_new_cgu_terceirizados_data(cleanStart: dict) -> dict:
-    f"""
+    """
     Baixa os Dados Abertos mais recentes dos Terceirizados de Órgãos Federais,
       disponibilizado pela Controladoria Geral da União.
 
@@ -162,7 +166,81 @@ def download_new_cgu_terceirizados_data(cleanStart: dict) -> dict:
          Possível mudança de layout. {e}"
         log_and_propagate_error(error, rawData)
 
-    if 'errors' in rawData: return Failed(result=rawData)
+    if 'errors' in rawData:
+        return Failed(result=rawData)
+    log(f'Dados referentes ao mês de {monthText} baixados com sucesso!')
+    return rawData
+
+@task
+def download_new_cgu_terceirizados_data(cleanStart: dict) -> dict:
+    """
+    Baixa os Dados Abertos mais recentes dos Terceirizados de Órgãos Federais,
+      disponibilizado pela Controladoria Geral da União.
+
+    Args:
+        dict: Dicionário contendo chaves-valores:
+                'logFilePath': caminho dos arquivo local de log (string),
+                ?'error': Possíveis erros propagados (string)
+    Returns:
+        dict: Dicionário contendo chaves-valores:
+                'rawData': Dicionário contendo chaves-valores:
+                    'content': Conteúdo do arquivo (bytes),
+                    'type': Extensão do arquivo (.csv, .xlsx),
+                    'year': Ano do arquivo para particionamento,
+                ?'error': Possíveis erros propagados (string)    
+    """
+    if isinstance(cleanStart, Failed): return Failed(result=cleanStart)
+    rawData = {}
+
+    try:
+        # Acesse as variáveis de ambiente em busca da url atualizada do portal da CGU
+        URL = os.getenv("URL_FOR_DATA_DOWNLOAD")
+        DOWNLOAD_ATTEMPTS = int(os.getenv("DOWNLOAD_ATTEMPTS"))
+    except Exception as e:
+        error = f"Falha ao acessar variáveis de ambiente. {e}"
+        log_and_propagate_error(error, rawData)
+
+    try:
+        # Capture o link de download através do portal de dados públicos da CGU
+        def fetch_download_url_from_dados_abertos_cgu(url):
+            response = requests.get(url)
+            soup = BeautifulSoup(response.content, 'html.parser')
+
+            headers = soup.find_all('h3')
+            if headers:
+                header = headers[0]
+                year = header.get_text()
+                ul = header.find_next('ul')
+                if ul:
+                    links = ul.find_all('a')
+                    if links:
+                        link = links[0]
+                        monthText = link.get_text()
+                        file_url = link['href']
+                        return file_url, year, monthText
+            raise Exception("No valid download link found")
+        file_url, year, monthText = fetch_download_url_from_dados_abertos_cgu(URL)
+        log(f"Link {file_url} para dados crus capturado do portal de Dados Abertos da \Controladoria Geral da \
+            União com sucesso!")
+    except Exception as e:
+        error = f"Falha ao capturar link para dados crus capturado do portal de Dados Abertos da Controladoria \
+            Geral da União. Possível mudança de layout. {e}"
+        log_and_propagate_error(error, rawData)
+
+    try:
+        # Baixe o arquivo no link e armazene na memória principal
+        content, content_type = download_file(file_url, DOWNLOAD_ATTEMPTS, monthText, year)
+        rawData['rawData'] = {
+            'content': content,
+            'type': get_file_extension(content_type),
+            'year': year
+        }
+    except Exception as e:
+        error = f"Falha ao baixar os dados do link {file_url}. Foram realizadas {DOWNLOAD_ATTEMPTS} tentativas. {e}"
+        log_and_propagate_error(error, rawData)
+        
+    if 'errors' in rawData: 
+        return Failed(result=rawData)
     log(f'Dados referentes ao mês de {monthText} baixados com sucesso!')
     return rawData
 

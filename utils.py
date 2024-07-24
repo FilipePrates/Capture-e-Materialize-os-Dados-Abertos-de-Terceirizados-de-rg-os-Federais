@@ -1,5 +1,6 @@
 import prefect
 import psycopg2
+import requests
 import os
 
 from prefect import Client
@@ -8,6 +9,7 @@ from prefect.engine.state import Failed
 from prefect.schedules import Schedule
 from prefect.schedules.clocks import CronClock
 
+from bs4 import BeautifulSoup
 from datetime import timedelta, datetime
 from psycopg2 import sql
 
@@ -103,7 +105,27 @@ def clean_table(cur, conn, tableName):
     cur.execute(cleanTableQuery)
     conn.commit()
     log(f"Tabela {tableName} limpa no PostgreSQL com sucesso!")
-    
+
+def download_file(file_url, attempts, monthText, year):
+    for attempt in range(attempts):
+        response = requests.get(file_url)
+        if response.status_code == 200:
+            content_type = response.headers.get('Content-Type', '')
+            return response.content, content_type
+        else:
+            log(f"Tentativa {attempt +1}: Falha ao baixar dados referentes à {monthText}/{year}. Status code: {response.status_code}")
+            if attempt +1 == attempts:
+                error = f"Falha ao baixar dados referentes à {monthText}/{year} após {attempt +1} tentativa(s) de recaptura. Status code: {response.status_code}"
+                raise Exception(error)
+
+def get_file_extension(content_type):
+    if 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' in content_type:
+        return 'xlsx'
+    elif 'text/csv' in content_type or 'application/vnd.ms-excel' in content_type:
+        return 'csv'
+    else:
+        raise ValueError('Formato do arquivo cru fora do esperado (.csv, .xlsx).')
+
 def cronograma_padrao_cgu_terceirizados():
     """Determina o cronograma padrão de disponibilização
     de novos dados da Controladoria Geral da União"""
