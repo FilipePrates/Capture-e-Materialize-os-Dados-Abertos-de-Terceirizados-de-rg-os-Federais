@@ -15,8 +15,10 @@ from utils import (
     log,
     log_and_propagate_error,
     create_table,
-    clean_raw_table,
+    create_log_table,
+    clean_table,
     insert_data,
+    insert_log_data,
     connect_to_postgresql
 )
 load_dotenv()
@@ -306,46 +308,46 @@ def upload_csv_to_database(parsedFilePaths: dict, tableName: str) -> dict:
         # Conecte com o PostgreSQL
         conn, cur = connect_to_postgresql()
     except Exception as e:
+        conn.rollback(); cur.close(); conn.close()
         error = f"Falha ao conectar com o PostgreSQL: {e}"
         log_and_propagate_error(error, status)
-        conn.rollback(); cur.close(); conn.close()
         return status
 
     for parsedFile in parsedFilePaths['parsedFilePaths']:
-        # Leia o arquivo
-        try:
+        try: 
+            # Leia o arquivo
             df = pd.read_csv(parsedFile) # low_memory=False
         except Exception as e:
+            conn.rollback(); cur.close(); conn.close()
             error = f"Falha ao ler o arquivo {parsedFile}: {e}"
             log_and_propagate_error(error, status)
-            conn.rollback(); cur.close(); conn.close()
             return status
         
-        # Crie a tabela tableName no PostgreSQL, caso não exista
         try:
-            create_table(cur, conn, df, tableName, status)
+            # Crie a tabela tableName no PostgreSQL, caso não exista
+            create_table(cur, conn, df, tableName)
         except Failed as e:
+            conn.rollback(); cur.close(); conn.close()
             error = f"Falha ao criar tabela {tableName} no PostgreSQL: {e}"
             log_and_propagate_error(error, status)
-            conn.rollback(); cur.close(); conn.close()
             return status
 
-        # Limpe a tabela raw, se necessário
         try:
-            clean_raw_table(cur, conn, tableName, status)
+            # Limpe a tabela raw, se necessário
+            clean_table(cur, conn, tableName)
         except Exception as e:
+            conn.rollback(); cur.close(); conn.close()
             error = f"Falha ao limpar tabela {tableName} no PostgreSQL: {e}"
             log_and_propagate_error(error, status)
-            conn.rollback(); cur.close(); conn.close()
             return status
 
-        # Insere os dados tratados na tabela tableName
         try:
-            insert_data(cur, conn, df, tableName, parsedFile, status)
+            # Insere os dados tratados na tabela tableName
+            insert_data(cur, conn, df, tableName, parsedFile)
         except Exception as e:
+            conn.rollback(); cur.close(); conn.close()
             error = f"Falha ao inserir dados do arquivo {parsedFile} na tabela {tableName} no PostgreSQL: {e}"
             log_and_propagate_error(error, status)
-            conn.rollback(); cur.close(); conn.close()
             return status
         
     cur.close()
@@ -372,35 +374,19 @@ def upload_logs_to_database(status: dict, logFilePath: str, tableName: str) -> d
                 ?'error': Possíveis erros propagados (string)
     """
     logStatus = { 'tables': [] }
-    # Conecte com o PostgresSQL
-    try:
-        conn = psycopg2.connect(
-            host=os.getenv("DB_HOST"),
-            port=os.getenv("DB_PORT"),
-            dbname=os.getenv("DB_NAME"),
-            user=os.getenv("DB_USER"),
-            password=os.getenv("DB_PASSWORD")
-        )
-        cur = conn.cursor()
-    except Exception as e:
-        error = f"Falha ao conectar com o PostgreSQL: {e}"
-        log_and_propagate_error(error, logStatus)
-        conn.rollback()
-        cur.close()
-        conn.close()
-        return logStatus
 
     try:
-        # Crie a tabela de logs no PostgreSQL, caso não exista
-        create_table_query = sql.SQL("""
-            CREATE TABLE IF NOT EXISTS {table} (
-                log_id SERIAL PRIMARY KEY,
-                log_content TEXT,
-                log_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """).format(table=sql.Identifier(tableName))
-        cur.execute(create_table_query)
-        conn.commit()
+        # Conecte com o PostgreSQL
+        conn, cur = connect_to_postgresql()
+    except Exception as e:
+        error = f"Falha ao conectar com o PostgreSQL: {e}"
+        log_and_propagate_error(error, status)
+        conn.rollback(); cur.close(); conn.close()
+        return status
+
+    try:
+        # Crie a tabela de logs tableName no PostgreSQL, caso não exista
+        create_log_table(cur, conn, tableName)
     except Exception as e:
         error = f"Falha ao criar tabela de {tableName} no PostgreSQL: {e}"
         log_and_propagate_error(error, logStatus)
@@ -409,16 +395,9 @@ def upload_logs_to_database(status: dict, logFilePath: str, tableName: str) -> d
         conn.close()
         return logStatus
     
-    # Leia o arquivo de log e insira os registros na tabela
     try:
-        with open(logFilePath, 'r') as file:
-            for line in file:
-                insert_log_query = sql.SQL("""
-                    INSERT INTO {table} (log_content)
-                    VALUES (%s)
-                """).format(table=sql.Identifier(tableName))
-                cur.execute(insert_log_query, [line])
-        conn.commit()
+        # Leia o arquivo de log e insira os registros na tabela
+        insert_log_data(conn,cur,tableName,logFilePath)
     except Exception as e:
         error = f"Falha ao inserir logs na tabela de {tableName} no PostgreSQL: {e}"
         log_and_propagate_error(error, logStatus)

@@ -35,7 +35,7 @@ with Flow("Captura dos Dados Abertos de Terceirizados de Órgãos Federais") as 
     # LOAD #
     status = upload_csv_to_database(parsedFilePaths, "raw")
     logStatus = upload_logs_to_database(status, "logs.txt", "logs__capture")
-capture.register(project_name="cgu_terceirizados")
+
 
 with Flow("Materialização dos Dados Abertos de Terceirizados de Órgãos Federais") as materialize:
     # # SETUP #
@@ -48,7 +48,6 @@ with Flow("Materialização dos Dados Abertos de Terceirizados de Órgãos Feder
 
     #LOAD
     logStatus = upload_logs_to_database(columns, "logs.txt", "logs__materialize")
-materialize.register(project_name="cgu_terceirizados")
 
 # Executar captura de dados históricos
 # with Flow("Dados Abertos de Terceirizados de Órgãos Federais - Captura dos Dados Históricos") as captureAll:
@@ -89,5 +88,8 @@ with Flow("schedule") as schedule:
         flow_name="Materialização dos Dados Abertos de Terceirizados de Órgãos Federais",
         project_name="cgu_terceirizados"
     )
-
+    
+# Registra Flows no Project do Prefect http://localhost:8080
+capture.register(project_name="cgu_terceirizados")
+materialize.register(project_name="cgu_terceirizados")
 schedule.register(project_name="cgu_terceirizados")

@@ -1,5 +1,16 @@
 # Desafio Escritório de Dados
-## 
+## Capture e Materialize os Dados Abertos de Terceirizados de Órgãos Federais 
+### Opção 1:
+1. :
+   ```sh
+   chmod +x start.sh
+   ```
+2. :
+   ```sh
+   ./start.sh
+   ```
+
+### Opção 2:
 1. :
    ```sh
    python -m venv orchestrator
@@ -25,49 +36,16 @@ Em outra janela do terminal:
 Em outra janela do terminal:
 6. :
    ```sh
+   prefect create project cgu_terceirizados
+   ```
+7. :
+   ```sh
    python ./run.py
    ```
-
-## Rode em containers com docker
-1. Garanta que tenha docker e docker-compose no seu sistema:
-   ```sh
-   sudo apt-get install -y docker.io
-   sudo systemctl start docker
-   sudo systemctl enable docker
-   sudo groupadd docker
-   sudo usermod -aG docker $USER
-   newgrp docker
-   groups $USER
-
-   sudo apt-get install -y docker-compose
+### Para parar o Servidor e Agente Prefect
+1.   ```sh
+   prefect server stop
    ```
-   (ou?)
-
-   sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-   sudo chmod +x /usr/local/bin/docker-compose
-
-2. Construa a imagem e execute os containers
-   ```sh
-   docker-compose up --build
-   ```
-
-### Project Orchestrator Setup
-
-Follow these steps to set up your project environment and run the application:
-
-1. :
-   ```sh
-   python -m venv orchestrator
-   ```
-
-
-### Config Prefect Server
-1. :
-   ```sh
-   prefect backend server
-   ```
-
-2. :
-   ```sh
-   prefect server start
+2.   ```sh
+   pkill -f 'prefect agent local start'
    ```
