@@ -35,7 +35,6 @@ def connect_to_postgresql():
             password=os.getenv("DB_PASSWORD")
         )
     cur = conn.cursor()
-    log(f"Conectado com PostgreSQL com sucesso!")
     return conn, cur
 
 def create_table(cur, conn, df, tableName):
@@ -53,7 +52,6 @@ def create_table(cur, conn, df, tableName):
     )
     cur.execute(createTableQuery)
     conn.commit()
-    log(f"Tabela {tableName} criada no PostgreSQL com sucesso!")
 
 def create_log_table(cur, conn, tableName):
     """Cria uma tabela tableName com colunas padrão de log no PostgreSQL"""
@@ -66,7 +64,6 @@ def create_log_table(cur, conn, tableName):
     """).format(table=sql.Identifier(tableName))
     cur.execute(create_table_query)
     conn.commit()
-    log(f"Tabela de logs {tableName} criada no PostgreSQL com sucesso!")
 
 def insert_data(cur, conn, df, tableName):
     """Insere os dados do pd.DataFrame df na tabela tableName no PostgreSQL"""
@@ -81,7 +78,6 @@ def insert_data(cur, conn, df, tableName):
         )
         cur.execute(insertValuesQuery, list(row))
     conn.commit()
-    log(f"Dados inseridos em {tableName} com sucesso!")
 
 def insert_log_data(conn, cur, tableName, logFilePath):
     """Insere os dados do arquivo de log em logFilePath na tabela tableName no PostgreSQL"""
@@ -93,7 +89,6 @@ def insert_log_data(conn, cur, tableName, logFilePath):
             """).format(table=sql.Identifier(tableName))
             cur.execute(insert_log_query, [line])
     conn.commit()
-    log(f"Dados de logs do Flow inseridos em {tableName} com sucesso!")
 
 def clean_table(cur, conn, tableName):
     """Insere os dados do arquivo de log em logFilePath na tabela tableName no PostgreSQL"""
@@ -104,7 +99,6 @@ def clean_table(cur, conn, tableName):
     )
     cur.execute(cleanTableQuery)
     conn.commit()
-    log(f"Tabela {tableName} limpa no PostgreSQL com sucesso!")
 
 def download_file(file_url, attempts, monthText, year):
     for attempt in range(attempts):
@@ -126,7 +120,7 @@ def get_file_extension(content_type):
     else:
         raise ValueError('Formato do arquivo cru fora do esperado (.csv, .xlsx).')
 
-def cronograma_padrao_cgu_terceirizados():
+def standard_schedule__adm_cgu_terceirizados():
     """Determina o cronograma padrão de disponibilização
     de novos dados da Controladoria Geral da União"""
     # client = Client()

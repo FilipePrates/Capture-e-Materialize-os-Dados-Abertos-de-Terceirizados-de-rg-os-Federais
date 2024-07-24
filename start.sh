@@ -33,12 +33,13 @@ if [[ "$run" == "y" || "$run" == "Y" || "$run" == "yes" || "$run" == "Yes" || "$
         sleep 1
     done
     # Start do(s) Agente(s) Prefect
-    echo " <> Start Agente(s) Prefect..."
-    prefect agent local start --label default &
+    # echo " <> Start Agente(s) Prefect..."
     # prefect agent local start --label default &
-    # Crie o projeto Prefect (cgu_terceirizados)
-    echo " <> Criando o projeto Prefect..."
-    prefect create project cgu_terceirizados || echo "Project 'cgu_terceirizados' already exists"
+    # prefect agent local start --label default &
+
+    # Crie o projeto Prefect
+    echo " <> Criando o projeto Prefect (adm_cgu_terceirizados)..."
+    prefect create project adm_cgu_terceirizados || echo "Project 'adm_cgu_terceirizados' already exists"
     sleep 2
     echo " <> Começando os Flows!..."
     # Começe a Captura Inicial
@@ -52,14 +53,15 @@ if [[ "$run" == "y" || "$run" == "Y" || "$run" == "yes" || "$run" == "Yes" || "$
     echo " <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <> "
     echo " <> Começando Materialização incial!...  <> "
     echo " <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <> "
-    echo " <> ..."
     python ./materialize.py
     echo " <> Materialização incial finalizada!"
-
+    
+    # Comemore objetivo concluído
     echo " <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <> "
     echo " <> Resultados armazenados no PostgreSQL!... <> "
     echo " <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <> "
 
+    sleep 3
     echo " <> Configurando visualização..."
     # Espera input para baixar requisitos mostra de resultados
     # Instale os requisitos
@@ -86,7 +88,14 @@ if [[ "$run" == "y" || "$run" == "Y" || "$run" == "yes" || "$run" == "Yes" || "$
     python ./view_results.py &
 
     while true; do
-        echo "<> Visualize os resultados! Visite localhost:8050 no browser de sua escolha."
+        echo " <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <> "
+        echo " <> Visualize os resultados!                                                     <> "
+        echo " <>                            Visite localhost:8050 no browser de sua escolha!  <> "
+        echo " <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <> "
+        echo " <>                                                                              <> "
+        echo " <>     \"python ./schedules.py\" para programar as próximas capturas.             <> "
+        echo " <>                                                                              <> "
+        echo " <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <> "
         sleep 5
     done
 

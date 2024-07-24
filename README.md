@@ -50,7 +50,7 @@ Em outra janela do terminal:
 
 7. :
    ```sh
-   prefect create project cgu_terceirizados
+   prefect create project adm_cgu_terceirizados
    ```
 8. :
    ```sh
@@ -97,26 +97,6 @@ Com o Servidor Prefect local rodando:
 1. :
    ```sh
    ./stop.sh
-   ```
-ou,:
-
-1. :
-   ```sh
-   prefect server stop
-   ```
-2. : 
-   ```sh
-   pkill -f 'prefect agent local start'
-   ```
-ou ainda, de maneira mais exigente:
-
-1. :
-   ```sh
-   chmod +x clear.sh
-   ```
-2. : 
-   ```sh
-   ./clear.sh
    ```
 
 ### Conectar diretamente ao PostgreSQL:

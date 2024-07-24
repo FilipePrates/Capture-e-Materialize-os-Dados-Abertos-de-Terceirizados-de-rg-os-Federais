@@ -8,7 +8,7 @@ kill_processes() {
         docker stop $containers
         docker rm $(docker ps -a -q)
     fi
-    echo " <> Podando network do Docker..."
+    echo " <> Podando networks do Docker..."
     docker network prune -f
 
     echo " <> Parando processos do PostgreSQL..."

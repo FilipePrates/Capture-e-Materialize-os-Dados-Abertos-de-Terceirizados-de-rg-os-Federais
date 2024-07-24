@@ -88,88 +88,88 @@ def clean_log_file(logFilePath: dict) -> dict:
     cleanStart['logFilePath'] = path
     return cleanStart
 
-@task
-def download_new_cgu_terceirizados_data(cleanStart: dict) -> dict:
-    """
-    Baixa os Dados Abertos mais recentes dos Terceirizados de Órgãos Federais,
-      disponibilizado pela Controladoria Geral da União.
+# @task
+# def download_new_cgu_terceirizados_data(cleanStart: dict) -> dict:
+#     """
+#     Baixa os Dados Abertos mais recentes dos Terceirizados de Órgãos Federais,
+#       disponibilizado pela Controladoria Geral da União.
 
-    Args:
-        dict: Dicionário contendo chaves-valores:
-                'logFilePath': caminho dos arquivo local de log (string),
-                ?'error': Possíveis erros propagados (string)
-    Returns:
-        dict: Dicionário contendo chaves-valores:
-                'rawData': Dicionário contendo chaves-valores:
-                    'content': Conteúdo do arquivo (bytes),
-                    'type': Extensão do arquivo (.csv, .xlsx),
-                    'year': Ano do arquivo para particionamento,
-                ?'error': Possíveis erros propagados (string)    
-    """
-    if isinstance(cleanStart, Failed): return Failed(result=cleanStart)
-    rawData = {}
+#     Args:
+#         dict: Dicionário contendo chaves-valores:
+#                 'logFilePath': caminho dos arquivo local de log (string),
+#                 ?'error': Possíveis erros propagados (string)
+#     Returns:
+#         dict: Dicionário contendo chaves-valores:
+#                 'rawData': Dicionário contendo chaves-valores:
+#                     'content': Conteúdo do arquivo (bytes),
+#                     'type': Extensão do arquivo (.csv, .xlsx),
+#                     'year': Ano do arquivo para particionamento,
+#                 ?'error': Possíveis erros propagados (string)    
+#     """
+#     if isinstance(cleanStart, Failed): return Failed(result=cleanStart)
+#     rawData = {}
 
-    try:
-        # Acesse o portal de dados públicos da CGU
-        URL = os.getenv("URL_FOR_DATA_DOWNLOAD")
-        DOWNLOAD_ATTEMPTS = int(os.getenv("DOWNLOAD_ATTEMPTS"))
-        # log(type(DOWNLOAD_ATTEMPTS))
-        response = requests.get(URL)
-        soup = BeautifulSoup(response.content, 'html.parser')
+#     try:
+#         # Acesse o portal de dados públicos da CGU
+#         URL = os.getenv("URL_FOR_DATA_DOWNLOAD")
+#         DOWNLOAD_ATTEMPTS = int(os.getenv("DOWNLOAD_ATTEMPTS"))
+#         # log(type(DOWNLOAD_ATTEMPTS))
+#         response = requests.get(URL)
+#         soup = BeautifulSoup(response.content, 'html.parser')
 
-        # Encontre o link de download com os dados mais recentes
-        headers = soup.find_all('h3')
-        if(len(headers) > 0):
-            header = headers[0]
-            year = header.get_text()
-            ul = header.find_next('ul')
-            if ul:
-                links = ul.find_all('a')
-                if(len(links) > 0):
-                    link = links[0]
-                    monthText = link.get_text()
-                    # Cheque se já temos essa informação desse mês/ano (redis?) raise Exception -
-                        # Failed flow retry 1 dia pode não ter sido disponibilizado ainda
-                    file_url = link['href']
+#         # Encontre o link de download com os dados mais recentes
+#         headers = soup.find_all('h3')
+#         if(len(headers) > 0):
+#             header = headers[0]
+#             year = header.get_text()
+#             ul = header.find_next('ul')
+#             if ul:
+#                 links = ul.find_all('a')
+#                 if(len(links) > 0):
+#                     link = links[0]
+#                     monthText = link.get_text()
+#                     # Cheque se já temos essa informação desse mês/ano (redis?) raise Exception -
+#                         # Failed flow retry 1 dia pode não ter sido disponibilizado ainda
+#                     file_url = link['href']
 
-                    # Caso download falhe, duas tentativas de recaptura imediata
-                    for attempt in range(DOWNLOAD_ATTEMPTS):  
-                        response = requests.get(file_url)
-                        if response.status_code == 200:
-                            # Salve o arquivo baixado, sua extensão e ano referente para tratamento posterior
-                            content_type = response.headers.get('Content-Type', '')
-                            if \
-                                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' \
-                                    in content_type or \
-                                'text/csv' in content_type or \
-                                'application/vnd.ms-excel' in content_type:
-                                file_extension = 'xlsx' if 'spreadsheetml.sheet' in content_type else 'csv'
-                                rawData['rawData'] = {
-                                    'content': response.content,
-                                    'type': file_extension,
-                                    'year': year
-                                }
-                                break
-                            else:
-                                raise ValueError('Formato do arquivo cru fora do esperado (.csv, .xlsx).')
-                        else:
-                            log(f"Tentativa {attempt +1}: \
-                                    Falha ao baixar dados referentes à {monthText}/{year}. \
-                                    Status code: {response.status_code}")
-                            if attempt +1 == DOWNLOAD_ATTEMPTS:
-                                error = f"Falha ao baixar dados referentes à {monthText}/{year} \
-                                    após {attempt +1} tentativa(s) de recaptura. \
-                                    Status code: {response.status_code}"
-                                log_and_propagate_error(error, rawData)
-    except Exception as e:
-        error = f"Falha ao baixar os dados crus mais recentes de {URL}. \n \
-         Possível mudança de layout. {e}"
-        log_and_propagate_error(error, rawData)
+#                     # Caso download falhe, duas tentativas de recaptura imediata
+#                     for attempt in range(DOWNLOAD_ATTEMPTS):  
+#                         response = requests.get(file_url)
+#                         if response.status_code == 200:
+#                             # Salve o arquivo baixado, sua extensão e ano referente para tratamento posterior
+#                             content_type = response.headers.get('Content-Type', '')
+#                             if \
+#                                 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' \
+#                                     in content_type or \
+#                                 'text/csv' in content_type or \
+#                                 'application/vnd.ms-excel' in content_type:
+#                                 file_extension = 'xlsx' if 'spreadsheetml.sheet' in content_type else 'csv'
+#                                 rawData['rawData'] = {
+#                                     'content': response.content,
+#                                     'type': file_extension,
+#                                     'year': year
+#                                 }
+#                                 break
+#                             else:
+#                                 raise ValueError('Formato do arquivo cru fora do esperado (.csv, .xlsx).')
+#                         else:
+#                             log(f"Tentativa {attempt +1}: \
+#                                     Falha ao baixar dados referentes à {monthText}/{year}. \
+#                                     Status code: {response.status_code}")
+#                             if attempt +1 == DOWNLOAD_ATTEMPTS:
+#                                 error = f"Falha ao baixar dados referentes à {monthText}/{year} \
+#                                     após {attempt +1} tentativa(s) de recaptura. \
+#                                     Status code: {response.status_code}"
+#                                 log_and_propagate_error(error, rawData)
+#     except Exception as e:
+#         error = f"Falha ao baixar os dados crus mais recentes de {URL}. \n \
+#          Possível mudança de layout. {e}"
+#         log_and_propagate_error(error, rawData)
 
-    if 'errors' in rawData:
-        return Failed(result=rawData)
-    log(f'Dados referentes ao mês de {monthText} baixados com sucesso!')
-    return rawData
+#     if 'errors' in rawData:
+#         return Failed(result=rawData)
+#     log(f'Dados referentes ao mês de {monthText} baixados com sucesso!')
+#     return rawData
 
 @task
 def download_new_cgu_terceirizados_data(cleanStart: dict) -> dict:
@@ -267,7 +267,7 @@ def save_raw_data_locally(rawData: dict) -> dict:
     # Crie os diretórios no padrão de particionamento por ano
     try:
         for _key, content in rawData.items(): 
-            download_dir = os.path.join(f'cgu_terceirizados_local/', f"year={content['year']}/")
+            download_dir = os.path.join(f'adm_cgu_terceirizados_local/', f"year={content['year']}/")
             os.makedirs(download_dir, exist_ok=True)
             log(f'Diretório para armazenar localmente os dados crus {download_dir} criado com sucesso!')
             filePath = os.path.join(download_dir, f"raw_data.{content['type']}".lower())
@@ -386,11 +386,13 @@ def upload_csv_to_database(parsedFilePaths: dict, tableName: str) -> dict:
     try:
         # Conecte com o PostgreSQL
         conn, cur = connect_to_postgresql()
+        log(f"Conectado com PostgreSQL com sucesso!")
     except Exception as e:
         conn.rollback(); cur.close(); conn.close()
         error = f"Falha ao conectar com o PostgreSQL: {e}"
         log_and_propagate_error(error, status)
         return status
+    
 
     for parsedFile in parsedFilePaths['parsedFilePaths']:
         try: 
@@ -405,6 +407,7 @@ def upload_csv_to_database(parsedFilePaths: dict, tableName: str) -> dict:
         try:
             # Crie a tabela tableName no PostgreSQL, caso não exista
             create_table(cur, conn, df, tableName)
+            log(f"Tabela {tableName} criada no PostgreSQL com sucesso!")
         except Failed as e:
             conn.rollback(); cur.close(); conn.close()
             error = f"Falha ao criar tabela {tableName} no PostgreSQL: {e}"
@@ -414,6 +417,7 @@ def upload_csv_to_database(parsedFilePaths: dict, tableName: str) -> dict:
         try:
             # Limpe a tabela
             clean_table(cur, conn, tableName)
+            log(f"Tabela {tableName} limpa no PostgreSQL com sucesso!")
         except Exception as e:
             conn.rollback(); cur.close(); conn.close()
             error = f"Falha ao limpar tabela {tableName} no PostgreSQL: {e}"
@@ -422,15 +426,16 @@ def upload_csv_to_database(parsedFilePaths: dict, tableName: str) -> dict:
 
         try:
             # Insere os dados tratados na tabela tableName
+            log(f"Inserindo {df.shape[0]} linhas em {tableName}...")
             insert_data(cur, conn, df, tableName)
+            log(f"Dados inseridos em {tableName} com sucesso!")
         except Exception as e:
             conn.rollback(); cur.close(); conn.close()
             error = f"Falha ao inserir dados do arquivo {parsedFile} na tabela {tableName} no PostgreSQL: {e}"
             log_and_propagate_error(error, status)
             return status
         
-    cur.close()
-    conn.close()
+    cur.close(); conn.close()
     if 'error' in status: return Failed(result=status)
     log(f"Feito upload de dados do arquivo {parsedFile} no PostgreSQL com sucesso!")
     status['tables'].append(tableName)
@@ -457,6 +462,7 @@ def upload_logs_to_database(status: dict, logFilePath: str, tableName: str) -> d
     try:
         # Conecte com o PostgreSQL
         conn, cur = connect_to_postgresql()
+        log(f"Conectado com PostgreSQL com sucesso!")
     except Exception as e:
         error = f"Falha ao conectar com o PostgreSQL: {e}"
         log_and_propagate_error(error, status)
@@ -466,23 +472,21 @@ def upload_logs_to_database(status: dict, logFilePath: str, tableName: str) -> d
     try:
         # Crie a tabela de logs tableName no PostgreSQL, caso não exista
         create_log_table(cur, conn, tableName)
+        log(f"Tabela de logs {tableName} criada no PostgreSQL com sucesso!")
     except Exception as e:
         error = f"Falha ao criar tabela de {tableName} no PostgreSQL: {e}"
         log_and_propagate_error(error, logStatus)
-        conn.rollback()
-        cur.close()
-        conn.close()
+        conn.rollback(); cur.close(); conn.close()
         return logStatus
     
     try:
         # Leia o arquivo de log e insira os registros na tabela
         insert_log_data(conn,cur,tableName,logFilePath)
+        log(f"Dados de logs do Flow inseridos em {tableName} com sucesso!")
     except Exception as e:
         error = f"Falha ao inserir logs na tabela de {tableName} no PostgreSQL: {e}"
         log_and_propagate_error(error, logStatus)
-        conn.rollback()
-        cur.close()
-        conn.close()
+        conn.rollback(); cur.close(); conn.close()
         return logStatus
     
     if "error" in logStatus: return Failed(result=logStatus)

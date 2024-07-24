@@ -1,5 +1,5 @@
-name: 'desafio_data_eng'
-version: 1.0.2 # Versão do Projeto
+name: 'adm_cgu_terceirizados'
+version: 1.0.0 # Versão do Projeto
 config-version: 2  # Versão da Configuração
 
 profile: local_profile

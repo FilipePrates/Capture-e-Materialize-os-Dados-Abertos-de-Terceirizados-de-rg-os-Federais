@@ -1,7 +1,7 @@
 version: 2
 
 sources:
-  - name: cgu_terceirizados__public
+  - name: adm_cgu_terceirizados__public
     database: prefect_server
     schema: public
     tables:
