@@ -1,19 +1,6 @@
 # Desafio Engenheiro de Dados @ Escritório de Dados
 # Capture e Materialize os Dados Abertos de Terceirizados de Órgãos Federais
 
-1. :
-   ```sh
-   python -m venv orchestrator
-   ```
-2. :
-   ```sh
-   source orchestrator/bin/activate
-   ```
-3. :
-   ```sh
-   pip install -r requirements.txt
-   ```
-
 ### Opção 1:
 1. :
    ```sh
@@ -29,27 +16,43 @@
    Visite [http://localhost:8080/](http://localhost:8080/) no seu browser para acompanhar os Flows.
 
 ### Opção 2:
-0. :
+1. :
+   ```sh
+   python -m venv orchestrator
+   ```
+
+2. :
+   ```sh
+   source orchestrator/bin/activate
+   ```
+
+3. :
+   ```sh
+   pip install -r requirements.txt
+   ```
+
+4. :
    ```sh
    cp .env.example .env
    ```
-1. :
+
+5. :
    ```sh
    prefect server start
    ```
 Em outra janela do terminal:
 
-2. : 
+6. : 
    ```sh
    prefect agent local start --label default
    ```
 Em outra janela do terminal:
 
-3. :
+7. :
    ```sh
    prefect create project cgu_terceirizados
    ```
-4. :
+8. :
    ```sh
    python ./capture.py
    ```
@@ -57,7 +60,7 @@ Em outra janela do terminal:
    python ./materialize.py
    ```
    ```sh
-   python ./run.py
+   python ./schedules.py
    ```
 <!-- ![capture_flow_log_in_prefect_server](images/capture_flow_log_in_prefect_server.png)
 ![materialize_flow_log_in_vscode_terminal](images/materialize_flow_log_in_vscode_terminal.png) -->
@@ -71,14 +74,17 @@ Com o Servidor Prefect local rodando:
    python ./materialize.py
    ```
 
+2. :
    ```sh
    pip install -r requirements__view_results.txt
    ```
-2. :
+
+3. :
    ```sh
     python ./view_results.py
    ```
-3. :
+
+4. :
    Visite [http://localhost:8050/](http://localhost:8050/) no seu browser.
 <!-- ![dash_visualization_staging_transformed](images/dash_visualization_staging_transformed.png) -->
 
@@ -140,7 +146,7 @@ caso:
    docker network prune -f
    ```
 
-Caso ainda esteja com o mesmo erro, utilize o script que finaliza todos os processos relacionados com a pipeline:
+   se erro permanecer, limpe todos os processos relacionados com a pipeline:
 1. :
    ```sh
    chmod +x clean.sh
@@ -149,5 +155,15 @@ Caso ainda esteja com o mesmo erro, utilize o script que finaliza todos os proce
    ```sh
    ./clean.sh
    ```
+##
+caso:
+```sh
+   Error: [Errno 2] No such file or directory: 'path/orchestrator/bin/python'
+   ```
+1. :
+   ```sh
+   rmdir orchestrator
+   ```
+#
 
 by Filipe
