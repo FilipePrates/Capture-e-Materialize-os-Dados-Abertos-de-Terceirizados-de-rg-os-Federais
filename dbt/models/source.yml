@@ -2,7 +2,7 @@ version: 2
 
 sources:
   - name: cgu_terceirizados__public
-    database: cgu_terceirizados
+    database: prefect_server
     schema: public
     tables:
       - name: raw

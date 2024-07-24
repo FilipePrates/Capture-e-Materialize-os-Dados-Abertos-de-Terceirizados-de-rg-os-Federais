@@ -1,18 +1,23 @@
+import psycopg2
 import logging
+import requests
 import os
 import subprocess
 import pandas as pd
 from bs4 import BeautifulSoup
-import requests
 from prefect import task
+from prefect.engine.signals import FAIL
 from prefect.engine.state import Failed
 from prefect.triggers import all_finished
-import psycopg2
 from psycopg2 import sql
 from dotenv import load_dotenv
 from utils import (
     log,
-    log_and_propagate_error
+    log_and_propagate_error,
+    create_table,
+    clean_raw_table,
+    insert_data,
+    connect_to_postgresql
 )
 load_dotenv()
 
@@ -297,22 +302,13 @@ def upload_csv_to_database(parsedFilePaths: dict, tableName: str) -> dict:
     if isinstance(parsedFilePaths, Failed): return Failed(result=parsedFilePaths)
     status = {'tables': [] }
 
-    # Conecte com o PostgresSQL
     try:
-        conn = psycopg2.connect(
-            host=os.getenv("DB_HOST"),
-            port=os.getenv("DB_PORT"),
-            dbname=os.getenv("DB_NAME"),
-            user=os.getenv("DB_USER"),
-            password=os.getenv("DB_PASSWORD")
-        )
-        cur = conn.cursor()
+        # Conecte com o PostgreSQL
+        conn, cur = connect_to_postgresql()
     except Exception as e:
         error = f"Falha ao conectar com o PostgreSQL: {e}"
         log_and_propagate_error(error, status)
-        conn.rollback()
-        cur.close()
-        conn.close()
+        conn.rollback(); cur.close(); conn.close()
         return status
 
     for parsedFile in parsedFilePaths['parsedFilePaths']:
@@ -322,59 +318,38 @@ def upload_csv_to_database(parsedFilePaths: dict, tableName: str) -> dict:
         except Exception as e:
             error = f"Falha ao ler o arquivo {parsedFile}: {e}"
             log_and_propagate_error(error, status)
-            conn.rollback()
-            cur.close()
-            conn.close()
+            conn.rollback(); cur.close(); conn.close()
             return status
         
-        # Crie a tabela tableName no PostgresSQL, caso não exista
+        # Crie a tabela tableName no PostgreSQL, caso não exista
         try:
-            createTableQuery = sql.SQL("""
-                CREATE TABLE IF NOT EXISTS {table} (
-                    {columns}
-                )""").format(
-                table= sql.Identifier(tableName),
-                columns=sql.SQL(', ').join([
-                    sql.SQL('{} {}').format(
-                        sql.Identifier(col), sql.SQL('TEXT')
-                    ) for col in df.columns
-                ])
-            )
-            cur.execute(createTableQuery)
-            conn.commit()
-            log(f"Tabela {tableName} criada no PostgresSQL com sucesso!")
-        except Exception as e:
+            create_table(cur, conn, df, tableName, status)
+        except Failed as e:
             error = f"Falha ao criar tabela {tableName} no PostgreSQL: {e}"
             log_and_propagate_error(error, status)
-            conn.rollback()
-            cur.close()
-            conn.close()
+            conn.rollback(); cur.close(); conn.close()
+            return status
+
+        # Limpe a tabela raw, se necessário
+        try:
+            clean_raw_table(cur, conn, tableName, status)
+        except Exception as e:
+            error = f"Falha ao limpar tabela {tableName} no PostgreSQL: {e}"
+            log_and_propagate_error(error, status)
+            conn.rollback(); cur.close(); conn.close()
             return status
 
         # Insere os dados tratados na tabela tableName
         try:
-            for _index, row in df.iterrows():
-                insertValuesQuery = sql.SQL("""
-                    INSERT INTO {table} ({fields})
-                    VALUES ({values})
-                """).format(
-                    table=sql.Identifier(tableName),
-                    fields=sql.SQL(', ').join(map(sql.Identifier, df.columns)),
-                    values=sql.SQL(', ').join(sql.Placeholder() * len(df.columns))
-                )
-                cur.execute(insertValuesQuery, list(row))
-            conn.commit()
+            insert_data(cur, conn, df, tableName, parsedFile, status)
         except Exception as e:
             error = f"Falha ao inserir dados do arquivo {parsedFile} na tabela {tableName} no PostgreSQL: {e}"
             log_and_propagate_error(error, status)
-            conn.rollback()
-            cur.close()
-            conn.close()
+            conn.rollback(); cur.close(); conn.close()
             return status
         
     cur.close()
     conn.close()
-
     if 'error' in status: return Failed(result=status)
     log(f"Feito upload de dados do arquivo {parsedFile} no PostgresSQL com sucesso!")
     status['tables'].append(tableName)

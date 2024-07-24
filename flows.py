@@ -39,7 +39,7 @@ capture.register(project_name="cgu_terceirizados")
 
 with Flow("Materialização dos Dados Abertos de Terceirizados de Órgãos Federais") as materialize:
     # # SETUP #
-    logFilePath = setup_log_file("/logs/flow_log.txt")
+    logFilePath = setup_log_file("logs.txt")
     cleanStart = clean_log_file(logFilePath)
 
     # TRANSFORM #
