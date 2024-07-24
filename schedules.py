@@ -1,48 +1,63 @@
 from prefect import Flow
 import threading
 from prefect.schedules import Schedule
-from prefect.schedules.clocks import IntervalClock
-from datetime import timedelta, datetime
-from utils import start_agent, log
+from prefect.schedules.clocks import IntervalClock #, CronClock
+from datetime import timedelta #, datetime
+from utils import start_agent
+from tasks import check_flow_state
 from prefect.tasks.prefect import (
     create_flow_run,
     wait_for_flow_run
 )
-from prefect.agent.local import LocalAgent
 import threading
 
 def start_schedule_flow():
-    # DEMO: de 5 em 5 minutoes , Produção: de 4 em 4 meses com start_date=datetime("1/5/2024")
+    # DEMO: de 5 em 5 minutoes , 
     schedule = Schedule(
         clocks=[IntervalClock(timedelta(minutes=5))]
     )
+    # para Produção:
+    #      de 4 em 4 meses,
+    #      começando dia 1 de Maio (ou Setembro ou Janeiro - o mais recente deles).
+    #   schedule = Schedule(
+    #       clocks=[
+    #           IntervalClock(interval=timedelta(days=1)),
+    #            CronClock(cron="0 0 1 */4 *", start_date=datetime(2024, 1, 5))
+    #       ]
+    #   )
 
-    # Flow de Cronograma pipilene adm_cgu_terceirizados
-    with Flow("Cronograma Padrão seguindo a Disponibilização dos Dados Abertos pela Controladoria Geral da União", schedule=schedule) as schedule:
+    # Flow de Cronograma para a pipilene do projeto adm_cgu_terceirizados
+    with Flow("Cronograma Padrão seguindo a Disponibilização dos Dados Abertos pela Controladoria Geral da União", schedule=schedule) as scheduleFlow:
+
         # Captura
-        log(f"Criando Run de Flow de Captura para daqui à {timedelta(minutes=5)}.")
-        capture_flow_run = create_flow_run(
+        print(f" <> Criando Run de Flow de Captura para daqui à {schedule}.")
+        captureFlowRun = create_flow_run(
             flow_name="Captura dos Dados Abertos de Terceirizados de Órgãos Federais",
             project_name="adm_cgu_terceirizados"
         )
-        log("Run de Flow de Captura criada.")
+        captureFlowState = wait_for_flow_run(captureFlowRun, raise_final_state=True)
+        print(" <>  Run de Flow de Captura criada!  <> \
+                <>  <>  <>  <>  <>  <>  <>  <>  <>  <> ")
 
-        capture_flow_state = wait_for_flow_run(capture_flow_run, raise_final_state=True)
-
-        log(f"Criando Run de Flow de Materialização.")
         # Materialização
-        materialize_flow_run = create_flow_run(
+        print(f" <> Criando Run de Flow de Materialização.")
+        materializeFlowRun = create_flow_run(
             flow_name="Materialização dos Dados Abertos de Terceirizados de Órgãos Federais",
             project_name="adm_cgu_terceirizados"
         )
-        log("Run de Flow de Materialização criada.")
+        materializeFlowState = wait_for_flow_run(materializeFlowRun, raise_final_state=True)
+        print(" <>  Run de Flow de Materialização criada!   <> \
+                <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <> ")
+        
+        # Caso de falha no Flow, intervalo curto para recaptura
+        if check_flow_state(captureFlowState) == "retry" or check_flow_state(materializeFlowState) == "retry" :
+            schedule.clock = IntervalClock(interval=timedelta(days=1))
 
-    schedule.register(project_name="adm_cgu_terceirizados")
+    scheduleFlow.register(project_name="adm_cgu_terceirizados")
 
-# Start the scheduling flow in a separate thread
+# Executando o Flow de Cronograma.
 schedule_thread = threading.Thread(target=start_schedule_flow)
 schedule_thread.start()
 
-# Start the Prefect agent in the main thread
-agent = LocalAgent()
-agent.start()
+# Execute o Agente
+start_agent()

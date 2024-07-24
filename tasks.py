@@ -460,10 +460,8 @@ def run_dbt(cleanStart: dict) -> dict:
 # def download_all_available_data() -> dict:
     # """
 
-@task
-def scheduled_capture_completed(flowName: str) -> bool:
-    """
-    @task de Sucesso para Flow de Captura
-    """
-    print("Capture flow completed successfully, triggering materialize flow.")
-    return True
+def check_flow_state(capture_flow_state):
+    # Not working
+    if capture_flow_state.is_successful():
+        return "success"
+    return "retry"
