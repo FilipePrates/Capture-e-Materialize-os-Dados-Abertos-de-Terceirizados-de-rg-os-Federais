@@ -26,7 +26,6 @@ if [[ "$run" == "y" || "$run" == "Y" || "$run" == "yes" || "$run" == "Yes" || "$
     echo " <> Start Servidor Prefect..."
     prefect server start &
     total_seconds=25
-    echo " <> Começando os Flows em $total_seconds segundos..."
     for ((i=total_seconds; i>0; i--))
     do
         echo " <> Começando os Flows em $i segundos..."
@@ -89,8 +88,10 @@ if [[ "$run" == "y" || "$run" == "Y" || "$run" == "yes" || "$run" == "Yes" || "$
 
     while true; do
         echo " <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <> "
-        echo " <> Visualize os resultados!                                                     <> "
-        echo " <>                            Visite localhost:8050 no browser de sua escolha!  <> "
+        echo " <>                                                                              <> "
+        echo " <>  Visualize os resultados!                                                    <> "
+        echo " <>                             Visite localhost:8050 no browser de sua escolha! <> "
+        echo " <>                                                                              <> "
         echo " <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <> "
         echo " <>                                                                              <> "
         echo " <>     \"python ./schedules.py\" para programar as próximas capturas.             <> "

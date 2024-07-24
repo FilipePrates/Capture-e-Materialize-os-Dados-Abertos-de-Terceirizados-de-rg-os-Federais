@@ -30,14 +30,13 @@ def start_schedule_flow():
     with Flow("Cronograma Padrão seguindo a Disponibilização dos Dados Abertos pela Controladoria Geral da União", schedule=schedule) as scheduleFlow:
 
         # Captura
-        print(f" <> Criando Run de Flow de Captura para daqui à {schedule}.")
+        print(f" <> Criando Run de Flow de Captura para daqui à {schedule.clocks[0]}.")
         captureFlowRun = create_flow_run(
             flow_name="Captura dos Dados Abertos de Terceirizados de Órgãos Federais",
             project_name="adm_cgu_terceirizados"
         )
         captureFlowState = wait_for_flow_run(captureFlowRun, raise_final_state=True)
-        print(" <>  Run de Flow de Captura criada!  <> \
-                <>  <>  <>  <>  <>  <>  <>  <>  <>  <> ")
+        print(" <>  Run de Flow de Captura criada!")
 
         # Materialização
         print(f" <> Criando Run de Flow de Materialização.")
@@ -46,12 +45,19 @@ def start_schedule_flow():
             project_name="adm_cgu_terceirizados"
         )
         materializeFlowState = wait_for_flow_run(materializeFlowRun, raise_final_state=True)
-        print(" <>  Run de Flow de Materialização criada!   <> \
-                <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <> ")
+        print(" <>  Run de Flow de Materialização criada!")
         
         # Caso de falha no Flow, intervalo curto para recaptura
         if check_flow_state(captureFlowState) == "retry" or check_flow_state(materializeFlowState) == "retry" :
-            schedule.clock = IntervalClock(interval=timedelta(days=1))
+            schedule.clocks[0] = IntervalClock(interval=timedelta(days=1))
+
+        print(" <>   <>   <>   <>   <>   <>   <>   <>   <>   <>   <>   <>   <> ")
+        print(" <>                                                          <> ")
+        print(" <>   Cronograma de Flows Criado!                            <> ")
+        print(" <>                                   Visite localhost:8080  <> ")
+        print(" <>                                        para acompanhar!  <> ")
+        print(" <>                                                          <> ")
+        print(" <>   <>   <>   <>   <>   <>   <>   <>   <>   <>   <>   <>   <> ")
 
     scheduleFlow.register(project_name="adm_cgu_terceirizados")
 
@@ -61,3 +67,4 @@ schedule_thread.start()
 
 # Execute o Agente
 start_agent()
+
