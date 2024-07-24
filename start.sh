@@ -9,21 +9,22 @@ echo "<> Start Servidor Prefect..."
 prefect server start &
 
 sleep 15
-# echo "Começando os Flows em 15 seconds..."
-# sleep 10
+echo "<> Começando os Flows em 15 seconds..."
+sleep 10
+echo "<> Começando os Flows em 5 seconds..."
+sleep 5
 
 # Start do(s) Agente(s) Prefect
 echo "<> Start Agente(s) Prefect..."
 prefect agent local start --label default &
-prefect agent local start --label default &
-
-echo "<> Começando os Flows em 5 seconds..."
-sleep 5
-echo "<> Começando os Flows"
+# prefect agent local start --label default &
 
 # Crie o projeto Prefect (cgu_terceirizados)
 echo "<> Criando o projeto Prefect..."
 prefect create project cgu_terceirizados || echo "Project 'cgu_terceirizados' already exists"
+
+sleep 2
+echo "<> Começando os Flows"
 
 # Começe a Captura Inicial
 echo "<> Começando Captura incial..."

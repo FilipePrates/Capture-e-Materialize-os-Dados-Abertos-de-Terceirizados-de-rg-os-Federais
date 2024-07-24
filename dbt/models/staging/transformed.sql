@@ -1,6 +1,6 @@
 select
     -- Chaves primárias em ordem de escopo
-    cast(id_terc as bigint) as id_terc,
+    cast(id_terc as bigint) as id_contratado,
     cast("Ano_Carga" as bigint) as ano_disponibilizado,
     "Mes_Carga"as mes_disponibilizado,
 

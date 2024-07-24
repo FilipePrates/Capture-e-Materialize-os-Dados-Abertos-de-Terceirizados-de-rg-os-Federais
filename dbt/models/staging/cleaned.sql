@@ -28,15 +28,30 @@ select
         ) then nm_escolaridade
         else null
     end as nm_escolaridade,
-    nullif(nr_jornada, 'NI  ') as nr_jornada,
+    case
+        when nr_jornada in (
+            'NI  '
+        ) then 'Não informado'
+        else nr_jornada
+    end as nr_jornada,
     nm_unidade_prestacao,
     vl_mensal_salario,
     vl_mensal_custo,
     -- "Num_Mes_Carga",
     "Mes_Carga",
     "Ano_Carga",
-    nullif(sg_orgao, '<N/I>') as sg_orgao,
-    nullif(nm_orgao, '<N/I>') as nm_orgao,
+    case
+        when sg_orgao in (
+            '<N/I>'
+        ) then 'Não informado'
+        else sg_orgao
+    end as sg_orgao,
+    case
+        when nm_orgao in (
+            '<N/I>'
+        ) then 'Não informado'
+        else nm_orgao
+    end as nm_orgao,
     nullif(cd_orgao_siafi, '-2') as cd_orgao_siafi,
     nullif(cd_orgao_siape, '-2') as cd_orgao_siape
 from {{ ref('raw') }}
