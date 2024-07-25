@@ -60,7 +60,8 @@ def start_schedule_flow(schedule, flowName):
 
 version = input('Gostaria do progromaga de DEMO ou o de Produção? (d/p)')
 if version in ['d','D','demo','Demo','DEMO','Demonstração','0'] :
-    demoFlow = start_schedule_flow(every_5_minutes, "Cronograma Demonstrativo")
+    demoFlowName = "Cronograma Demonstrativo"
+    demoFlow = start_schedule_flow(every_5_minutes, demoFlowName)
     schedule_thread = threading.Thread(target=demoFlow)
     schedule_thread.start()
 
@@ -68,7 +69,7 @@ if version in ['d','D','demo','Demo','DEMO','Demonstração','0'] :
     start_agent()
 
 elif version in ['p','P','prod','Prod','produção','Produção','1']:
-    prodFlow = start_schedule_flow(every_4_months_starting_may,
-                                   "Cronograma Padrão seguindo a Disponibilização dos Dados Abertos pela Controladoria Geral da União")
+    prodFlowName = "Cronograma Padrão seguindo a Disponibilização dos Dados pela Controladoria Geral da União"
+    prodFlow = start_schedule_flow(every_4_months_starting_may, prodFlowName)
     schedule_thread = threading.Thread(target=prodFlow)
     schedule_thread.start()

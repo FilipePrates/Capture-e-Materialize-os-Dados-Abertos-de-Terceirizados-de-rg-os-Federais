@@ -91,7 +91,7 @@ services:
     healthcheck:
       interval: 10s
       retries: 60
-      start_period: 10s
+      start_period: 2s
       test: pg_isready -q -d $${POSTGRES_DB} -U $${POSTGRES_USER} || exit 1
       timeout: 2s
     image: postgres:11

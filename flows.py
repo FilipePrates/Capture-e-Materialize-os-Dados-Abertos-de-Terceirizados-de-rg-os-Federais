@@ -1,4 +1,7 @@
-# o Flow propriamente dito.
+"""
+Modulo com os Schedules para os Flows
+"""
+
 from prefect import Flow
 from tasks import (
     setup_log_file,
