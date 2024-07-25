@@ -1,43 +1,19 @@
-[2024-07-25 00:43:03,967] INFO - prefect.clean_log_file | 
+[2024-07-25 01:10:01,590] INFO - prefect.clean_log_file | 
  <> Limpeza do arquivo de log local logs/logs__materialize.txt realizada com sucesso.
-[2024-07-25 00:43:03,970] INFO - prefect.TaskRunner | Task 'clean_log_file': Finished task run for task with final state: 'Success'
-[2024-07-25 00:43:03,975] INFO - prefect.TaskRunner | Task 'run_dbt': Starting task run...
-[2024-07-25 00:43:07,597] INFO - prefect.run_dbt | 
- <> Transformação realizada com sucesso. [0m03:43:05  Running with dbt=1.8.4
-[0m03:43:05  Registered adapter: postgres=1.8.2
-[0m03:43:05  [[33mWARNING[0m]: Configuration paths exist in your dbt_project.yml file which do not apply to any resources.
-There are 3 unused configuration paths:
-- models.desafio_data_eng.marts
-- models.desafio_data_eng.staging
-- seeds.desafio_data_eng
-[0m03:43:05  Found 4 models, 4 data tests, 1 source, 415 macros
-[0m03:43:05  
-[0m03:43:06  Concurrency: 4 threads (target='dev')
-[0m03:43:06  
-[0m03:43:06  1 of 4 START sql view model staging.raw ........................................ [RUN]
-[0m03:43:06  1 of 4 OK created sql view model staging.raw ................................... [[32mCREATE VIEW[0m in 0.10s]
-[0m03:43:06  2 of 4 START sql view model staging.cleaned .................................... [RUN]
-[0m03:43:06  2 of 4 OK created sql view model staging.cleaned ............................... [[32mCREATE VIEW[0m in 0.04s]
-[0m03:43:06  3 of 4 START sql view model staging.renamed .................................... [RUN]
-[0m03:43:06  3 of 4 OK created sql view model staging.renamed ............................... [[32mCREATE VIEW[0m in 0.10s]
-[0m03:43:06  4 of 4 START sql view model staging.transformed ................................ [RUN]
-[0m03:43:06  4 of 4 OK created sql view model staging.transformed ........................... [[32mCREATE VIEW[0m in 0.04s]
-[0m03:43:06  
-[0m03:43:06  Finished running 4 view models in 0 hours 0 minutes and 0.42 seconds (0.42s).
-[0m03:43:06  
-[0m03:43:06  [32mCompleted successfully[0m
-[0m03:43:06  
-[0m03:43:06  Done. PASS=4 WARN=0 ERROR=0 SKIP=0 TOTAL=4
-
-[2024-07-25 00:43:07,601] INFO - prefect.TaskRunner | Task 'run_dbt': Finished task run for task with final state: 'Success'
-[2024-07-25 00:43:07,611] INFO - prefect.TaskRunner | Task 'upload_logs_to_database': Starting task run...
-[2024-07-25 00:43:07,616] INFO - prefect.upload_logs_to_database | 
+[2024-07-25 01:10:01,603] INFO - prefect.TaskRunner | Task 'clean_log_file': Finished task run for task with final state: 'Success'
+[2024-07-25 01:10:01,627] INFO - prefect.TaskRunner | Task 'run_dbt': Starting task run...
+[2024-07-25 01:10:13,749] INFO - prefect.run_dbt | 
+ <> Falha na transformação (DBT):  CompletedProcess(args=['dbt', 'run', '--vars', 'database: prefect_server'], returncode=1, stdout='\x1b[0m04:10:06  Running with dbt=1.8.4\n\x1b[0m04:10:07  Registered adapter: postgres=1.8.2\n\x1b[0m04:10:09  [\x1b[33mWARNING\x1b[0m]: Deprecated functionality\nThe `tests` config has been renamed to `data_tests`. Please see\nhttps://docs.getdbt.com/docs/build/data-tests#new-data_tests-syntax for more\ninformation.\n\x1b[0m04:10:10  [\x1b[33mWARNING\x1b[0m]: Configuration paths exist in your dbt_project.yml file which do not apply to any resources.\nThere are 3 unused configuration paths:\n- models.desafio_data_eng.staging\n- models.desafio_data_eng.marts\n- seeds.desafio_data_eng\n\x1b[0m04:10:10  Found 4 models, 6 data tests, 1 source, 415 macros\n\x1b[0m04:10:10  \n\x1b[0m04:10:11  Concurrency: 4 threads (target=\'dev\')\n\x1b[0m04:10:11  \n\x1b[0m04:10:11  1 of 4 START sql view model staging.raw ........................................ [RUN]\n\x1b[0m04:10:11  1 of 4 OK created sql view model staging.raw ................................... [\x1b[32mCREATE VIEW\x1b[0m in 0.45s]\n\x1b[0m04:10:11  2 of 4 START sql view model staging.cleaned .................................... [RUN]\n\x1b[0m04:10:11  2 of 4 ERROR creating sql view model staging.cleaned ........................... [\x1b[31mERROR\x1b[0m in 0.08s]\n\x1b[0m04:10:11  3 of 4 SKIP relation staging.renamed ........................................... [\x1b[33mSKIP\x1b[0m]\n\x1b[0m04:10:11  4 of 4 SKIP relation staging.transformed ....................................... [\x1b[33mSKIP\x1b[0m]\n\x1b[0m04:10:11  \n\x1b[0m04:10:11  Finished running 4 view models in 0 hours 0 minutes and 1.24 seconds (1.24s).\n\x1b[0m04:10:11  \n\x1b[0m04:10:11  \x1b[31mCompleted with 1 error and 0 warnings:\x1b[0m\n\x1b[0m04:10:11  \n\x1b[0m04:10:11    Database Error in model cleaned (models/staging/cleaned.sql)\n  column "nm_udade_prestacao" does not exist\n  LINE 40:     nullif(trim(both \' \' from replace(nm_udade_prestacao, \'<...\n                                                 ^\n  HINT:  Perhaps you meant to reference the column "raw.nm_unidade_prestacao".\n  compiled Code at target/run/adm_cgu_terceirizados/models/staging/cleaned.sql\n\x1b[0m04:10:11  \n\x1b[0m04:10:11  Done. PASS=1 WARN=0 ERROR=1 SKIP=2 TOTAL=4\n', stderr='') 
+[2024-07-25 01:10:13,750] INFO - prefect.TaskRunner | FAIL signal raised: FAIL(None)
+[2024-07-25 01:10:13,761] INFO - prefect.TaskRunner | Task 'run_dbt': Finished task run for task with final state: 'Failed'
+[2024-07-25 01:10:13,788] INFO - prefect.TaskRunner | Task 'upload_logs_to_database': Starting task run...
+[2024-07-25 01:10:13,804] INFO - prefect.upload_logs_to_database | 
  <> Conectado com PostgreSQL com sucesso!
-[2024-07-25 00:43:07,628] INFO - prefect.upload_logs_to_database | 
+[2024-07-25 01:10:13,807] INFO - prefect.upload_logs_to_database | 
  <> Tabela de logs logs__materialize criada no PostgreSQL com sucesso!
-[2024-07-25 00:43:07,635] INFO - prefect.upload_logs_to_database | 
+[2024-07-25 01:10:13,831] INFO - prefect.upload_logs_to_database | 
  <> Dados de logs do Flow inseridos em logs__materialize com sucesso!
-[2024-07-25 00:43:07,636] INFO - prefect.upload_logs_to_database | 
+[2024-07-25 01:10:13,832] INFO - prefect.upload_logs_to_database | 
  <> Feito upload do arquivo de log local logs/logs__materialize.txt na tabela logs__materialize PostgreSQL com sucesso!
-[2024-07-25 00:43:07,639] INFO - prefect.TaskRunner | Task 'upload_logs_to_database': Finished task run for task with final state: 'Success'
-[2024-07-25 00:43:07,640] INFO - prefect.FlowRunner | Flow run SUCCESS: all reference tasks succeeded
+[2024-07-25 01:10:13,848] INFO - prefect.TaskRunner | Task 'upload_logs_to_database': Finished task run for task with final state: 'Success'
+[2024-07-25 01:10:13,852] INFO - prefect.FlowRunner | Flow run SUCCESS: all reference tasks succeeded

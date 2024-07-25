@@ -1,10 +1,10 @@
 select
-    -- Chaves
+    --- Chaves primárias em ordem de escopo,
     cast(id_contratado as bigint) as id_contratado,
     cast(ano_disponibilizado as bigint) as ano_disponibilizado,
     mes_disponibilizado,
 
-
+    --- Colunas agrupadas e ordenadas por importâncias dos temas
     -- Orgãos Administrativos Relevantes
     sigla_orgao_superior_gestora,
     cast(codigo_siafi_gestora as bigint) as codigo_siafi_gestora,
