@@ -126,7 +126,27 @@ Com o Servidor Prefect local rodando:
 4. :
    Visite [http://localhost:8050/ (Dash App)](http://localhost:8050/) no seu browser.
 
-## help
+## localhost:8050
+### App Dash para visualizar tabelas do PostgreSQL
+![dash_visualization_staging_transformed](images/dash_visualization_staging_transformed.png)
+
+
+### Para programar Schedule (Cronograma) de Captura
+
+Com o Servidor Prefect local rodando:
+
+1. :
+   ```sh
+   python ./run/scheduler.py
+   ```
+2. :
+   Visite [http://localhost:8080/ (Prefect Dashboard)](http://localhost:8080/) no seu browser.
+
+## localhost:8080
+### Dashboard Prefect para acompanhar Scheduler e Flows
+![prefect_dashboard_capture_flow_visualization](images/prefect_dashboard_capture_flow_visualization.png)
+
+### #help
 caso:
 ```sh
    (orchestrator) user@machine:~/path$ ./start.sh
@@ -179,8 +199,5 @@ caso:
    ```sh
    rm -rf "orchestrator"
    ```
-
-by Filipe
-
-![prefect_dashboard_capture_flow_visualization](images/prefect_dashboard_capture_flow_visualization.png)
-<!-- ![dash_visualization_staging_transformed](images/dash_visualization_staging_transformed.png) -->
+#
+by Filipe Prates
