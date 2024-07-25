@@ -58,7 +58,7 @@ Manual:
 
 3. :
    ```sh
-   pip install -r requirements.txt
+   pip install -r requirements/start.txt
    ```
 
 4. :
@@ -101,7 +101,7 @@ Em outro terminal:
    python ./run/scheduler.py
    ```
    ```sh
-   python ./run/view_results.py
+   python ./run/results.py
    ```
 
 ### Para visualizar os dados após Captura e Materialização
@@ -115,12 +115,12 @@ Com o Servidor Prefect local rodando:
 
 2. :
    ```sh
-   pip install -r requirements__view_results.txt
+   pip install -r requirements/results.txt
    ```
 
 3. :
    ```sh
-    python ./run/view_results.py
+    python ./run/results.py
    ```
 
 4. :

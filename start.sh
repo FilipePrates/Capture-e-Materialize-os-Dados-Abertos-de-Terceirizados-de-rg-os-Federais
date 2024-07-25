@@ -16,7 +16,7 @@ if [[ "$run" == "y" || "$run" == "Y" || "$run" == "yes" || "$run" == "Yes" || "$
     # Configure o ambiente virtual python para o orquestrador Servidor Prefect
     python -m venv orchestrator
     source orchestrator/bin/activate
-    pip install -r requirements.txt
+    pip install -r requirements/start.txt
     cp .env.example .env
 
     # Levante o Servidor Prefect
@@ -58,7 +58,7 @@ if [[ "$run" == "y" || "$run" == "Y" || "$run" == "yes" || "$run" == "Yes" || "$
 
     # Redirecione para visualização em Dash
     echo " <> Configurando visualização..."
-    pip install -r requirements__view_results.txt
+    pip install -r requirements/results.txt
     stop_port_8050_process() {
         pid=$(lsof -t -i:8050)
         if [ -n "$pid" ]; then
@@ -75,7 +75,7 @@ if [[ "$run" == "y" || "$run" == "Y" || "$run" == "yes" || "$run" == "Yes" || "$
         fi
     }
     stop_port_8050_process
-    python ./run/view_results.py &
+    python ./run/results.py &
     while true; do
         echo " <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <> "
         echo " <>                                                                              <> "
