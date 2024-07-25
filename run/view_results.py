@@ -51,34 +51,6 @@ def fetch_logs_data(engine, table_name):
     print(data.head(3))
     return data
 
-
-# Capture os dados da tabela schemaName.tableName
-# data = fetch_table_data(engine, schemaName, tableName)
-# data = fetch_logs_data(engine, tableName)
-# # Defina o layout do Dash
-# app.layout = html.Div([
-#     dash_table.DataTable(
-#         id='table',
-#         columns=[{"name": i, "id": i} for i in data.columns],
-#         data=data.to_dict('records'),
-#         page_size=20,
-#         style_table={'overflowX': 'auto'},
-#         style_cell={
-#             'height': 'auto',
-#             'minWidth': '100px', 'width': '100px', 'maxWidth': '180px',
-#             'whiteSpace': 'normal',
-#             'textAlign': 'left'  # Align text to the right
-#         },
-#         style_data_conditional=[
-#             {
-#                 'if': {'row_index': 0},  # apply to the second row
-#                 'backgroundColor': '#b3b3b3',
-#                 'color': 'white'
-#             }
-#         ]
-#     )
-# ])
-
 # Crie o app Dash
 app = dash.Dash(__name__)
 

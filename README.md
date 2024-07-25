@@ -125,8 +125,6 @@ Com o Servidor Prefect local rodando:
 
 4. :
    Visite [http://localhost:8050/ (Dash App)](http://localhost:8050/) no seu browser.
-<!-- ![dash_visualization_staging_transformed](images/dash_visualization_staging_transformed.png) -->
-
 
 ## help
 caso:
@@ -159,7 +157,7 @@ caso:
 ##
 caso:
    Problemas ao executar shell scripts:
-   
+
 0. :
    Caso utilizando sistema operacional Windows - tente através do WSL.
 
@@ -183,3 +181,6 @@ caso:
    ```
 
 by Filipe
+
+![prefect_dashboard_capture_flow_visualization](images/prefect_dashboard_capture_flow_visualization.png)
+<!-- ![dash_visualization_staging_transformed](images/dash_visualization_staging_transformed.png) -->
