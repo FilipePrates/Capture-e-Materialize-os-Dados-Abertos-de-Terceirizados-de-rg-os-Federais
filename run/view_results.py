@@ -9,9 +9,12 @@ load_dotenv()
 # Define as configurações de tabelas da visualização
 table_configs = [
     {"schema": "staging", "table": "transformed", "label": "staging.transformed"},
-    {"schema": "public", "table": "logs__materialize", "label": "logs__materialize"},
+    {"schema": "staging", "table": "renamed", "label": "staging.renamed"},
+    {"schema": "staging", "table": "cleaned", "label": "staging.cleaned"},
+
+    {"schema": "public", "table": "raw", "label": "raw"},
     {"schema": "public", "table": "logs__capture", "label": "logs__capture"},
-    {"schema": "public", "table": "raw", "label": "raw"}
+    {"schema": "public", "table": "logs__materialize", "label": "logs__materialize"},
 ]
 limit = 300
 
