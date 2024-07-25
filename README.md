@@ -16,7 +16,7 @@
 
 3. :
    ```sh
-   python ./schedules.py
+   python ./run/scheduler.py
    ```
 4.  :
    Visite [http://localhost:8080/ (Prefect Server Dashboard)](http://localhost:8080/) no seu browser
@@ -70,13 +70,19 @@ Manual:
    ```sh
    prefect server start
    ```
-Em outra janela do terminal:
+   e espere até a arte em ASCII:
+                                            WELCOME TO
+  
+   _____  _____  ______ ______ ______ _____ _______    _____ ______ _______      ________ _____
+  |  __ \|  __ \|  ____|  ____|  ____/ ____|__   __|  / ____|  ____|  __ \ \    / /  ____|  __ \
+  | |__) | |__) | |__  | |__  | |__ | |       | |    | (___ | |__  | |__) \ \  / /| |__  | |__) |
+  |  ___/|  _  /|  __| |  __| |  __|| |       | |     \___ \|  __| |  _  / \ \/ / |  __| |  _  /
+  | |    | | \ \| |____| |    | |___| |____   | |     ____) | |____| | \ \  \  /  | |____| | \ \
+  |_|    |_|  \_\______|_|    |______\_____|  |_|    |_____/|______|_|  \_\  \/   |______|_|  \_\
 
-6. : 
-   ```sh
-   prefect agent local start --label default
-   ```
-Em outra janela do terminal:
+   Visit http://localhost:8080 to get started
+
+Em outro terminal:
 
 7. :
    ```sh
@@ -84,13 +90,16 @@ Em outra janela do terminal:
    ```
 8. :
    ```sh
-   python ./capture.py
+   python ./run/capture.py
    ```
    ```sh
-   python ./materialize.py
+   python ./run/materialize.py
    ```
    ```sh
-   python ./schedules.py
+   python ./run/scheduler.py
+   ```
+   ```sh
+   python ./run/view_results.py
    ```
 
 ### Para visualizar os dados após Captura e Materialização
@@ -99,7 +108,7 @@ Com o Servidor Prefect local rodando:
 
 1. :
    ```sh
-   python ./materialize.py
+   python ./run/materialize.py
    ```
 
 2. :
@@ -109,7 +118,7 @@ Com o Servidor Prefect local rodando:
 
 3. :
    ```sh
-    python ./view_results.py
+    python ./run/view_results.py
    ```
 
 4. :

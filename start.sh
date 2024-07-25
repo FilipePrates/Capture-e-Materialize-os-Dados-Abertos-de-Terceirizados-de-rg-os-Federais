@@ -1,7 +1,6 @@
 #!/bin/bash
-
-# Confirmar execução de Servidor Prefect e
-# Captura e Materialização dos Dados Abertos de Terceirizados de Órgãos Federais
+# Script de Start para Captura e Materialização dos Dados Abertos de Terceirizados de Órgãos Federais
+# by Filipe for Escritório de Dados.
 
 # Pergunte ao usuário se deseja baixar requisitos para realizar captura
 read -p "<> Deseja criar ambiente virtual e baixar os requisitos:
@@ -14,59 +13,53 @@ if [[ "$run" == "y" || "$run" == "Y" || "$run" == "yes" || "$run" == "Yes" || "$
     if [ -d "orchestrator" ]; then
         rm -rf "orchestrator"
     fi
-    # Crie o ambiente virtual python do orquestrador prefect
+    # Configure o ambiente virtual python para o orquestrador Servidor Prefect
     python -m venv orchestrator
-    # Ative o ambiente virtual
     source orchestrator/bin/activate
-    # Instale os requisitos
     pip install -r requirements.txt
-    # Crie arquivo local de variáveis de ambiente
     cp .env.example .env
-    # Start do Servidor Prefect
+
+    # Levante o Servidor Prefect
     echo " <> Start Servidor Prefect..."
     prefect server start &
-    total_seconds=25
+
+    total_seconds=25 # Aumente este número caso Servidor não esteja ainda preparado quando se tenta criar o projeto
     for ((i=total_seconds; i>0; i--))
     do
         echo " <> Começando os Flows em $i segundos..."
         sleep 1
     done
-    # Start do(s) Agente(s) Prefect
-    # echo " <> Start Agente(s) Prefect..."
-    # prefect agent local start --label default &
-    # prefect agent local start --label default &
 
     # Crie o projeto Prefect
     echo " <> Criando o projeto Prefect (adm_cgu_terceirizados)..."
     prefect create project adm_cgu_terceirizados || echo "Project 'adm_cgu_terceirizados' already exists"
     sleep 2
     echo " <> Começando os Flows!..."
-    # Começe a Captura Inicial
+
+    # Realize a Captura Inicial
     echo " <>  <>  <>  <>  <>  <>  <>  <>  <> "
     echo " <> Começando Captura incial!... <> "
     echo " <>  <>  <>  <>  <>  <>  <>  <>  <> "
-    python ./capture.py
+    python ./run/capture.py
     echo " <> Captura incial finalizada!"
 
-    # Começe a Materialização Inicial
+    # Realize a Materialização Inicial
     echo " <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <> "
     echo " <> Começando Materialização incial!...  <> "
     echo " <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <> "
-    python ./materialize.py
+    python ./run/materialize.py
     echo " <> Materialização incial finalizada!"
     
     # Comemore objetivo concluído
     echo " <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <> "
     echo " <> Resultados armazenados no PostgreSQL!... <> "
     echo " <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <> "
-
     sleep 3
+
+    # Redirecione para visualização em Dash
     echo " <> Configurando visualização..."
-    # Espera input para baixar requisitos mostra de resultados
-    # Instale os requisitos
     pip install -r requirements__view_results.txt
-    # Pare qualquer processo estudando a porta local 8050
-    stop_dash_process() {
+    stop_port_8050_process() {
         pid=$(lsof -t -i:8050)
         if [ -n "$pid" ]; then
             echo " <> Parando processo externo $pid devido à conflitos de porta..."
@@ -81,11 +74,8 @@ if [[ "$run" == "y" || "$run" == "Y" || "$run" == "yes" || "$run" == "Yes" || "$
             echo " <> Configuração de visualização finalizada!"
         fi
     }
-    stop_dash_process
-
-    # Rode o app Dash para visualização básica dos dados no PostgreSQL
-    python ./view_results.py &
-
+    stop_port_8050_process
+    python ./run/view_results.py &
     while true; do
         echo " <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <> "
         echo " <>                                                                              <> "
@@ -94,15 +84,9 @@ if [[ "$run" == "y" || "$run" == "Y" || "$run" == "yes" || "$run" == "Yes" || "$
         echo " <>                                                                              <> "
         echo " <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <> "
         echo " <>                                                                              <> "
-        echo " <>     \"python ./schedules.py\" para programar as próximas capturas.             <> "
+        echo " <>     \"python ./run/scheduler.py\" para programar as próximas capturas.       <> "
         echo " <>                                                                              <> "
         echo " <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <> "
         sleep 5
     done
-
-    # Pergunte ao usuário se deseja baixar requisitos para visualizar resultados
-
-    # Execute o Cronograma de Flows
-    # echo "<> Executando Cronograma de Flows..."
-    # python ./run.py &
 fi

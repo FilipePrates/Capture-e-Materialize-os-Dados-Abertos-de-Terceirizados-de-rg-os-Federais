@@ -1,3 +1,7 @@
+"""
+Modulo com as Tarefas (@tasks) para os Flows
+"""
+
 import psycopg2
 import logging
 import requests
@@ -27,7 +31,7 @@ from utils import (
 )
 load_dotenv()
 
-# as Tarefas (@tasks) que serão utilizadas nos Flows.
+# 
 
 @task
 def setup_log_file(logFilePath: str) -> dict:
@@ -139,8 +143,8 @@ def download_new_cgu_terceirizados_data(cleanStart: dict) -> dict:
         file_url, year, monthText = fetch_download_url_from_dados_abertos_cgu(URL)
         log(f"Link {file_url} para dados crus capturado do portal de Dados Abertos da Controladoria Geral da União com sucesso!")
     except Exception as e:
-        error = f"Falha ao capturar link para dados crus capturado do portal de Dados Abertos da Controladoria Geral da União. 
-                Possível mudança de layout. {e}"
+        error = f"""Falha ao capturar link para dados crus capturado do portal de Dados Abertos da Controladoria Geral da União.\n
+            Possível mudança de layout. {e}"""
         log_and_propagate_error(error, rawData)
 
     try:

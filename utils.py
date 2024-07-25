@@ -1,3 +1,8 @@
+"""
+Modulo com as funções auxiliares para os Flows
+"""
+
+
 import prefect
 import psycopg2
 import requests
@@ -14,7 +19,7 @@ from bs4 import BeautifulSoup
 from datetime import timedelta, datetime
 from psycopg2 import sql
 from prefect.agent.local import LocalAgent
-# as funções auxiliares que serão utilizadas nos Flows.
+# 
 
 def log(message) -> None:
     """Ao ser chamada dentro de um Flow, realiza um log da message"""
