@@ -70,7 +70,8 @@ Manual:
    ```sh
    prefect server start
    ```
-   e espere até a arte em ASCII:
+   e espere até a arte em ASCII aparecer:
+   ```sh
                                             WELCOME TO
   
    _____  _____  ______ ______ ______ _____ _______    _____ ______ _______      ________ _____
@@ -81,7 +82,7 @@ Manual:
   |_|    |_|  \_\______|_|    |______\_____|  |_|    |_____/|______|_|  \_\  \/   |______|_|  \_\
 
    Visit http://localhost:8080 to get started
-
+   ```
 Em outro terminal:
 
 7. :
