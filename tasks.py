@@ -47,7 +47,7 @@ def setup_log_file(logFilePath: str) -> dict:
     """
     logs = {}
 
-    # Salve os logs do prefect + custom no arquivo .txt em logFilePath
+    # Salve os logs do prefect e utils.log() no arquivo .txt em logFilePath
     try:
         logging.basicConfig(level=logging.INFO,
                     format='[%(asctime)s] %(levelname)s - %(name)s | %(message)s',
@@ -126,7 +126,6 @@ def download_new_cgu_terceirizados_data(cleanStart: dict) -> dict:
         def fetch_download_url_from_dados_abertos_cgu(url):
             response = requests.get(url)
             soup = BeautifulSoup(response.content, 'html.parser')
-
             headers = soup.find_all('h3')
             if headers:
                 header = headers[0]
@@ -139,11 +138,11 @@ def download_new_cgu_terceirizados_data(cleanStart: dict) -> dict:
                         monthText = link.get_text()
                         file_url = link['href']
                         return file_url, year, monthText
-            raise Exception("No valid download link found")
+                        
         file_url, year, monthText = fetch_download_url_from_dados_abertos_cgu(URL)
         log(f"Link {file_url} para dados crus capturado do portal de Dados Abertos da Controladoria Geral da União com sucesso!")
     except Exception as e:
-        error = f"""Falha ao capturar link para dados crus capturado do portal de Dados Abertos da Controladoria Geral da União.\n
+        error = f"""Falha ao capturar link para dados crus do portal de Dados Abertos da Controladoria Geral da União {URL}.\n
             Possível mudança de layout. {e}"""
         log_and_propagate_error(error, rawData)
 
@@ -156,18 +155,17 @@ def download_new_cgu_terceirizados_data(cleanStart: dict) -> dict:
             'year': year
         }
     except Exception as e:
-        error = f"Falha ao baixar os dados do link {file_url}. Foram realizadas {DOWNLOAD_ATTEMPTS} tentativas. {e}"
+        error = f"Falha ao baixar os dados. Foram realizadas {DOWNLOAD_ATTEMPTS} tentativas. {e}"
         log_and_propagate_error(error, rawData)
         
-    if 'errors' in rawData: 
-        return Failed(result=rawData)
+    if 'errors' in rawData: return Failed(result=rawData)
     log(f'Dados referentes ao mês de {monthText} baixados com sucesso!')
     return rawData
 
 @task
 def save_raw_data_locally(rawData: dict) -> dict:
     """
-    Salva os dados crus localmente.
+    Salva os dados crus localmente em adm_cgu_terceirizados_local/ particionado por ano.
 
     Args:
         dict: Dicionário contendo chaves-valores:

@@ -1,41 +1,41 @@
-[2024-07-24 22:03:53,448] INFO - prefect.clean_log_file | 
+[2024-07-25 00:26:13,649] INFO - prefect.clean_log_file | 
  <> Limpeza do arquivo de log local logs/logs__materialize.txt realizada com sucesso.
-[2024-07-24 22:03:53,451] INFO - prefect.TaskRunner | Task 'clean_log_file': Finished task run for task with final state: 'Success'
-[2024-07-24 22:03:53,457] INFO - prefect.TaskRunner | Task 'run_dbt': Starting task run...
-[2024-07-24 22:03:56,649] INFO - prefect.run_dbt | 
- <> Transformação realizada com sucesso. [0m01:03:54  Running with dbt=1.8.4
-[0m01:03:54  Registered adapter: postgres=1.8.2
-[0m01:03:54  [[33mWARNING[0m]: Configuration paths exist in your dbt_project.yml file which do not apply to any resources.
+[2024-07-25 00:26:13,652] INFO - prefect.TaskRunner | Task 'clean_log_file': Finished task run for task with final state: 'Success'
+[2024-07-25 00:26:13,659] INFO - prefect.TaskRunner | Task 'run_dbt': Starting task run...
+[2024-07-25 00:26:17,400] INFO - prefect.run_dbt | 
+ <> Transformação realizada com sucesso. [0m03:26:14  Running with dbt=1.8.4
+[0m03:26:15  Registered adapter: postgres=1.8.2
+[0m03:26:15  [[33mWARNING[0m]: Configuration paths exist in your dbt_project.yml file which do not apply to any resources.
 There are 3 unused configuration paths:
-- models.desafio_data_eng.staging
 - models.desafio_data_eng.marts
+- models.desafio_data_eng.staging
 - seeds.desafio_data_eng
-[0m01:03:55  Found 3 models, 4 data tests, 1 source, 415 macros
-[0m01:03:55  
-[0m01:03:55  Concurrency: 4 threads (target='dev')
-[0m01:03:55  
-[0m01:03:55  1 of 3 START sql view model staging.raw ........................................ [RUN]
-[0m01:03:55  1 of 3 OK created sql view model staging.raw ................................... [[32mCREATE VIEW[0m in 0.11s]
-[0m01:03:55  2 of 3 START sql view model staging.cleaned .................................... [RUN]
-[0m01:03:55  2 of 3 OK created sql view model staging.cleaned ............................... [[32mCREATE VIEW[0m in 0.04s]
-[0m01:03:55  3 of 3 START sql view model staging.transformed ................................ [RUN]
-[0m01:03:55  3 of 3 OK created sql view model staging.transformed ........................... [[32mCREATE VIEW[0m in 0.10s]
-[0m01:03:55  
-[0m01:03:55  Finished running 3 view models in 0 hours 0 minutes and 0.39 seconds (0.39s).
-[0m01:03:55  
-[0m01:03:55  [32mCompleted successfully[0m
-[0m01:03:55  
-[0m01:03:55  Done. PASS=3 WARN=0 ERROR=0 SKIP=0 TOTAL=3
+[0m03:26:15  Found 3 models, 4 data tests, 1 source, 415 macros
+[0m03:26:15  
+[0m03:26:15  Concurrency: 4 threads (target='dev')
+[0m03:26:15  
+[0m03:26:15  1 of 3 START sql view model staging.raw ........................................ [RUN]
+[0m03:26:15  1 of 3 OK created sql view model staging.raw ................................... [[32mCREATE VIEW[0m in 0.12s]
+[0m03:26:15  2 of 3 START sql view model staging.cleaned .................................... [RUN]
+[0m03:26:15  2 of 3 OK created sql view model staging.cleaned ............................... [[32mCREATE VIEW[0m in 0.04s]
+[0m03:26:15  3 of 3 START sql view model staging.transformed ................................ [RUN]
+[0m03:26:15  3 of 3 OK created sql view model staging.transformed ........................... [[32mCREATE VIEW[0m in 0.11s]
+[0m03:26:15  
+[0m03:26:15  Finished running 3 view models in 0 hours 0 minutes and 0.44 seconds (0.44s).
+[0m03:26:16  
+[0m03:26:16  [32mCompleted successfully[0m
+[0m03:26:16  
+[0m03:26:16  Done. PASS=3 WARN=0 ERROR=0 SKIP=0 TOTAL=3
 
-[2024-07-24 22:03:56,653] INFO - prefect.TaskRunner | Task 'run_dbt': Finished task run for task with final state: 'Success'
-[2024-07-24 22:03:56,661] INFO - prefect.TaskRunner | Task 'upload_logs_to_database': Starting task run...
-[2024-07-24 22:03:56,667] INFO - prefect.upload_logs_to_database | 
+[2024-07-25 00:26:17,408] INFO - prefect.TaskRunner | Task 'run_dbt': Finished task run for task with final state: 'Success'
+[2024-07-25 00:26:17,419] INFO - prefect.TaskRunner | Task 'upload_logs_to_database': Starting task run...
+[2024-07-25 00:26:17,427] INFO - prefect.upload_logs_to_database | 
  <> Conectado com PostgreSQL com sucesso!
-[2024-07-24 22:03:56,682] INFO - prefect.upload_logs_to_database | 
+[2024-07-25 00:26:17,442] INFO - prefect.upload_logs_to_database | 
  <> Tabela de logs logs__materialize criada no PostgreSQL com sucesso!
-[2024-07-24 22:03:56,692] INFO - prefect.upload_logs_to_database | 
+[2024-07-25 00:26:17,454] INFO - prefect.upload_logs_to_database | 
  <> Dados de logs do Flow inseridos em logs__materialize com sucesso!
-[2024-07-24 22:03:56,692] INFO - prefect.upload_logs_to_database | 
+[2024-07-25 00:26:17,454] INFO - prefect.upload_logs_to_database | 
  <> Feito upload do arquivo de log local logs/logs__materialize.txt na tabela logs__materialize PostgreSQL com sucesso!
-[2024-07-24 22:03:56,697] INFO - prefect.TaskRunner | Task 'upload_logs_to_database': Finished task run for task with final state: 'Success'
-[2024-07-24 22:03:56,698] INFO - prefect.FlowRunner | Flow run SUCCESS: all reference tasks succeeded
+[2024-07-25 00:26:17,461] INFO - prefect.TaskRunner | Task 'upload_logs_to_database': Finished task run for task with final state: 'Success'
+[2024-07-25 00:26:17,463] INFO - prefect.FlowRunner | Flow run SUCCESS: all reference tasks succeeded

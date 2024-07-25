@@ -118,10 +118,9 @@ def download_file(file_url, attempts, monthText, year):
             content_type = response.headers.get('Content-Type', '')
             return response.content, content_type
         else:
-            log(f"Tentativa {attempt +1}: Falha ao baixar dados referentes à {monthText}/{year}. Status code: {response.status_code}")
-            if attempt +1 == attempts:
-                error = f"Desistência após {attempts} falhas ao baixar dados referentes à {monthText}/{year}. Status code: {response.status_code}"
-                raise Exception(error)
+            log(f"""Tentativa {attempt +1}: Falha ao baixar dados referentes à {monthText}/{year}. \n
+                Status code: {response.status_code}""")
+    raise Exception(f"Falha ao baixar dados do link {file_url}.")
 
 def get_file_extension(content_type):
     if 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' in content_type:
