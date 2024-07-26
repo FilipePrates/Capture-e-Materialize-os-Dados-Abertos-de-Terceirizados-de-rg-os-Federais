@@ -466,7 +466,7 @@ def upload_logs_to_database(status: dict, logFilePath: str, tableName: str) -> d
     return logStatus
         
 @task
-def run_dbt(cleanStart: dict, historic:bool) -> dict:
+def run_dbt(cleanStart: dict, historic: bool) -> dict:
     """
     Realiza transformações com DBT no schema staging do PostgreSQL:
     Args:
@@ -474,7 +474,7 @@ def run_dbt(cleanStart: dict, historic:bool) -> dict:
                 'logFilePath': Caminho para o arquivo de log (string),
                 ?'error': Possíveis erros propagados (string)
         historic (bool): Flag para definir se deve baixar todos os dados históricos (True)
-            ou apenas os dados mais recentes (False). Default é False.
+            ou apenas os dados mais recentes (False).
     Returns:
         dict: Dicionário contendo chaves-valores:
                 'tables': Nome das tabelas atualizadas no banco de dados,
@@ -482,6 +482,10 @@ def run_dbt(cleanStart: dict, historic:bool) -> dict:
     """
     if isinstance(cleanStart, Failed): return Failed(result=cleanStart)
     dbtResult = {}
+    if historic:
+        models_to_run = "staging.raw_historic+"
+    else:
+        models_to_run = "staging.raw+"
 
     try:
         # Acesse as variáveis de ambiente
@@ -495,7 +499,7 @@ def run_dbt(cleanStart: dict, historic:bool) -> dict:
     try:
         os.chdir(f'{originalDir}/{dbtDir}')
         result = subprocess.run(["dbt", "run"
-        , "--vars", f"database: {DB_NAME}"], capture_output=True, text=True)
+        , "--vars", f"database: {DB_NAME}"], "--select", models_to_run, capture_output=True, text=True)
         if result.returncode != 0:
             raise Exception(result.stderr)
     except Exception as e:
@@ -508,6 +512,7 @@ def run_dbt(cleanStart: dict, historic:bool) -> dict:
     log(f'Transformação realizada com sucesso. {result.stdout}')
     dbtResult['result'] = result
     return dbtResult
+
 
 def check_flow_state(capture_flow_state):
     # Not working
