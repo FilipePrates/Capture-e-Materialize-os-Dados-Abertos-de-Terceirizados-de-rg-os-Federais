@@ -187,4 +187,4 @@ caso:
 &nbsp; Sistema Operacional host seja Windows:
 
 1. :
-   Tente através do WSL.
+   Tente através do WSL
