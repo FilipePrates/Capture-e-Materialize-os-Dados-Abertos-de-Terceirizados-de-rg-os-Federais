@@ -3,7 +3,7 @@ version: 2
 
 models:
   - name: raw
-    description: "Dados Abertos de Terceirizados de Órgãos Federais Crus"
+    description: "Dados Abertos de Terceirizados de Órgãos Federais brutos"
 
   - name: cleaned
     description: "Dados Abertos de Terceirizados de Órgãos Federais com NULL padrão"
@@ -82,10 +82,10 @@ models:
     depends_on:
       - ref('renamed')
 
-Dados Históricos: 
+# Dados Históricos: 
 
   - name: historic_raw
-    description: "Histórico de Dados Abertos de Terceirizados de Órgãos Federais Crus"
+    description: "Histórico de Dados Abertos de Terceirizados de Órgãos Federais brutos"
 
   - name: historic_cleaned
     description: "Dados Abertos de Terceirizados de Órgãos Federais com NULL padrão"

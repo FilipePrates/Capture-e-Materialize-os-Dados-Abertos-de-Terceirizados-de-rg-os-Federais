@@ -11,7 +11,7 @@ table_configs = [
     {"schema": "staging", "table": "transformed", "label": "staging.transformed"},
     {"schema": "public", "table": "raw", "label": "raw"},
     
-    {"schema": "public", "table": "historic_transformed", "label": "staging.historic_transformed"},
+    {"schema": "staging", "table": "historic_transformed", "label": "staging.historic_transformed"},
     {"schema": "public", "table": "historic_raw", "label": "historic_raw"},
 
     {"schema": "public", "table": "logs__historic_capture", "label": "logs__historic_capture"},
@@ -33,7 +33,9 @@ engine = create_engine(f'postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT
 
 # Função para capturar da tabela schemaName.tableName
 def fetch_table_data(engine, table_schema, table_name):
-    query = f'SELECT * FROM {table_schema}.{table_name} LIMIT {LIMIT}'
+    randomSample = ''
+    if table_schema == 'marts': randomSample = "TABLESAMPLE SYSTEM (1)"
+    query = f'SELECT * FROM {table_schema}.{table_name} {randomSample} LIMIT {LIMIT}'
     data = pd.read_sql(query, engine)
     print(f' <> {table_schema}.{table_name} \n', data.head(3))
     
@@ -53,9 +55,8 @@ def fetch_table_data(engine, table_schema, table_name):
 def fetch_table_count(engine, table_schema, table_name):
     query = f'SELECT COUNT(*) FROM {table_schema}.{table_name}'
     count = pd.read_sql(query, engine)
-    print(count)
-    return count
-# fetch_table_count(engine, 'staging', 'raw_historic')
+    return count.values[0][0]
+
 # Crie o app Dash
 app = dash.Dash(__name__)
 
@@ -78,7 +79,9 @@ def render_content(tab):
     config = table_configs[index]
     try:
         data = fetch_table_data(engine, config['schema'], config['table'])
+        count = fetch_table_count(engine, config['schema'], config['table'])
         return html.Div([
+            html.H2(f"{count} linhas", style={'textAlign': 'right'}),
             dash_table.DataTable(
                 id='table',
                 columns=[{"name": i, "id": i} for i in data.columns],

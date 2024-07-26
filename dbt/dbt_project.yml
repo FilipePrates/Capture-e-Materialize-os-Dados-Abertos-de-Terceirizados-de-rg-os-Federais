@@ -6,10 +6,11 @@ profile: local_profile
 
 model-paths: ["models"]
 
-
 # Estrutura dos Modelos
 models:
-  desafio_data_eng:
-    staging:
-      +database: "{{ var('database') }}"
-      materialized: view
+  # marts:
+  #   +database: "{{ var('database') }}"
+  #   materialized: table
+  staging:
+    +database: "{{ var('database') }}"
+    materialized: view

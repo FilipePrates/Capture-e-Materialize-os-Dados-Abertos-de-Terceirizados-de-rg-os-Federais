@@ -64,9 +64,9 @@ def create_log_table(cur, conn, tableName):
     """Cria uma tabela tableName com colunas padrão de log no PostgreSQL"""
     create_table_query = sql.SQL("""
         CREATE TABLE IF NOT EXISTS {table} (
-            log_id SERIAL PRIMARY KEY,
+            id_log SERIAL PRIMARY KEY,
             log_content TEXT,
-            log_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            timestamp_log_load TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """).format(table=sql.Identifier(tableName))
     cur.execute(create_table_query)
@@ -114,7 +114,7 @@ def get_file_extension(content_type):
     elif 'text/csv' in content_type or 'application/vnd.ms-excel' in content_type:
         return 'csv'
     else:
-        raise ValueError('Formato do arquivo cru fora do esperado (.csv, .xlsx).')
+        raise ValueError('Formato do arquivo bruto fora do esperado (.csv, .xlsx).')
 
 def download_file(file_url, attempts, monthText, year):
     for attempt in range(attempts):
@@ -159,6 +159,16 @@ def get_most_recent_raw_data_download_links(soup, urls):
                 urls.append({'file_url': file_url,
                                 'year': year,
                                 'monthText': monthText})
+                
+def determine_dbt_models_to_run(historic, publish):
+    models_to_run = "staging.raw staging.cleaned staging.renamed staging.transformed"
+    if historic:
+        models_to_run = "staging.historic_raw staging.historic_cleaned staging.historic_renamed staging.historic_transformed"
+        # if publish:
+        #     models_to_run += " marts.historic_materialized"
+    # else: models_to_run += " marts.historic_materialized"
+    return models_to_run
+
 
 def standard_schedule__adm_cgu_terceirizados():
     """Determina o cronograma padrão de disponibilização

@@ -1,0 +1,40 @@
+[2024-07-26 04:49:01,047] INFO - prefect.clean_log_file | 
+ <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <> 
+[2024-07-26 04:49:01,047] INFO - prefect.clean_log_file | 
+ <> Limpeza do arquivo de log local logs/logs__publish.txt realizada com sucesso.
+[2024-07-26 04:49:01,050] INFO - prefect.TaskRunner | Task 'clean_log_file': Finished task run for task with final state: 'Success'
+[2024-07-26 04:49:01,055] INFO - prefect.TaskRunner | Task 'run_dbt': Starting task run...
+[2024-07-26 04:49:05,172] INFO - prefect.run_dbt | 
+ <> Transformação realizada com sucesso. [0m07:49:02  Running with dbt=1.8.4
+[0m07:49:02  Registered adapter: postgres=1.8.2
+[0m07:49:02  [[33mWARNING[0m]: Deprecated functionality
+The `tests` config has been renamed to `data_tests`. Please see
+https://docs.getdbt.com/docs/build/data-tests#new-data_tests-syntax for more
+information.
+[0m07:49:02  [[33mWARNING[0m]: Configuration paths exist in your dbt_project.yml file which do not apply to any resources.
+There are 2 unused configuration paths:
+- models.marts
+- models.staging
+[0m07:49:02  Found 9 models, 14 data tests, 3 sources, 415 macros
+[0m07:49:02  
+[0m07:49:03  Concurrency: 4 threads (target='dev')
+[0m07:49:03  
+[0m07:49:03  1 of 5 START sql view model staging.historic_raw ............................... [RUN]
+[0m07:49:03  2 of 5 START sql view model staging_marts.materialized ......................... [RUN]
+[0m07:49:03  2 of 5 OK created sql view model staging_marts.materialized .................... [[32mCREATE VIEW[0m in 0.24s]
+[0m07:49:03  1 of 5 OK created sql view model staging.historic_raw .......................... [[32mCREATE VIEW[0m in 0.25s]
+[0m07:49:03  3 of 5 START sql view model staging.historic_cleaned ........................... [RUN]
+[0m07:49:03  3 of 5 OK created sql view model staging.historic_cleaned ...................... [[32mCREATE VIEW[0m in 0.04s]
+[0m07:49:03  4 of 5 START sql view model staging.historic_renamed ........................... [RUN]
+[0m07:49:03  4 of 5 OK created sql view model staging.historic_renamed ...................... [[32mCREATE VIEW[0m in 0.03s]
+[0m07:49:03  5 of 5 START sql view model staging.historic_transformed ....................... [RUN]
+[0m07:49:03  5 of 5 OK created sql view model staging.historic_transformed .................. [[32mCREATE VIEW[0m in 0.04s]
+[0m07:49:03  
+[0m07:49:03  Finished running 5 view models in 0 hours 0 minutes and 0.50 seconds (0.50s).
+[0m07:49:03  
+[0m07:49:03  [32mCompleted successfully[0m
+[0m07:49:03  
+[0m07:49:03  Done. PASS=5 WARN=0 ERROR=0 SKIP=0 TOTAL=5
+
+[2024-07-26 04:49:05,176] INFO - prefect.TaskRunner | Task 'run_dbt': Finished task run for task with final state: 'Success'
+[2024-07-26 04:49:05,177] INFO - prefect.FlowRunner | Flow run SUCCESS: all reference tasks succeeded

@@ -7,7 +7,7 @@ Configure ambiente virtual python, variáveis de ambiente necessárias, e baixe 
 
 0. :
    ```sh
-   python -m venv orchestrator && source orchestrator/bin/activate && cp .env.example .env && p install -r requirements/start.txt 
+   python -m venv orchestrator && source orchestrator/bin/activate && cp .env.example .env && pip install -r requirements/start.txt
    ```
 
 Execute o Servidor Prefect:
@@ -35,14 +35,14 @@ Em outro terminal:
 
 2. :
    ```sh
-   prefect create project adm_cgu_terceirizados && python ./run/capture.py && python ./run/materialize.py && python ./run/historic_capture.py && python ./run/historic_materialize.py
+   source orchestrator/bin/activate && prefect create project adm_cgu_terceirizados && python ./run/capture.py && python ./run/materialize.py && python ./run/historic_capture.py && python ./run/historic_materialize.py
    ```
 
 Em um terceiro terminal:
 
 3. :
    ```sh
-   pip install -r requirements/results.txt && python ./run/results.py
+   source orchestrator/bin/activate && pip install -r requirements/results.txt && python ./run/results.py
    ```
 Visite [http://localhost:8080/ (Prefect Server Dashboard)](http://localhost:8080/) no seu browser para acompanhar o cronograma de Flows.
 
@@ -53,7 +53,7 @@ Visite [http://localhost:8080/ (Prefect Server Dashboard)](http://localhost:8080
 
 1. :
    ```sh
-   python ./run/scheduler.py
+   source orchestrator/bin/activate && python ./run/scheduler.py
    ```
 
 Visite [htpt://localhost:8050/ (Dash App)](http://localhost:8050/) no seu browser para visualizar algumas das tabelas resultantes dos Flows iniciais armazenadas no PostgreSQL.
@@ -114,6 +114,21 @@ Este serviço provê dois flows principais:
 
 ambos podem ser executados para capturar/materializar todos os dados históricos disponíveis no [Portal de Dados Abertos - Terceirizados de Órgãos Federais](https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/terceirizados), ou apenas o mais recente disponível.
 
+### Conectar diretamente ao PostgreSQL:
+
+Na camada com o Servidor Prefect em execução:
+
+1. : 
+   ```
+   docker exec -it $(docker ps | grep 'postgres:11' | awk '{print $1}') bash
+   ```
+2. :
+   ```sh
+   psql -U prefect -d prefect_server -W
+   ```
+3. :
+Escreva a senha: "test-password"
+
 #### Opção 3: Rode dentro de um container Docker (WIP)
 
 Permita execução dos scripts necessários e configuração docker:
@@ -137,21 +152,6 @@ Rode a imagem docker:
    ```sh
    docker run -it --privileged -v /var/run/docker.sock:/var/run/docker.sock -p 8080:8080 -p 4200:4200 -p 8050:8050 adm_cgu_terceirizados_pipeline
    ```
-
-### Conectar diretamente ao PostgreSQL:
-
-Na camada com o Servidor Prefect em execução:
-
-1. : 
-   ```
-   docker exec -it $(docker ps | grep 'postgres:11' | awk '{print $1}') bash
-   ```
-2. :
-   ```sh
-   psql -U prefect -d prefect_server -W
-   ```
-3. :
-Escreva a senha: "test-password"
 
 ### #help
 <!-- ###

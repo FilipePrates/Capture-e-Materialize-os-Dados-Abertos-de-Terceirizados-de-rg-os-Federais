@@ -16,15 +16,15 @@ from tasks import (
 
 # Executar Captura e Materialização a cada ~4 meses.
 with Flow("Captura dos Dados") as capture:
-    # SETUP #
-    logFilePath = setup_log_file("logs/logs__capture.txt")
-    cleanStart = clean_log_file(logFilePath)
-    # EXTRACT #
-    rawData = download_cgu_terceirizados_data(cleanStart, historic=False)
-    rawFilePaths = save_raw_data_locally(rawData)
+    # # SETUP #
+    # logFilePath = setup_log_file("logs/logs__capture.txt")
+    # cleanStart = clean_log_file(logFilePath)
+    # # EXTRACT #
+    # rawData = download_cgu_terceirizados_data(cleanStart, historic=False)
+    # rawFilePaths = save_raw_data_locally(rawData)
 
     # DEBUG help:
-    # rawFilePaths = {'rawFilePaths': ['adm_cgu_terceirizados_local/year=2024/raw_data_0.xlsx']}
+    rawFilePaths = {'rawFilePaths': ['adm_cgu_terceirizados_local/year=2024/raw_data_0.xlsx']}
 
     # CLEAN #
     parsedData = parse_data_into_dataframes(rawFilePaths, lenient=False)
@@ -39,23 +39,23 @@ with Flow("Materialização dos Dados") as materialize:
     logFilePath = setup_log_file("logs/logs__materialize.txt")
     cleanStart = clean_log_file(logFilePath)
     # TRANSFORM #
-    columns = run_dbt(cleanStart, historic=False)
+    columns = run_dbt(cleanStart, historic=False, publish=True)
     # LOAD #
     logStatus = upload_logs_to_database(columns, "logs/logs__materialize.txt", "logs__materialize")
 
 
 # Executar Captura e Materialização Histórica uma vez.
 with Flow("Captura dos Dados Históricos") as historic_capture:
-    # SETUP #
-    logFilePath = setup_log_file("logs/logs__historic_capture.txt")
-    cleanStart = clean_log_file(logFilePath)
+    # # SETUP #
+    # logFilePath = setup_log_file("logs/logs__historic_capture.txt")
+    # cleanStart = clean_log_file(logFilePath)
 
-    # EXTRACT #
-    rawData = download_cgu_terceirizados_data(cleanStart, historic=True)
-    rawFilePaths = save_raw_data_locally(rawData)
+    # # EXTRACT #
+    # rawData = download_cgu_terceirizados_data(cleanStart, historic=True)
+    # rawFilePaths = save_raw_data_locally(rawData)
 
     # DEBUG help:
-    # rawFilePaths = {'rawFilePaths': ['adm_cgu_terceirizados_local/year=2024/raw_data_0.xlsx', 'adm_cgu_terceirizados_local/year=2024/raw_data_1.xlsx', 'adm_cgu_terceirizados_local/year=2023/raw_data_2.csv', 'adm_cgu_terceirizados_local/year=2023/raw_data_3.csv', 'adm_cgu_terceirizados_local/year=2023/raw_data_4.csv', 'adm_cgu_terceirizados_local/year=/raw_data_5.csv', 'adm_cgu_terceirizados_local/year=/raw_data_6.csv', 'adm_cgu_terceirizados_local/year=/raw_data_7.csv', 'adm_cgu_terceirizados_local/year=2022/raw_data_8.csv', 'adm_cgu_terceirizados_local/year=2022/raw_data_9.csv', 'adm_cgu_terceirizados_local/year=2022/raw_data_10.csv', 'adm_cgu_terceirizados_local/year=2021/raw_data_11.csv', 'adm_cgu_terceirizados_local/year=2021/raw_data_12.csv', 'adm_cgu_terceirizados_local/year=2021/raw_data_13.csv', 'adm_cgu_terceirizados_local/year=2020/raw_data_14.csv', 'adm_cgu_terceirizados_local/year=2020/raw_data_15.csv', 'adm_cgu_terceirizados_local/year=2020/raw_data_16.csv', 'adm_cgu_terceirizados_local/year=2019/raw_data_17.csv', 'adm_cgu_terceirizados_local/year=2019/raw_data_18.csv', 'adm_cgu_terceirizados_local/year=2019/raw_data_19.csv']}
+    rawFilePaths = {'rawFilePaths': ['adm_cgu_terceirizados_local/year=2024/raw_data_0.xlsx', 'adm_cgu_terceirizados_local/year=2024/raw_data_1.xlsx', 'adm_cgu_terceirizados_local/year=2023/raw_data_2.csv', 'adm_cgu_terceirizados_local/year=2023/raw_data_3.csv', 'adm_cgu_terceirizados_local/year=2023/raw_data_4.csv', 'adm_cgu_terceirizados_local/year=/raw_data_5.csv', 'adm_cgu_terceirizados_local/year=/raw_data_6.csv', 'adm_cgu_terceirizados_local/year=/raw_data_7.csv', 'adm_cgu_terceirizados_local/year=2022/raw_data_8.csv', 'adm_cgu_terceirizados_local/year=2022/raw_data_9.csv', 'adm_cgu_terceirizados_local/year=2022/raw_data_10.csv', 'adm_cgu_terceirizados_local/year=2021/raw_data_11.csv', 'adm_cgu_terceirizados_local/year=2021/raw_data_12.csv', 'adm_cgu_terceirizados_local/year=2021/raw_data_13.csv', 'adm_cgu_terceirizados_local/year=2020/raw_data_14.csv', 'adm_cgu_terceirizados_local/year=2020/raw_data_15.csv', 'adm_cgu_terceirizados_local/year=2020/raw_data_16.csv', 'adm_cgu_terceirizados_local/year=2019/raw_data_17.csv', 'adm_cgu_terceirizados_local/year=2019/raw_data_18.csv', 'adm_cgu_terceirizados_local/year=2019/raw_data_19.csv']}
     
     # CLEAN #
     parsedData = parse_data_into_dataframes(rawFilePaths, lenient=True)
@@ -69,9 +69,10 @@ with Flow("Materialização dos Dados Históricos") as historic_materialize:
     logFilePath = setup_log_file("logs/logs__historic_materialize.txt")
     cleanStart = clean_log_file(logFilePath)
     # TRANSFORM #
-    columns = run_dbt(cleanStart, historic=True)
+    columns = run_dbt(cleanStart, historic=True, publish=True)
     # LOAD #
     logStatus = upload_logs_to_database(columns, "logs/logs__historic_materialize.txt", "logs__historic_materialize")
+
 
 historic_capture.register(project_name="adm_cgu_terceirizados")
 historic_materialize.register(project_name="adm_cgu_terceirizados")

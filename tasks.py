@@ -24,9 +24,9 @@ from utils import (
     insert_data,
     insert_log_data,
     connect_to_postgresql,
-
     get_most_recent_raw_data_download_links,
     get_historic_raw_data_download_links,
+    determine_dbt_models_to_run
 )
 load_dotenv()
 
@@ -133,9 +133,9 @@ def download_cgu_terceirizados_data(cleanStart: dict, historic: bool = False) ->
             get_most_recent_raw_data_download_links(soup,rawDataLinks)   
         if len(rawDataLinks) == 0:
             raise ValueError('Zero link de download encontrado!')
-        log(f"{len(rawDataLinks)} links para dados crus capturados do portal de Dados Abertos da Controladoria Geral da União com sucesso!")
+        log(f"{len(rawDataLinks)} links para dados brutos capturados do portal de Dados Abertos da Controladoria Geral da União com sucesso!")
     except Exception as e:
-        error = f"""Falha ao capturar links para dados crus do portal de Dados Abertos da Controladoria Geral da União {URL}.\n
+        error = f"""Falha ao capturar links para dados brutos do portal de Dados Abertos da Controladoria Geral da União {URL}.\n
                     Possível mudança de layout. {e}"""
         log_and_fail_task(error, rawData)
 
@@ -164,7 +164,7 @@ def download_cgu_terceirizados_data(cleanStart: dict, historic: bool = False) ->
 @task
 def save_raw_data_locally(rawData: dict) -> dict:
     """
-    Salva os dados crus localmente em adm_cgu_terceirizados_local/ particionado por ano.
+    Salva os dados brutos localmente em adm_cgu_terceirizados_local/ particionado por ano.
 
     Args:
         rawData (dict): Dicionário contendo chaves-valores:
@@ -193,9 +193,9 @@ def save_raw_data_locally(rawData: dict) -> dict:
             filePath = os.path.join(download_dir, f"raw_data_{i}.{content['type']}".lower())
             rawFilePaths['rawFilePaths'].append(filePath)
     except Exception as e:
-        error = f"Falha ao criar diretórios locais para armazenar os dados crus. {e}"
+        error = f"Falha ao criar diretórios locais para armazenar os dados brutos. {e}"
         log_and_fail_task(error, rawFilePaths)
-    log(f'Arquivos e diretórios para armazenar localmente os dados crus criados com sucesso!')
+    log(f'Arquivos e diretórios para armazenar localmente os dados brutos criados com sucesso!')
 
     # Salve localmente os dados baixados
     try:
@@ -204,7 +204,7 @@ def save_raw_data_locally(rawData: dict) -> dict:
                 file.write(content['content'])
             log(f"Dados salvos localmente em {rawFilePaths['rawFilePaths'][index]} com sucesso!")
     except Exception as e:
-        error = f"Falha ao salvar os dados crus localmente. {e}"
+        error = f"Falha ao salvar os dados brutos localmente. {e}"
         log_and_fail_task(error, rawFilePaths)
     
     if 'error' in rawFilePaths:
@@ -216,7 +216,7 @@ def save_raw_data_locally(rawData: dict) -> dict:
 @task
 def parse_data_into_dataframes(rawFilePaths: dict, lenient: bool) -> dict:
     """
-    Transforma os dados crus em um DataFrame.
+    Transforma os dados brutos em um DataFrame.
 
     Args:
         rawFilePaths (dict): Dicionário contendo chaves-valores:
@@ -224,7 +224,7 @@ def parse_data_into_dataframes(rawFilePaths: dict, lenient: bool) -> dict:
             ?'error': Possíveis erros propagados (string),
         lenient (bool): Indica se Falha a Tarefa caso um dos arquivos falhe
     Returns:
-        dict: Dicionário com chaves sendo os caminhos dos arquivos locais crus, e valores
+        dict: Dicionário com chaves sendo os caminhos dos arquivos locais brutos, e valores
             sendo dicionários contendo chaves-valores:
             'dataframe': pd.DataFrame,
             ?'error': Possíveis erros propagados (string)
@@ -239,7 +239,7 @@ def parse_data_into_dataframes(rawFilePaths: dict, lenient: bool) -> dict:
         if rawfilePath.endswith('.xlsx'):
             try:
                 df = pd.read_excel(rawfilePath, engine='openpyxl')
-                log(f"Dados crus {rawfilePath} convertidos em pd.DataFrame com sucesso!")
+                log(f"dados brutos {rawfilePath} convertidos em pd.DataFrame com sucesso!")
                 parsedData[rawfilePath]['content'] = df
             except Exception as e:
                 error = f"Falha ao interpretar {rawfilePath} como pd.DataFrame: {e} \nArquivo {rawfilePath} corrompido."
@@ -254,12 +254,12 @@ def parse_data_into_dataframes(rawFilePaths: dict, lenient: bool) -> dict:
         elif rawfilePath.endswith('.csv'):
             try:
                 df = pd.read_csv(rawfilePath)
-                log(f"Dados crus {rawfilePath} convertidos em pd.DataFrame com sucesso!")
+                log(f"dados brutos {rawfilePath} convertidos em pd.DataFrame com sucesso!")
                 parsedData[rawfilePath]['content'] = df
             except Exception as e:
                 try:
                     df = pd.read_csv(rawfilePath, delimiter=';')
-                    log(f"Dados crus {rawfilePath} convertidos em pd.DataFrame com sucesso!")
+                    log(f"dados brutos {rawfilePath} convertidos em pd.DataFrame com sucesso!")
                     parsedData[rawfilePath]['content'] = df
                 except Exception as e:
                     error = f"Falha ao interpretar {rawfilePath} como pd.DataFrame: {e} \nArquivo {rawfilePath} corrompido."
@@ -271,7 +271,7 @@ def parse_data_into_dataframes(rawFilePaths: dict, lenient: bool) -> dict:
                         log_and_fail_task(error)
                         return parsedData
         else:
-            log(f"Formato de arquivo cru fora do esperado (.csv, .xlsx) para o arquivo {rawfilePath}.")
+            log(f"Formato de arquivo bruto fora do esperado (.csv, .xlsx) para o arquivo {rawfilePath}.")
             del parsedData[rawfilePath]
             continue
 
@@ -284,7 +284,7 @@ def save_data_as_csv_locally(parsedData: dict, lenient: bool) -> dict:
     Salva DataFrames em um arquivo CSV local.
 
     Args:
-        parsedData (dict): Dicionário com chaves sendo os caminhos dos arquivos locais crus, e valores
+        parsedData (dict): Dicionário com chaves sendo os caminhos dos arquivos locais brutos, e valores
           sendo dicionários contendo chaves-valores:
                 'content': Dados (pd.DataFrame),
                 ?'error': Possíveis erros propagados (string),
@@ -468,7 +468,7 @@ def upload_logs_to_database(status: dict, logFilePath: str, tableName: str) -> d
     return logStatus
 
 @task 
-def run_dbt(cleanStart: dict, historic: bool) -> dict:
+def run_dbt(cleanStart: dict, historic: bool, publish:bool = False) -> dict:
     """
     Realiza transformações com DBT no schema staging do PostgreSQL:
     Args:
@@ -477,6 +477,8 @@ def run_dbt(cleanStart: dict, historic: bool) -> dict:
                 ?'error': Possíveis erros propagados (string)
         historic (bool): Flag para definir se deve baixar todos os dados históricos (True)
             ou apenas os dados mais recentes (False).
+        publish (bool): Flag para definir se deve executar transformação para marts (True)
+            ou apenas staging (False). Padrão False.
     Returns:
         dict: Dicionário contendo chaves-valores:
                 'tables': Nome das tabelas atualizadas no banco de dados,
@@ -484,12 +486,8 @@ def run_dbt(cleanStart: dict, historic: bool) -> dict:
     """
     if isinstance(cleanStart, Failed):
         return Failed(result=cleanStart)
-    
     dbtResult = {}
-    if historic:
-        models_to_run = "staging.raw_historic+"
-    else:
-        models_to_run = "staging.raw+"
+    models_to_run = determine_dbt_models_to_run(historic, publish)
 
     try:
         # Acesse as variáveis de ambiente
@@ -503,15 +501,10 @@ def run_dbt(cleanStart: dict, historic: bool) -> dict:
 
     try:
         os.chdir(f'{originalDir}/{dbtDir}')
-        if historic:
-            models_to_run = "staging.historic_raw staging.historic_cleaned staging.historic_renamed staging.historic_transformed"
-        else:
-            models_to_run = "staging.raw staging.cleaned staging.renamed staging.transformed"
-# , 
-#             "--select", models_to_run
         result = subprocess.run([
             "dbt", "run", 
-            "--vars", f"database: {DB_NAME}"
+            "--vars", f"database: {DB_NAME}",
+            "--select", models_to_run,
         ], capture_output=True, text=True, bufsize=1)
         
         if result.returncode != 0:

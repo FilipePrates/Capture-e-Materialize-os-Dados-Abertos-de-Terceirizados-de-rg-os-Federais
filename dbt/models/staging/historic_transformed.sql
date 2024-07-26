@@ -1,3 +1,7 @@
+{{ config(
+    materialized='table'
+) }}
+
 select
     --- Chaves primárias em ordem de escopo,
     cast(id_contratado as bigint) as id_contratado,
