@@ -100,25 +100,25 @@ Permita execução dos scripts:
 
 0. :
    ```sh
-   sudo chmod +x start.sh scripts/stop.sh && scripts/stop.sh
+   sudo chmod +x start.sh stop.sh && stop.sh
    ```
 Execute:
 
 1. :
    ```sh
-   script/start.sh
+   ./start.sh
    ```
 
 #### Para parar o Servidor e Agente(s) Prefect
 
 0. :
    ```sh
-   sudo chmod +x scripts/stop.sh
+   sudo chmod +x stop.sh
    ```
 
 1. :
    ```sh
-   ./scripts/stop.sh
+   ./stop.sh
    ```
 
 ### Funcionalidades:
@@ -180,7 +180,7 @@ caso:
    se erro permanecer, limpe todos os processos relacionados com a pipeline:
 1. 
    ```sh
-   ./scripts/stop.sh
+   ./stop.sh
    ```
 
 ###
