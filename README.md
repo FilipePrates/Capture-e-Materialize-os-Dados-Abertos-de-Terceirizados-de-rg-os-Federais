@@ -55,13 +55,40 @@ _____  _____  ______ ______ ______ _____ _______    _____ ______ _______      __
 |_|    |_|  \_\______|_|    |______\_____|  |_|    |_____/|______|_|  \_\  \/   |______|_|  \_\
 
 Visit http://localhost:8080 to get started
+
 ```
+#### Alternativa: Rode o Servidor dentro de um container Docker local!
+
+<!-- 🚫 Sobe os serviços, porém servidor Prefect não fica disponível. Debuggando 🚧 -->
+Permita execução dos scripts necessários e configuração docker:
+
+0. :
+   ```sh
+   sudo chmod +x scripts/docker_start.sh && scripts/stop.sh && scripts/stop.sh
+   ```
+
+Construa a imagem docker:
+
+1. : 
+   ```sh
+   docker build -t adm_cgu_terceirizados_pipeline .
+   ```
+
+Rode a imagem docker:
+
+2. : 
+   ```sh
+   docker run -it --privileged -v /var/run/docker.sock:/var/run/docker.sock -p 8080:8080 -p 4200:4200 -p 8050:8050 adm_cgu_terceirizados_pipeline
+   ```
+
+3. :
+   O Servidor Prefect está online!
 
 Em outro terminal:
 
 2. :
    ```sh
-   source orchestrator/bin/activate && prefect create project adm_cgu_terceirizados && python ./run/capture.py && python ./run/materialize.py && python ./run/historic_capture.py && python ./run/historic_materialize.py
+   prefect server create-tenant --name tenant && prefect create project adm_cgu_terceirizados && python ./run/capture.py && python ./run/materialize.py && python ./run/historic_capture.py && python ./run/historic_materialize.py
    ```
 
 Em um terceiro terminal:
@@ -128,31 +155,6 @@ Na camada com o Servidor Prefect em execução:
    ```
 3. :
 Escreva a senha: "test-password"
-
-#### Opção Futura: Rode dentro de um container Docker (WIP)
-
-🚫 Sobe os serviços, porém servidor Prefect não fica disponível. Debuggando 🚧
-Permita execução dos scripts necessários e configuração docker:
-
-0. :
-   ```sh
-   sudo chmod +x scripts/docker_start.sh && scripts/stop.sh && scripts/stop.sh && sudo docker service start
-   ```
-
-Construa a imagem docker:
-
-1. : 
-   ```sh
-   docker build -t adm_cgu_terceirizados_pipeline .
-   ```
-   <!-- É esperado que "Installing build dependencies: finished with status 'done'" e "Running setup install for numpy" demore um pouquinho. -->
-
-Rode a imagem docker:
-
-2. : 
-   ```sh
-   docker run -it --privileged -v /var/run/docker.sock:/var/run/docker.sock -p 8080:8080 -p 4200:4200 -p 8050:8050 adm_cgu_terceirizados_pipeline
-   ```
 
 ### #help
 ###
