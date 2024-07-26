@@ -12,11 +12,6 @@ models:
   desafio_data_eng:
     staging:
       +database: "{{ var('database') }}"
-      materialized: table
+      materialized: view
     marts:
       materialized: table
-
-# Optional: Specify seeds, snapshots, etc.
-seeds:
-  desafio_data_eng:
-    enabled: true

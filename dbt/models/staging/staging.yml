@@ -35,6 +35,50 @@ models:
         tests:
           - unique
           - not_null
+      - name: ano_disponibilizado
+        description: "Ano da carga dos dados"
+      - name: mes_disponibilizado
+        description: "Mês da carga de dados"
+      - name: sigla_orgao_superior_gestora
+        description: "Sigla do órgão superior da unidade gestora do terceirizado"
+      - name: codigo_siafi_gestora
+        description: "Código da unidade gestora (SIAFI) do terceirizado"
+      - name: sigla_gestora
+        description: "Sigla da unidade gestora do terceirizado"
+      - name: nome_gestora
+        description: "Nome da unidade gestora do terceirizado"
+      - name: sigla_orgao_trabalho
+        description: "Sigla do órgão onde o terceirizado trabalha"
+      - name: nome_orgao_trabalho
+        description: "Nome do órgão onde o terceirizado trabalha"
+      - name: codigo_siafi_orgao_trabalho
+        description: "Código SIAFI do órgão onde o terceirizado trabalha"
+      - name: codigo_siape_orgao_trabalho
+        description: "Código SIAPE do órgão onde o terceirizado trabalha"
+      - name: desc_unidade_trabalho
+        description: "Descrição da unidade onde o terceirizado trabalha"
+      - name: cnpj_empresa_terceirizada
+        description: "CNPJ da empresa terceirizada"
+      - name: razao_social_empresa_terceirizada
+        description: "Razão Social da empresa terceirizada"
+      - name: numero_contrato_empresa_terceirizada
+        description: "Número do contrato com a empresa terceirizada"
+      - name: codigo_cbo_categoria_profissional
+        description: "Código da CBO e descrição da categoria profissional do terceirizado"
+      - name: jornada_trabalho_horas_semanais
+        description: "Quantidade de horas semanais de trabalho do terceirizado"
+      - name: escolaridade_exigida
+        description: "Nível de escolaridade exigido pela ocupação do terceirizado"
+      - name: valor_reais_mensal_salario
+        description: "Valor mensal do salário do terceirizado (R$)"
+      - name: valor_reais_mensal_custo
+        description: "Custo total mensal do terceirizado (R$)"
+      - name: cnpj_contratado
+        description: "CPF do terceirizado"
+      - name: nome_contratado
+        description: "Nome completo do terceirizado"
+      - name: timestamp_captura
+        description: "Timestamp de captura dos dados"
     depends_on:
       - ref('renamed')
 

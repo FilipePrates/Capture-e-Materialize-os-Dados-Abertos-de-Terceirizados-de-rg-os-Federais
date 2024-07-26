@@ -32,5 +32,5 @@ select
     cnpj_contratado,
     nome_contratado,
 
-    timestamp_captura
+    current_timestamp as timestamp_captura
 from {{ ref('renamed') }}
