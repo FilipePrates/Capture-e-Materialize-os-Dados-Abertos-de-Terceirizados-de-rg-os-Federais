@@ -1,6 +1,26 @@
 # Desafio Engenheiro de Dados @ Escritório de Dados
 # Capture e Materialize os Dados Abertos de Terceirizados de Órgãos Federais
 
+### Flow de Captura de Dados
+**SETUP**:
+ -> (🔧) Configurar Arquivo de Log -> (🧹) Limpar Arquivo de Log ->
+**EXTRACT**:
+ -> (⬇️) Baixar Dados -> (💾) Salvar Dados Brutos Localmente ->
+**CLEAN**:
+ -> (🔍) Interpretar Dados em DataFrames -> (📝) Salvar Dados como CSVs Localmente ->
+**LOAD**:
+ -> (⬆️) Carregar CSVs para o Banco de Dados -> (⬆️) Carregar Logs para o Banco de Dados.
+
+### Flow de Materialização dos Dados
+**SETUP**:
+    (🔧) Configurar Arquivo de Log-> (🧹) Limpar Arquivo de Log  ->
+**TRANSFORM (DBT)**:
+    -> (📦) staging.raw (Dados Brutos)-> (🧼) staging.cleaned (Dados com valor nulo padrão) -> 
+    (📝) staging.renamed (Colunas renomeadas seguindo manuais de estilo do [Escritório de Dados](https://docs.dados.rio/guia-desenvolvedores/manual-estilo/#nome-e-ordem-das-colunas) e [Base dos Dados](https://basedosdados.github.io/mais/style_data/)) -> (🔧) staging.transformed (Colunas com tipos definidos.) ->
+**LOAD**:
+    -> (⬆️) Carregar CSV para o Banco de Dados -> (⬆️) Carregar Logs para o Banco de Dados
+
+---
 ## Execute:
 
 Configure ambiente virtual python, variáveis de ambiente necessárias, e baixe os requerimentos do sistema:
@@ -91,27 +111,6 @@ Execute:
    ./scripts/stop.sh
    ```
 
-Este serviço provê dois flows principais:
-
-### Captura de Dados
-**SETUP**:
- -> Configurar Arquivo de Log -> Limpar Arquivo de Log ->
-**EXTRACT**:
- -> Baixar Dados -> Salvar Dados Brutos Localmente ->
-**CLEAN**:
- -> Analisar Dados em DataFrames -> Salvar Dados como CSV Localmente ->
-**LOAD**:
- -> Carregar CSV para o Banco de Dados -> Carregar Logs para o Banco de Dados.
-
-### Materialização dos Dados
-**SETUP**:
-    Configurar Arquivo de Log -> Limpar Arquivo de Log ->
-**TRANSFORM (DBT)**:
-    staging.raw (Dados Brutos) -> staging.cleaned (Dados com valor nulo padrão) -> 
-    staging.renamed (Colunas renomeadas seguindo manuais de estilo do [Escritório de Dados](https://docs.dados.rio/guia-desenvolvedores/manual-estilo/#nome-e-ordem-das-colunas) e [Base dos Dados](https://basedosdados.github.io/mais/style_data/)) -> staging.transformed (Colunas com tipos definidos.)
-**LOAD**:
-    Carregar CSV para o Banco de Dados -> Carregar Logs para o Banco de Dados
-
 ambos podem ser executados para capturar/materializar todos os dados históricos disponíveis no [Portal de Dados Abertos - Terceirizados de Órgãos Federais](https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/terceirizados), ou apenas o mais recente disponível.
 
 ### Conectar diretamente ao PostgreSQL:
@@ -129,7 +128,7 @@ Na camada com o Servidor Prefect em execução:
 3. :
 Escreva a senha: "test-password"
 
-#### Opção 3: Rode dentro de um container Docker (WIP)
+<!-- #### Opção 3: Rode dentro de um container Docker (WIP)
 
 Permita execução dos scripts necessários e configuração docker:
 
@@ -144,24 +143,16 @@ Construa a imagem docker:
    ```sh
    docker build -t adm_cgu_terceirizados_pipeline .
    ```
-   <!-- É esperado que "Installing build dependencies: finished with status 'done'" e "Running setup install for numpy" demore um pouquinho. -->
+   É esperado que "Installing build dependencies: finished with status 'done'" e "Running setup install for numpy" demore um pouquinho.
 
 Rode a imagem docker:
 
 2. : 
    ```sh
    docker run -it --privileged -v /var/run/docker.sock:/var/run/docker.sock -p 8080:8080 -p 4200:4200 -p 8050:8050 adm_cgu_terceirizados_pipeline
-   ```
+   ``` -->
 
 ### #help
-<!-- ###
-caso:
-   Caso utilizando sistema operacional Windows:
-
-0. :
-   Caso utilizando sistema operacional Windows - utilize através do WSL. -->
-
-
 ###
 caso:
    ```sh
@@ -199,3 +190,11 @@ caso:
    ```sh
    ./scripts/stop.sh
    ```
+
+###
+
+caso:
+&nbsp; Sistema Operacional host seja Windows:
+
+1. :
+   Tente através do WSL.

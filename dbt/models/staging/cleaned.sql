@@ -11,7 +11,7 @@ select
     nullif(trim(both ' ' from replace(nm_terceirizado, '<N/I>', 'Não Informado')), 'NULL') as nm_terceirizado,
     nullif(trim(both ' ' from replace(nm_categoria_profissional, '<N/I>', 'Não Informado')), 'NULL') as nm_categoria_profissional,
     case
-        when nm_escolaridade in (
+        when trim(both ' ' from replace(nm_escolaridade, '<N/I>', 'Não Informado')) in (
             'NAO SABE LER/ESCREVER',
             'SEM EXIGENCIA',
             'ALFABETIZADO',
@@ -27,10 +27,13 @@ select
             'MESTRADO',
             'DOUTORADO',
             'Não Informado'
-        ) then nm_escolaridade
+        ) then trim(both ' ' from replace(nm_escolaridade, '<N/I>', 'Não Informado'))
         else null
     end as nm_escolaridade,
-    nullif(nullif(trim(both ' ' from replace(nr_jornada, '<N/I>', 'Não Informado')), 'NULL'), 'Não Informado') as nr_jornada,
+    case
+        when trim(both ' ' from replace(nr_jornada, '<N/I>', 'Não Informado')) in ('NULL', 'NI', 'Não Informado') then null
+        else trim(both ' ' from replace(nr_jornada, '<N/I>', 'Não Informado'))
+    end as nr_jornada,
     nullif(trim(both ' ' from replace(nm_unidade_prestacao, '<N/I>', 'Não Informado')), 'NULL') as nm_unidade_prestacao,
     vl_mensal_salario,
     vl_mensal_custo,
@@ -39,6 +42,12 @@ select
     "Ano_Carga",
     nullif(trim(both ' ' from replace(sg_orgao, '<N/I>', 'Não Informado')), 'NULL') as sg_orgao,
     nullif(trim(both ' ' from replace(nm_orgao, '<N/I>', 'Não Informado')), 'NULL') as nm_orgao,
-    nullif(nullif(trim(both ' ' from replace(cd_orgao_siafi, '<N/I>', 'Não Informado')), 'NULL'), '-2') as cd_orgao_siafi,
-    nullif(nullif(trim(both ' ' from replace(cd_orgao_siape, '<N/I>', 'Não Informado')), 'NULL'), '-2') as cd_orgao_siape
+    case
+        when trim(both ' ' from replace(cd_orgao_siafi, '<N/I>', 'Não Informado')) in ('NULL', 'NI', 'Não Informado', '-2') then null
+        else trim(both ' ' from replace(cd_orgao_siafi, '<N/I>', 'Não Informado'))
+    end as cd_orgao_siafi,
+    case
+        when trim(both ' ' from replace(cd_orgao_siape, '<N/I>', 'Não Informado')) in ('NULL', 'NI', 'Não Informado', '-2') then null
+        else trim(both ' ' from replace(cd_orgao_siape, '<N/I>', 'Não Informado'))
+    end as cd_orgao_siape
 from {{ ref('raw') }}
