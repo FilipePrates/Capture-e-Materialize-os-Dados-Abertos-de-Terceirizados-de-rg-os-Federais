@@ -2,29 +2,22 @@
 # Capture e Materialize os Dados Abertos de Terceirizados de Órgãos Federais
 
 ### Flow de Captura de Dados
-**SETUP**:
-   (🧹) Limpar Arquivo de Log -> (🔧) Configurar Arquivo de Log ->
+**SETUP**: (🧹) Limpar Arquivo de Log -> (🔧) Configurar Arquivo de Log ->
 
-**EXTRACT**:
-   -> (⬇️) Baixar Dados -> (🧠) Salvar Dados Brutos em Memória ->
+**EXTRACT**: -> (⬇️) Baixar Dados -> (🧠) Salvar Dados Brutos em Memória ->
 
-**CLEAN**:
-   -> (🔍) Interpretar Dados em DataFrames -> (📥) Salvar Dados como CSVs Localmente ->
+**CLEAN**: -> (🔍) Interpretar Dados em DataFrames -> (📥) Salvar Dados como CSVs Localmente ->
 
-**LOAD**:
-   -> (📦) Carregar CSVs para o Banco de Dados brutos -> (⬆️) Carregar Logs para o Banco de Dados
+**LOAD**: -> (📦) Carregar CSVs para o Banco de Dados brutos -> (⬆️) Carregar Logs para o Banco de Dados
 
 ### Flow de Materialização dos Dados
 
-**SETUP**:
-   (🧹) Limpar Arquivo de Log  -> (🔧) Configurar Arquivo de Log ->
+**SETUP**: (🧹) Limpar Arquivo de Log  -> (🔧) Configurar Arquivo de Log ->
 
-**TRANSFORM (DBT)**:
-   -> (📦) staging.raw (Dados Brutos) -> (🧼) staging.cleaned (Dados com valor nulo padrão) -> 
+**TRANSFORM (DBT)**: -> (📦) staging.raw (Dados Brutos) -> (🧼) staging.cleaned (Dados com valor nulo padrão) -> 
     (📝) staging.renamed (Colunas renomeadas seguindo manuais de estilo do [Escritório de Dados](https://docs.dados.rio/guia-desenvolvedores/manual-estilo/#nome-e-ordem-das-colunas) e [Base dos Dados](https://basedosdados.github.io/mais/style_data/)) -> (🔶) staging.transformed (Colunas com tipos definidos.) ->
 
-**LOAD**:
-   -> (⬆️) Carregar Logs para o Banco de Dados
+**LOAD**: -> (⬆️) Carregar Logs para o Banco de Dados
 
 ---
 
