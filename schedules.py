@@ -12,7 +12,7 @@ START_YEAR = 2024
 every_4_months_starting_may = Schedule(
     clocks=[
         CronClock(
-            cron="0 0 1 5/4 *",  # This cron expression means the 1st day of May, then every 4 months
+            cron="0 0 1 5/4 *",
             start_date=datetime(START_YEAR, 5, 1, 0, 0, tzinfo=timezone(TIMEZONE)),
         ),
     ]

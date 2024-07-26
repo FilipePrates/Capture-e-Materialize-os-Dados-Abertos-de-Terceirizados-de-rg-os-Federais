@@ -162,7 +162,7 @@ def download_cgu_terceirizados_data(cleanStart: dict, historic: bool = False) ->
     return rawData
 
 @task
-def save_raw_data_locally(rawData: dict) -> dict:
+def save_raw_data_locally(rawData: dict, lenient: bool) -> dict:
     """
     Salva os dados brutos localmente em adm_cgu_terceirizados_local/ particionado por ano.
 
@@ -171,8 +171,9 @@ def save_raw_data_locally(rawData: dict) -> dict:
             'rawData': Lista de dicionários contendo chaves-valores:
                 'content': Conteúdo do arquivo (bytes),
                 'type': Extensão do arquivo (.csv, .xlsx),
-                'year': Ano do arquivo para particionamento.
+                'year': Ano do arquivo para particionamento
             ?'error': Possíveis erros propagados (string)
+        lenient (bool): Indica se Falha a Tarefa caso um dos arquivos falhe
     Returns:
         dict: Dicionário contendo chaves-valores:
             'rawFilePaths': Caminhos dos arquivos locais salvos (list de strings),
@@ -183,30 +184,41 @@ def save_raw_data_locally(rawData: dict) -> dict:
     rawFilePaths = {'rawFilePaths': []}
 
     # Crie os diretórios no padrão de particionamento por ano
-    try:
-        for i, content in enumerate(rawData['rawData']):
+    for i, content in enumerate(rawData['rawData']):
+        try:
             if len(content['year']) != 4 :
-                log(f"Dados de ano inválido {content['year']}! - Ignorando.")
-                continue
+                raise ValueError(f"Dados de ano inválido {content['year']}!")
+            
             download_dir = os.path.join('adm_cgu_terceirizados_local', f"year={content['year']}")
             os.makedirs(download_dir, exist_ok=True)
             filePath = os.path.join(download_dir, f"raw_data_{i}.{content['type']}".lower())
+            content['filePath'] = filePath
             rawFilePaths['rawFilePaths'].append(filePath)
-    except Exception as e:
-        error = f"Falha ao criar diretórios locais para armazenar os dados brutos. {e}"
-        log_and_fail_task(error, rawFilePaths)
-    log(f'Arquivos e diretórios para armazenar localmente os dados brutos criados com sucesso!')
+            log(f"{len(rawFilePaths['rawFilePaths'])} arquivos e seus diretórios criados com sucesso!")
+        except Exception as e:
+            error = f"Falha ao criar diretórios locais para armazenar os dados brutos. {e}"
+            if lenient:
+                    log(error)
+                    continue
+            else:
+                log_and_fail_task(error, rawFilePaths)
+                return rawFilePaths
 
     # Salve localmente os dados baixados
-    try:
-        for index, content in enumerate(rawData['rawData']):
-            with open(rawFilePaths['rawFilePaths'][index], 'wb') as file:
+    for i, content in enumerate(rawData['rawData']):
+        try:
+            with open(content['filePath'], 'wb') as file:
                 file.write(content['content'])
-            log(f"Dados salvos localmente em {rawFilePaths['rawFilePaths'][index]} com sucesso!")
-    except Exception as e:
-        error = f"Falha ao salvar os dados brutos localmente. {e}"
-        log_and_fail_task(error, rawFilePaths)
-    
+            log(f"Dados salvos localmente em {content['filePath']} com sucesso!")
+        except Exception as e:
+            error = f"Falha ao salvar os dados brutos localmente. {e}"
+            if lenient:
+                    log(error)
+                    continue
+            else:
+                log_and_fail_task(error, rawFilePaths)
+                return rawFilePaths
+
     if 'error' in rawFilePaths:
         return Failed(result=rawFilePaths)
     log("Dados salvos localmente com sucesso!")
@@ -239,7 +251,7 @@ def parse_data_into_dataframes(rawFilePaths: dict, lenient: bool) -> dict:
         if rawfilePath.endswith('.xlsx'):
             try:
                 df = pd.read_excel(rawfilePath, engine='openpyxl')
-                log(f"dados brutos {rawfilePath} convertidos em pd.DataFrame com sucesso!")
+                log(f"Dados brutos {rawfilePath} convertidos em pd.DataFrame com sucesso!")
                 parsedData[rawfilePath]['content'] = df
             except Exception as e:
                 error = f"Falha ao interpretar {rawfilePath} como pd.DataFrame: {e} \nArquivo {rawfilePath} corrompido."
@@ -248,18 +260,18 @@ def parse_data_into_dataframes(rawFilePaths: dict, lenient: bool) -> dict:
                         del parsedData[rawfilePath]
                         continue
                 else:
-                    log_and_fail_task(error)
+                    log_and_fail_task(error, parsedData)
                     return parsedData
 
         elif rawfilePath.endswith('.csv'):
             try:
                 df = pd.read_csv(rawfilePath)
-                log(f"dados brutos {rawfilePath} convertidos em pd.DataFrame com sucesso!")
+                log(f"Dados brutos {rawfilePath} convertidos em pd.DataFrame com sucesso!")
                 parsedData[rawfilePath]['content'] = df
             except Exception as e:
                 try:
                     df = pd.read_csv(rawfilePath, delimiter=';')
-                    log(f"dados brutos {rawfilePath} convertidos em pd.DataFrame com sucesso!")
+                    log(f"Dados brutos {rawfilePath} convertidos em pd.DataFrame com sucesso!")
                     parsedData[rawfilePath]['content'] = df
                 except Exception as e:
                     error = f"Falha ao interpretar {rawfilePath} como pd.DataFrame: {e} \nArquivo {rawfilePath} corrompido."
@@ -268,16 +280,16 @@ def parse_data_into_dataframes(rawFilePaths: dict, lenient: bool) -> dict:
                             del parsedData[rawfilePath]
                             continue
                     else:
-                        log_and_fail_task(error)
+                        log_and_fail_task(error, parsedData)
                         return parsedData
         else:
             log(f"Formato de arquivo bruto fora do esperado (.csv, .xlsx) para o arquivo {rawfilePath}.")
             del parsedData[rawfilePath]
             continue
 
-    log("Dados interpretados localmente como DataFrame com sucesso!")
+    if 'error' in parsedData: return Failed(result=parsedData)
+    log(f"Dados salvos localmente em pd.DataFrames com sucesso!")
     return parsedData
-
 @task
 def save_data_as_csv_locally(parsedData: dict, lenient: bool) -> dict:
     """
@@ -311,7 +323,7 @@ def save_data_as_csv_locally(parsedData: dict, lenient: bool) -> dict:
                     log(error)
                     continue
             else:
-                log_and_fail_task(error)
+                log_and_fail_task(error, parsedFilePaths)
                 return parsedFilePaths
 
 
@@ -353,13 +365,15 @@ def upload_csv_to_database(parsedFilePaths: dict, tableName: str, lenient: bool)
     
     # Crie a tabela tableName no PostgreSQL, caso não exista
     try:
+        if not parsedFilePaths['parsedFilePaths']:
+            raise ValueError(f"Nenhum arquivo CSV encontrado em {parsedFilePaths} para upload.")
         df = pd.read_csv(parsedFilePaths['parsedFilePaths'][0]) # Padrão de colunas escolhido do primeiro arquivo (mais recente)
         create_table(cur, conn, df, tableName)
         log(f"Tabela {tableName} criada no PostgreSQL com sucesso!")
-    except Failed as e:
+    except Exception as e:
         error = f"Falha ao criar tabela {tableName} no PostgreSQL: {e}"
         conn.rollback(); cur.close(); conn.close()
-        log_and_fail_task(error)
+        log_and_fail_task(error, status)
         return status
     
     # Limpe a tabela
@@ -369,7 +383,7 @@ def upload_csv_to_database(parsedFilePaths: dict, tableName: str, lenient: bool)
     except Exception as e:
         error = f"Falha ao limpar tabela {tableName} no PostgreSQL: {e}"
         conn.rollback(); cur.close(); conn.close()
-        log_and_fail_task(error)
+        log_and_fail_task(error, status)
         return status
 
     # Para cada arquivo:
@@ -384,7 +398,7 @@ def upload_csv_to_database(parsedFilePaths: dict, tableName: str, lenient: bool)
                 continue
             else:
                 conn.rollback(); cur.close(); conn.close()
-                log_and_fail_task(error)
+                log_and_fail_task(error, status)
                 return status
             
         # Insira seus dados na tabela tableName
@@ -402,7 +416,7 @@ def upload_csv_to_database(parsedFilePaths: dict, tableName: str, lenient: bool)
                 continue
             else:
                 conn.rollback(); cur.close(); conn.close()
-                log_and_fail_task(error)
+                log_and_fail_task(error, status)
                 return status
 
         

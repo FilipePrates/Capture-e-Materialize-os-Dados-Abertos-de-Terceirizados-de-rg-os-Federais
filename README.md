@@ -90,27 +90,34 @@ Em um terceiro terminal, visualize os resultados:
 ### App Dash (localhost:8050) para visualizar tabelas do PostgreSQL
 ![dash_visualization_staging_transformed](images/dash_visualization_staging_historic_transformed.png)
 
-### Para programar Schedule (Cronograma) de Captura
+---
+### Programe Cronograma para Captura :
 
 1. :
    ```sh
    source orchestrator/bin/activate && python ./run/scheduler.py
    ```
 
-### Dashboard Prefect (localhost:8080) para acompanhar Scheduler e Flows
+A Captura e Materialização dos dados mais recentes é programada para ocorrer **a cada 4 meses, começando em Maio**. Se ocorrer uma falha no Flow, uma nova tentativa ocorre diaramente até ser bem sucedida.
+
+### Dashboard Prefect (localhost:8080) para acompanhar os Flows:
 ![prefect_dashboard_capture_flow_visualization](images/prefect_dashboard_capture_flow_visualization.png)
+
+### Funcionalidades:
+- **Captura dos dados mais recentes** (`python run/capture.py`)
+- **Materialização dos dados mais recentes** (`python run/materialize.py`)
+- **Captura dos dados históricos** - Todos os dados já disponibilizados (`python run/historic_capture.py`)
+- **Materialização dos dados históricos** (`python run/historic_materialize.py`)
+- **Scheduler** - Definição de cronograma de execução de flows Prefect de captura e materialização (`python run/scheduler.py`)
+- **Results** - App Dash para visualizar tabelas resultantes armazenadas no banco de dados PostgreSQL (`python run/results.py`)
 
 
 #### Alternativamente, através de Bash Script:
-
-Permita execução dos scripts:
 
 0. :
    ```sh
    sudo chmod +x start.sh stop.sh && stop.sh
    ```
-Execute:
-
 1. :
    ```sh
    ./start.sh
@@ -128,17 +135,7 @@ Execute:
    ./stop.sh
    ```
 
-### Funcionalidades:
-- **Captura dos dados mais recentes** (`python run/capture.py`)
-- **Materialização dos dados mais recentes** (`python run/materialize.py`)
-- **Captura dos dados históricos** - Todos os dados já disponibilizados (`python run/historic_capture.py`)
-- **Materialização dos dados históricos** (`python run/historic_materialize.py`)
-- **Scheduler** - Definição de cronograma de execução de flows Prefect de captura e materialização (`python run/scheduler.py`)
-- **Results** - App Dash para visualizar tabelas resultantes armazenadas no banco de dados PostgreSQL (`python run/results.py`)
-
 ### Conectar diretamente ao PostgreSQL:
-
-Na camada com o Servidor Prefect em execução:
 
 1. : 
    ```

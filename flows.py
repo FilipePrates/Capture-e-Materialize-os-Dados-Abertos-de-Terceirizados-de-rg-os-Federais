@@ -22,7 +22,7 @@ with Flow("Captura dos Dados") as capture:
     cleanStart = setup_log_file(logFilePath)
     # EXTRACT #
     rawData = download_cgu_terceirizados_data(cleanStart, historic=False)
-    rawFilePaths = save_raw_data_locally(rawData)
+    rawFilePaths = save_raw_data_locally(rawData, lenient=False)
     # DEBUG help:
     # rawFilePaths = {'rawFilePaths': ['adm_cgu_terceirizados_local/year=2024/raw_data_0.xlsx']}
     # CLEAN #
@@ -45,12 +45,12 @@ with Flow("Materialização dos Dados") as materialize:
 
 # Executar Captura e Materialização Histórica uma vez.
 with Flow("Captura dos Dados Históricos") as historic_capture:
-    # # SETUP #
+    # SETUP #
     logFilePath = clean_log_file("logs/logs__historic_capture.txt")
     cleanStart = setup_log_file(logFilePath)
     # EXTRACT #
     rawData = download_cgu_terceirizados_data(cleanStart, historic=True)
-    rawFilePaths = save_raw_data_locally(rawData)
+    rawFilePaths = save_raw_data_locally(rawData, lenient=True)
     # DEBUG help:
     # rawFilePaths = {'rawFilePaths': ['adm_cgu_terceirizados_local/year=2024/raw_data_0.xlsx', 'adm_cgu_terceirizados_local/year=2024/raw_data_1.xlsx', 'adm_cgu_terceirizados_local/year=2023/raw_data_2.csv', 'adm_cgu_terceirizados_local/year=2023/raw_data_3.csv', 'adm_cgu_terceirizados_local/year=2023/raw_data_4.csv', 'adm_cgu_terceirizados_local/year=/raw_data_5.csv', 'adm_cgu_terceirizados_local/year=/raw_data_6.csv', 'adm_cgu_terceirizados_local/year=/raw_data_7.csv', 'adm_cgu_terceirizados_local/year=2022/raw_data_8.csv', 'adm_cgu_terceirizados_local/year=2022/raw_data_9.csv', 'adm_cgu_terceirizados_local/year=2022/raw_data_10.csv', 'adm_cgu_terceirizados_local/year=2021/raw_data_11.csv', 'adm_cgu_terceirizados_local/year=2021/raw_data_12.csv', 'adm_cgu_terceirizados_local/year=2021/raw_data_13.csv', 'adm_cgu_terceirizados_local/year=2020/raw_data_14.csv', 'adm_cgu_terceirizados_local/year=2020/raw_data_15.csv', 'adm_cgu_terceirizados_local/year=2020/raw_data_16.csv', 'adm_cgu_terceirizados_local/year=2019/raw_data_17.csv', 'adm_cgu_terceirizados_local/year=2019/raw_data_18.csv', 'adm_cgu_terceirizados_local/year=2019/raw_data_19.csv']}
     # CLEAN #

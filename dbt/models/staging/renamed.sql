@@ -17,7 +17,7 @@ select
     sg_ug_gestora as sigla_gestora,
     
 --Número do contrato com a empresa terceirizada:
-    nr_contrato as numero_empresa_terceirizada_contrato,
+    nr_contrato as numero_contrato,
     
 --Cnpj da empresa terceirizada:
     nr_cnpj as numero_empresa_terceirizada_cnpj,

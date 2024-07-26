@@ -17,14 +17,17 @@ from psycopg2 import sql
 from prefect.agent.local import LocalAgent
 # 
 
-def log(message) -> None:
+def log(message, error=False) -> None:
     """Ao ser chamada dentro de um Flow, realiza um log da message"""
-    prefect.context.logger.info(f"\n <> {message}")
+    if error:
+        prefect.context.logger.info(f"\n </> {message} server_time:{datetime.now()}")
+    else:
+        prefect.context.logger.info(f"\n <> {message} server_time:{datetime.now()}")
 
 def log_and_fail_task(message, returnObj) -> None:
     """Log e propaga falhas por erros"""
     returnObj['error'] = message
-    log(message)
+    log(message, error=True)
     raise FAIL(result=returnObj)
 
 def start_agent():
@@ -189,7 +192,7 @@ def standard_schedule__adm_cgu_terceirizados():
         return [CronClock(start_date=next_run_time.strftime("%M %H %d %m *"),
                           cron="0 0 1 */4 *")]
     else:
-        # se obteve Fail tente novamente no dia seguinte (possivelmente dados novos ainda não disponíceis)
+        # se obteve Fail tente novamente no dia seguinte (possivelmente dados novos ainda não disponíveis)
         next_run_time = last_run['start_time'] + timedelta(days=1)
         return [CronClock(start_date=next_run_time.strftime("%M %H %d %m *"),
                           cron="0 0 1 */4 *")]
