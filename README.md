@@ -84,14 +84,15 @@ Rode a imagem docker:
 3. :
    O Servidor Prefect está online!
 
-Em outro terminal:
+
+Em outro terminal, execute as funcionalidades do serviço:
 
 2. :
    ```sh
    prefect server create-tenant --name tenant && prefect create project adm_cgu_terceirizados && python ./run/capture.py && python ./run/materialize.py && python ./run/historic_capture.py && python ./run/historic_materialize.py
    ```
 
-Em um terceiro terminal:
+Em um terceiro terminal, visualize os resultados:
 
 3. :
    ```sh
