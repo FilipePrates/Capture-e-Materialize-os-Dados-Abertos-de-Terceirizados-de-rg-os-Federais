@@ -27,7 +27,7 @@
     -> (⬆️) Carregar CSV para o Banco de Dados -> (⬆️) Carregar Logs para o Banco de Dados
 
 ---
-## Execute:
+## Rode:
 
 Configure ambiente virtual python, variáveis de ambiente necessárias, e baixe os requerimentos do sistema:
 
@@ -36,30 +36,8 @@ Configure ambiente virtual python, variáveis de ambiente necessárias, e baixe 
    python -m venv orchestrator && source orchestrator/bin/activate && cp .env.example .env && pip install -r requirements/start.txt
    ```
 
-Execute o Servidor Prefect:
+#### Execute o Servidor Prefect dentro de um container Docker local
 
-1. :
-   ```sh
-   prefect server start
-   ```
-
-espere até a arte em ASCII:
-```sh
-                                         WELCOME TO
-
-_____  _____  ______ ______ ______ _____ _______    _____ ______ _______      ________ _____
-|  __ \|  __ \|  ____|  ____|  ____/ ____|__   __|  / ____|  ____|  __ \ \    / /  ____|  __ \
-| |__) | |__) | |__  | |__  | |__ | |       | |    | (___ | |__  | |__) \ \  / /| |__  | |__) |
-|  ___/|  _  /|  __| |  __| |  __|| |       | |     \___ \|  __| |  _  / \ \/ / |  __| |  _  /
-| |    | | \ \| |____| |    | |___| |____   | |     ____) | |____| | \ \  \  /  | |____| | \ \
-|_|    |_|  \_\______|_|    |______\_____|  |_|    |_____/|______|_|  \_\  \/   |______|_|  \_\
-
-Visit http://localhost:8080 to get started
-
-```
-#### Alternativa: Rode o Servidor dentro de um container Docker local!
-
-<!-- 🚫 Sobe os serviços, porém servidor Prefect não fica disponível. Debuggando 🚧 -->
 Permita execução dos scripts necessários e configuração docker:
 
 0. :
@@ -88,6 +66,17 @@ Rode a imagem docker:
 3. :
    O Servidor Prefect está online!
 
+```sh
+                                         WELCOME TO
+
+_____  _____  ______ ______ ______ _____ _______    _____ ______ _______      ________ _____
+|  __ \|  __ \|  ____|  ____|  ____/ ____|__   __|  / ____|  ____|  __ \ \    / /  ____|  __ \
+| |__) | |__) | |__  | |__  | |__ | |       | |    | (___ | |__  | |__) \ \  / /| |__  | |__) |
+|  ___/|  _  /|  __| |  __| |  __|| |       | |     \___ \|  __| |  _  / \ \/ / |  __| |  _  /
+| |    | | \ \| |____| |    | |___| |____   | |     ____) | |____| | \ \  \  /  | |____| | \ \
+|_|    |_|  \_\______|_|    |______\_____|  |_|    |_____/|______|_|  \_\  \/   |______|_|  \_\
+
+```
 
 Em outro terminal, execute as funcionalidades do serviço:
 
