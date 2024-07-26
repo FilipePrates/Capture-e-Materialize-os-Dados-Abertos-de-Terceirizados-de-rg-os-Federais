@@ -77,7 +77,11 @@ Em um terceiro terminal, visualize os resultados:
 
 3. :
    ```sh
-   source orchestrator/bin/activate && pip install -r requirements/results.txt && python ./run/results.py
+   source orchestrator/bin/activate && pip install -r requirements/results.txt
+   ```
+4. :
+   ```sh
+   python ./run/results.py
    ```
 
 ### App Dash (localhost:8050) para visualizar tabelas do PostgreSQL
