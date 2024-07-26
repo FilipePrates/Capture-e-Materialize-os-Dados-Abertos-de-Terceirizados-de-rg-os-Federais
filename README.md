@@ -81,7 +81,7 @@ _____  _____  ______ ______ ______ _____ _______    _____ ______ _______      __
 Em outro terminal, execute as funcionalidades do serviço:
 
 2. :
-   ```sh
+   ```
    prefect server create-tenant --name tenant && prefect create project adm_cgu_terceirizados && python ./run/capture.py && python ./run/materialize.py && python ./run/historic_capture.py && python ./run/historic_materialize.py
    ```
 
@@ -106,7 +106,7 @@ Em um terceiro terminal, visualize os resultados:
 ![prefect_dashboard_capture_flow_visualization](images/prefect_dashboard_capture_flow_visualization.png)
 
 
-#### Ou então, rode o Bash Script:
+#### Alternativamente, através de Bash Script:
 
 Permita execução dos scripts:
 
@@ -133,7 +133,13 @@ Execute:
    ./scripts/stop.sh
    ```
 
-ambos podem ser executados para capturar/materializar todos os dados históricos disponíveis no [Portal de Dados Abertos - Terceirizados de Órgãos Federais](https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/terceirizados), ou apenas o mais recente disponível.
+### Funcionalidades:
+- **Captura dos dados mais recentes** (`python run/capture.py`)
+- **Materialização dos dados mais recentes** (`python run/materialize.py`)
+- **Captura dos dados históricos** - Todos os dados já disponibilizados (`python run/historic_capture.py`)
+- **Materialização dos dados históricos** (`python run/historic_materialize.py`)
+- **Scheduler** - Definição de cronograma de execução de flows Prefect de captura e materialização (`python run/scheduler.py`)
+- **Results** - App Dash para visualizar tabelas resultantes armazenadas no banco de dados PostgreSQL (`python run/results.py`)
 
 ### Conectar diretamente ao PostgreSQL:
 
