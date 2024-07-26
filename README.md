@@ -3,24 +3,24 @@
 
 ### Flow de Captura de Dados
 **SETUP**:
- -> (🔧) Configurar Arquivo de Log -> (🧹) Limpar Arquivo de Log ->
+(🔧) Configurar Arquivo de Log -> (🧹) Limpar Arquivo de Log ->
 
 **EXTRACT**:
  -> (⬇️) Baixar Dados -> (💾) Salvar Dados Brutos Localmente ->
 
 **CLEAN**:
  -> (🔍) Interpretar Dados em DataFrames -> (📝) Salvar Dados como CSVs Localmente ->
- 
+
 **LOAD**:
- -> (⬆️) Carregar CSVs para o Banco de Dados -> (⬆️) Carregar Logs para o Banco de Dados.
+ -> (⬆️) Carregar CSVs para o Banco de Dados -> (⬆️) Carregar Logs para o Banco de Dados
 
 ### Flow de Materialização dos Dados
 
 **SETUP**:
-    (🔧) Configurar Arquivo de Log-> (🧹) Limpar Arquivo de Log  ->
+    (🔧) Configurar Arquivo de Log -> (🧹) Limpar Arquivo de Log  ->
 
 **TRANSFORM (DBT)**:
-    -> (📦) staging.raw (Dados Brutos)-> (🧼) staging.cleaned (Dados com valor nulo padrão) -> 
+    -> (📦) staging.raw (Dados Brutos) -> (🧼) staging.cleaned (Dados com valor nulo padrão) -> 
     (📝) staging.renamed (Colunas renomeadas seguindo manuais de estilo do [Escritório de Dados](https://docs.dados.rio/guia-desenvolvedores/manual-estilo/#nome-e-ordem-das-colunas) e [Base dos Dados](https://basedosdados.github.io/mais/style_data/)) -> (🔧) staging.transformed (Colunas com tipos definidos.) ->
 
 **LOAD**:
