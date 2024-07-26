@@ -76,13 +76,13 @@ Construa a imagem docker:
    ou
    ```sh
    sudo docker buildx create --name builder
-   sudo docker buildx build . --tag adm_cgu
+   sudo docker buildx build . --tag terceirizados_pipeline
    ```
 Rode a imagem docker:
 
 2. : 
    ```sh
-   docker run -it --privileged -v /var/run/docker.sock:/var/run/docker.sock -p 8080:8080 -p 4200:4200 -p 8050:8050 terceirizados_pipeline
+   docker run -it --privileged -v /var/run/docker.sock:/var/run/docker.sock -p 8080:8080 -p 8050:8050 -p 4200:4200 terceirizados_pipeline
    ```
 
 3. :

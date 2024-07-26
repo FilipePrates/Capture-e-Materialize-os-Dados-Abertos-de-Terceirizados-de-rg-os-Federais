@@ -6,7 +6,7 @@ echo " <> Start Servidor Prefect..."
 prefect backend server
 docker network create prefect-server
 # Start Prefect Server
-prefect server start &
+prefect server start
 
 # docker-compose up postgres &
 # sleep 1
