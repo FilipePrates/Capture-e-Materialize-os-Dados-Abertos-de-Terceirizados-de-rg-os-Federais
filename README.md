@@ -27,7 +27,6 @@
     -> (⬆️) Carregar CSV para o Banco de Dados -> (⬆️) Carregar Logs para o Banco de Dados
 
 ---
-## Rode:
 
 Configure ambiente virtual python, variáveis de ambiente necessárias, e baixe os requerimentos do sistema:
 
