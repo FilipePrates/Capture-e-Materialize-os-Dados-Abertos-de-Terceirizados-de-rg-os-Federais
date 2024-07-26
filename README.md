@@ -38,13 +38,6 @@ Configure ambiente virtual python, variáveis de ambiente necessárias, e baixe 
 
 #### Execute o Servidor Prefect dentro de um container Docker local
 
-Permita execução dos scripts necessários e configuração docker:
-
-0. :
-   ```sh
-   sudo chmod +x scripts/docker_start.sh scripts/stop.sh && scripts/stop.sh
-   ```
-
 Construa a imagem docker:
 
 1. : 

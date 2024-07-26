@@ -26,5 +26,5 @@ RUN chmod +x /app/scripts/docker_start.sh
 ENV PREFECT__BACKEND=server
 ENV PREFECT__SERVER__HOST=http://localhost
 
-# Entry point to start the services
-CMD ["./scripts/docker_start.sh"]
+# Start the Prefect server and agent
+CMD prefect backend server && docker network create prefect-server && prefect server start
