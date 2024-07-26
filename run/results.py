@@ -33,9 +33,10 @@ engine = create_engine(f'postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT
 
 # Função para capturar da tabela schemaName.tableName
 def fetch_table_data(engine, table_schema, table_name):
-    randomSample = ''
+    randomSample = ''; orderBy = '';
     if table_schema == 'marts': randomSample = "TABLESAMPLE SYSTEM (1)"
-    query = f'SELECT * FROM {table_schema}.{table_name} {randomSample} LIMIT {LIMIT}'
+    if table_name.startswith("logs__"): orderBy = "ORDER BY timestamp_log_load DESC"
+    query = f'SELECT * FROM {table_schema}.{table_name} {randomSample} {orderBy} LIMIT {LIMIT}'
     data = pd.read_sql(query, engine)
     print(f' <> {table_schema}.{table_name} \n', data.head(3))
     
