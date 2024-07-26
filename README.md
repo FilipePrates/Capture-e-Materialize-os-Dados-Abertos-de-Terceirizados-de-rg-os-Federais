@@ -9,10 +9,10 @@
  -> (⬇️) Baixar Dados -> (💾) Salvar Dados Brutos Localmente ->
 
 **CLEAN**:
- -> (🔍) Interpretar Dados em DataFrames -> (📝) Salvar Dados como CSVs Localmente ->
+ -> (🔍) Interpretar Dados em DataFrames -> (📥) Salvar Dados como CSVs Localmente ->
 
 **LOAD**:
- -> (⬆️) Carregar CSVs para o Banco de Dados -> (⬆️) Carregar Logs para o Banco de Dados
+ -> (➡️📦) Carregar CSVs para o Banco de Dados brutos -> (⬆️) Carregar Logs para o Banco de Dados
 
 ### Flow de Materialização dos Dados
 
@@ -24,7 +24,7 @@
     (📝) staging.renamed (Colunas renomeadas seguindo manuais de estilo do [Escritório de Dados](https://docs.dados.rio/guia-desenvolvedores/manual-estilo/#nome-e-ordem-das-colunas) e [Base dos Dados](https://basedosdados.github.io/mais/style_data/)) -> (🔶) staging.transformed (Colunas com tipos definidos.) ->
 
 **LOAD**:
-    -> (⬆️) Carregar CSV para o Banco de Dados -> (⬆️) Carregar Logs para o Banco de Dados
+    -> (⬆️) Carregar Logs para o Banco de Dados
 
 ---
 
