@@ -70,7 +70,6 @@ Em um terceiro terminal:
    ```sh
    source orchestrator/bin/activate && pip install -r requirements/results.txt && python ./run/results.py
    ```
-Visite [http://localhost:8080/ (Prefect Server Dashboard)](http://localhost:8080/) no seu browser para acompanhar o cronograma de Flows.
 
 ### App Dash (localhost:8050) para visualizar tabelas do PostgreSQL
 ![dash_visualization_staging_transformed](images/dash_visualization_staging_transformed.png)
@@ -81,8 +80,6 @@ Visite [http://localhost:8080/ (Prefect Server Dashboard)](http://localhost:8080
    ```sh
    source orchestrator/bin/activate && python ./run/scheduler.py
    ```
-
-Visite [htpt://localhost:8050/ (Dash App)](http://localhost:8050/) no seu browser para visualizar algumas das tabelas resultantes dos Flows iniciais armazenadas no PostgreSQL.
 
 ### Dashboard Prefect (localhost:8080) para acompanhar Scheduler e Flows
 ![prefect_dashboard_capture_flow_visualization](images/prefect_dashboard_capture_flow_visualization.png)
@@ -102,8 +99,6 @@ Execute:
    ```sh
    script/start.sh
    ```
-
-2. : Acompanhe a Captura e Materialização dos Dados
 
 #### Para parar o Servidor e Agente(s) Prefect
 
