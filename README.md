@@ -3,75 +3,21 @@
 
 ## Execute:
 
-Permissões e limpeza do sistema host:
+Configure ambiente virtual python e variáveis de ambiente necessárias:
 
 0. :
    ```sh
-   sudo chmod +x start.sh scripts/docker_start.sh scripts/stop.sh && scripts/stop.sh
+   python -m venv orchestrator && source orchestrator/bin/activate && cp .env.example .env
    ```
 
-#### Opção 1: Rode Localmente com Bash Script
-1. 
-   ```sh
-   ./start.sh
-   ```
+Baixe os requisitos e levante o Servidor Prefect:
 
-#### Opção 2: Rode dentro de um container Docker
-0. :
-   ```sh
-   sudo docker service start
-   ```
-1. : 
-   ```sh
-   docker build -t adm_cgu_terceirizados_pipeline .
-   ```
-   <!-- É esperado que "Installing build dependencies: finished with status 'done'" e "Running setup install for numpy" demore um pouquinho. -->
-2. : 
-   ```sh
-   docker run -it --privileged -v /var/run/docker.sock:/var/run/docker.sock -p 8080:8080 -p 4200:4200 -p 8050:8050 adm_cgu_terceirizados_pipeline
-   ```
-
-   Acompanhe a Captura e Materialização dos Dados:
-
-2. :
-   Visite [htpt://localhost:8050/ (Dash App)](http://localhost:8050/) no seu browser
-    para visualizar algumas das tabelas resultantes dos Flows iniciais armazenadas no PostgreSQL.
-
-3. :
-   ```sh
-   python ./run/scheduler.py
-   ```
-4.  :
-   Visite [http://localhost:8080/ (Prefect Server Dashboard)](http://localhost:8080/) no seu browser
-    para acompanhar o cronograma de Flows.
-
-
-#### Opção 3: Rode localmente e de forma manual
 1. :
    ```sh
-   python -m venv orchestrator
+   pip install -r requirements/start.txt && prefect server start
    ```
 
-2. :
-   ```sh
-   source orchestrator/bin/activate
-   ```
-
-3. :
-   ```sh
-   pip install -r requirements/start.txt
-   ```
-
-4. :
-   ```sh
-   cp .env.example .env
-   ```
-
-5. :
-   ```sh
-   prefect server start
-   ```
-   e espere até a arte em ASCII:
+espere até a arte em ASCII:
 ```sh
                                          WELCOME TO
 
@@ -87,24 +33,46 @@ Visit http://localhost:8080 to get started
 
 Em outro terminal:
 
-7. :
+2. :
    ```sh
    prefect create project adm_cgu_terceirizados
    ```
-8. :
+3. :
    ```sh
    python ./run/capture.py
-   ```
-   ```sh
    python ./run/materialize.py
-   ```
-   ```sh
-   python ./run/scheduler.py
+   python ./run/historic_capture.py
+   python ./run/historic_materialized.py
    ```
    ```sh
    pip install -r requirements/results.txt
    python ./run/results.py
    ```
+
+
+#### Ou então, rode o Bash Script:
+
+Permita execução dos scripts:
+
+0. :
+   ```sh
+   sudo chmod +x start.sh scripts/stop.sh && scripts/stop.sh
+   ```
+Execute:
+
+1. :
+   ```sh
+   ./start.sh
+   ```
+
+Acompanhe a Captura e Materialização dos Dados:
+
+2. :
+   Visite [htpt://localhost:8050/ (Dash App)](http://localhost:8050/) no seu browser
+    para visualizar algumas das tabelas resultantes dos Flows iniciais armazenadas no PostgreSQL.
+
+### App Dash (localhost:8050) para visualizar tabelas do PostgreSQL
+![dash_visualization_staging_transformed](images/dash_visualization_staging_transformed.png)
 
 ### Para parar o Servidor e Agente(s) Prefect
 
@@ -117,28 +85,42 @@ Em outro terminal:
    ```sh
    ./scripts/stop.sh
    ```
-   
-### Para visualizar os dados após Captura e Materialização
 
-Com o Servidor Prefect local rodando:
-
-0. :
-   ```sh
-    pip install -r requirements/results.txt
-   ```
+### Para programar Schedule (Cronograma) de Captura
 
 1. :
    ```sh
-    python ./run/results.py
+   python ./run/scheduler.py
+   ```
+2. :
+   Visite [http://localhost:8080/ (Prefect Server Dashboard)](http://localhost:8080/) no seu browser para acompanhar o cronograma de Flows.
+
+### Dashboard Prefect (localhost:8080) para acompanhar Scheduler e Flows
+![prefect_dashboard_capture_flow_visualization](images/prefect_dashboard_capture_flow_visualization.png)
+
+#### Opção 3: Rode dentro de um container Docker (WIP)
+
+Permita execução dos scripts necessários e configuração docker:
+
+0. :
+   ```sh
+   sudo chmod +x scripts/docker_start.sh && scripts/stop.sh && scripts/stop.sh && sudo docker service start
    ```
 
-2. :
-   Visite [http://localhost:8050/ (Dash App)](http://localhost:8050/) no seu browser.
+Construa a imagem docker:
 
-## localhost:8050
-### App Dash para visualizar tabelas do PostgreSQL
-![dash_visualization_staging_transformed](images/dash_visualization_staging_transformed.png)
+1. : 
+   ```sh
+   docker build -t adm_cgu_terceirizados_pipeline .
+   ```
+   <!-- É esperado que "Installing build dependencies: finished with status 'done'" e "Running setup install for numpy" demore um pouquinho. -->
 
+Rode a imagem docker:
+
+2. : 
+   ```sh
+   docker run -it --privileged -v /var/run/docker.sock:/var/run/docker.sock -p 8080:8080 -p 4200:4200 -p 8050:8050 adm_cgu_terceirizados_pipeline
+   ```
 
 ### Conectar diretamente ao PostgreSQL:
 
@@ -155,21 +137,26 @@ Na camada com o Servidor Prefect em execução:
 3. :
 Escreva a senha: "test-password"
 
+### #help
+<!-- ###
+caso:
+   Caso utilizando sistema operacional Windows:
 
-### Para programar Schedule (Cronograma) de Captura
+0. :
+   Caso utilizando sistema operacional Windows - utilize através do WSL. -->
+
+
+###
+caso:
+   ```sh
+   Error: [Errno 2] No such file or directory: 'path/orchestrator/bin/python'
+   ```
 
 1. :
    ```sh
-   python ./run/scheduler.py
+   rm -rf "orchestrator"
    ```
-2. :
-   Visite [http://localhost:8080/ (Prefect Dashboard)](http://localhost:8080/) no seu browser.
 
-## localhost:8080
-### Dashboard Prefect para acompanhar Scheduler e Flows
-![prefect_dashboard_capture_flow_visualization](images/prefect_dashboard_capture_flow_visualization.png)
-
-### #help
 caso:
 ```sh
    (orchestrator) user@machine:~/path$ start.sh
@@ -196,23 +183,3 @@ caso:
    ```sh
    ./scripts/stop.sh
    ```
-
-<!-- ###
-caso:
-   Caso utilizando sistema operacional Windows:
-
-0. :
-   Caso utilizando sistema operacional Windows - utilize através do WSL. -->
-
-
-###
-caso:
-```sh
-   Error: [Errno 2] No such file or directory: 'path/orchestrator/bin/python'
-   ```
-1. :
-   ```sh
-   rm -rf "orchestrator"
-   ```
-##
-by Filipe Prates
