@@ -129,8 +129,9 @@ Na camada com o Servidor Prefect em execução:
 3. :
 Escreva a senha: "test-password"
 
-<!-- #### Opção 3: Rode dentro de um container Docker (WIP)
+#### Opção Futura: Rode dentro de um container Docker (WIP)
 
+🚫 Sobe os serviços, porém servidor Prefect não fica disponível. Debuggando 🚧
 Permita execução dos scripts necessários e configuração docker:
 
 0. :
@@ -144,14 +145,14 @@ Construa a imagem docker:
    ```sh
    docker build -t adm_cgu_terceirizados_pipeline .
    ```
-   É esperado que "Installing build dependencies: finished with status 'done'" e "Running setup install for numpy" demore um pouquinho.
+   <!-- É esperado que "Installing build dependencies: finished with status 'done'" e "Running setup install for numpy" demore um pouquinho. -->
 
 Rode a imagem docker:
 
 2. : 
    ```sh
    docker run -it --privileged -v /var/run/docker.sock:/var/run/docker.sock -p 8080:8080 -p 4200:4200 -p 8050:8050 adm_cgu_terceirizados_pipeline
-   ``` -->
+   ```
 
 ### #help
 ###
