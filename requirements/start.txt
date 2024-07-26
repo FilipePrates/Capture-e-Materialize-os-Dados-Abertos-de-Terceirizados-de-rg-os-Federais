@@ -1,10 +1,10 @@
 prefect==0.15.9
-dbt-core==1.8.4
-dbt-postgres==1.8.2
 requests==2.26.0
-bs4==0.0.2
-pandas==2.2.2
-openpyxl==3.1.5
+dbt-core
+dbt-postgres
+bs4
+pandas
+openpyxl
 datetime
-psycopg2-binary==2.9.9
-python-dotenv==1.0.1
+psycopg2-binary
+python-dotenv

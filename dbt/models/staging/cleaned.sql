@@ -31,7 +31,7 @@ select
         else null
     end as nm_escolaridade,
     nullif(nullif(trim(both ' ' from replace(nr_jornada, '<N/I>', 'Não Informado')), 'NULL'), 'Não Informado') as nr_jornada,
-    nullif(trim(both ' ' from replace(nm_udade_prestacao, '<N/I>', 'Não Informado')), 'NULL') as nm_udade_prestacao,
+    nullif(trim(both ' ' from replace(nm_unidade_prestacao, '<N/I>', 'Não Informado')), 'NULL') as nm_unidade_prestacao,
     vl_mensal_salario,
     vl_mensal_custo,
     -- "Num_Mes_Carga",

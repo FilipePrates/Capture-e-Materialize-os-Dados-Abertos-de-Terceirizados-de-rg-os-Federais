@@ -16,7 +16,7 @@ from tasks import (
 )
 
 # Executar Captura e Materialização a cada ~4 meses.
-with Flow("Captura dos Dados Abertos de Terceirizados de Órgãos Federais") as capture:
+with Flow("Captura dos Dados") as capture:
     # SETUP #
     logFilePath = setup_log_file("logs/logs__capture.txt")
     cleanStart = clean_log_file(logFilePath)
@@ -31,7 +31,7 @@ with Flow("Captura dos Dados Abertos de Terceirizados de Órgãos Federais") as 
     logStatus = upload_logs_to_database(status, "logs/logs__capture.txt", "logs__capture")
 
 
-with Flow("Materialização dos Dados Abertos de Terceirizados de Órgãos Federais") as materialize:
+with Flow("Materialização dos Dados") as materialize:
     # SETUP #
     logFilePath = setup_log_file("logs/logs__materialize.txt")
     cleanStart = clean_log_file(logFilePath)

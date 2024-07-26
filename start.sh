@@ -21,6 +21,7 @@ if [[ "$run" == "y" || "$run" == "Y" || "$run" == "yes" || "$run" == "Yes" || "$
 
     # Levante o Servidor Prefect
     echo " <> Start Servidor Prefect..."
+    prefect backend server
     prefect server start &
 
     total_seconds=25 # Aumente este número caso Servidor não esteja ainda preparado quando se tenta criar o projeto
@@ -87,6 +88,6 @@ if [[ "$run" == "y" || "$run" == "Y" || "$run" == "yes" || "$run" == "Yes" || "$
         echo " <>     \"python ./run/scheduler.py\" para programar as próximas capturas.       <> "
         echo " <>                                                                              <> "
         echo " <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <> "
-        sleep 5
+        sleep 15
     done
 fi

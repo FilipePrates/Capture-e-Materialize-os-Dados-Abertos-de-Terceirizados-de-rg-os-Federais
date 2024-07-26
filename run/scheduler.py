@@ -27,7 +27,7 @@ def start_schedule_flow(schedule, flowName):
         # Captura
         print(f" <> Criando Run de Flow de Captura para daqui à {schedule.clocks[0]}.")
         captureFlowRun = create_flow_run(
-            flow_name="Captura dos Dados Abertos de Terceirizados de Órgãos Federais",
+            flow_name="Captura dos Dados",
             project_name="adm_cgu_terceirizados"
         )
         captureFlowState = wait_for_flow_run(captureFlowRun, raise_final_state=True)
@@ -36,7 +36,7 @@ def start_schedule_flow(schedule, flowName):
         # Materialização
         print(f" <> Criando Run de Flow de Materialização.")
         materializeFlowRun = create_flow_run(
-            flow_name="Materialização dos Dados Abertos de Terceirizados de Órgãos Federais",
+            flow_name="Materialização dos Dados",
             project_name="adm_cgu_terceirizados"
         )
         materializeFlowState = wait_for_flow_run(materializeFlowRun, raise_final_state=True)
@@ -55,6 +55,7 @@ def start_schedule_flow(schedule, flowName):
         print(" <>   <>   <>   <>   <>   <>   <>   <>   <>   <>   <>   <>   <> ")
 
     scheduleFlow.register(project_name="adm_cgu_terceirizados")
+    return scheduleFlow
 
 # Executando o Flow de Cronograma.
 

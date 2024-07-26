@@ -1,18 +1,45 @@
 # Desafio Engenheiro de Dados @ Escritório de Dados
 # Capture e Materialize os Dados Abertos de Terceirizados de Órgãos Federais
 
-### Opção 1:
+## Execute:
+
+Permissões e limpeza do sistema host:
+
+0. :
+   ```sh
+   sudo chmod +x start.sh docker_start.sh stop.sh
+   ```
 1. :
+   ```sh
+   ./stop.sh
+   ```
+
+#### Opção 1: Rode Localmente com Bash Script
+1. 
    ```sh
    ./start.sh
    ```
 
-2. :
-   Acompanhe a Captura e Inicialização Inicial.
+#### Opção 2: Rode dentro de um container Docker
+1. :
+   ```sh
+   ./stop.sh
+   ```
+2. : 
+   ```sh
+   docker build -t adm_cgu_terceirizados_pipeline .
+   ```
+   <!-- É esperado que "Installing build dependencies: finished with status 'done'" e "Running setup install for numpy" demore um pouquinho. -->
+3. : 
+   ```sh
+   docker run -it --privileged -v /var/run/docker.sock:/var/run/docker.sock -p 8080:8080 -p 4200:4200 -p 8050:8050 adm_cgu_terceirizados_pipeline
+   ```
 
-3. :
+   Acompanhe a Captura e Materialização dos Dados:
+
+2. :
    Visite [htpt://localhost:8050/ (Dash App)](http://localhost:8050/) no seu browser
-    para visualizar algumas das tabelas resultantes dos Flows iniciais já no PostgreSQL.
+    para visualizar algumas das tabelas resultantes dos Flows iniciais armazenadas no PostgreSQL.
 
 3. :
    ```sh
@@ -22,30 +49,8 @@
    Visite [http://localhost:8080/ (Prefect Server Dashboard)](http://localhost:8080/) no seu browser
     para acompanhar o cronograma de Flows.
 
-### Para parar o Servidor e Agente(s) Prefect
 
-1. :
-   ```sh
-   ./stop.sh
-   ```
-
-### Conectar diretamente ao PostgreSQL:
-
-Com o Servidor Prefect local rodando:
-
-1. : 
-   ```sh
-   docker exec -it $(docker ps | grep 'postgres:11' | awk '{print $1}') bash
-   ```
-2. :
-   ```sh
-   psql -U prefect -d prefect_server -W
-   ```
-3. :
-Escreva a senha: "test-password"
-
-### Opção 2:
-Manual:
+#### Opção 3: Rode localmente e de forma manual
 1. :
    ```sh
    python -m venv orchestrator
@@ -101,29 +106,37 @@ Em outro terminal:
    python ./run/scheduler.py
    ```
    ```sh
+   pip install -r requirements/results.txt
    python ./run/results.py
    ```
 
+### Para parar o Servidor e Agente(s) Prefect
+
+0. :
+   ```sh
+   sudo chmod +x stop.sh
+   ```
+
+1. :
+   ```sh
+   ./stop.sh
+   ```
+   
 ### Para visualizar os dados após Captura e Materialização
 
 Com o Servidor Prefect local rodando:
 
+0. :
+   ```sh
+    pip install -r requirements/results.txt
+   ```
+
 1. :
-   ```sh
-   python ./run/materialize.py
-   ```
-
-2. :
-   ```sh
-   pip install -r requirements/results.txt
-   ```
-
-3. :
    ```sh
     python ./run/results.py
    ```
 
-4. :
+2. :
    Visite [http://localhost:8050/ (Dash App)](http://localhost:8050/) no seu browser.
 
 ## localhost:8050
@@ -131,9 +144,23 @@ Com o Servidor Prefect local rodando:
 ![dash_visualization_staging_transformed](images/dash_visualization_staging_transformed.png)
 
 
-### Para programar Schedule (Cronograma) de Captura
+### Conectar diretamente ao PostgreSQL:
 
-Com o Servidor Prefect local rodando:
+Na camada com o Servidor Prefect em execução:
+
+1. : 
+   ```
+   docker exec -it $(docker ps | grep 'postgres:11' | awk '{print $1}') bash
+   ```
+2. :
+   ```sh
+   psql -U prefect -d prefect_server -W
+   ```
+3. :
+Escreva a senha: "test-password"
+
+
+### Para programar Schedule (Cronograma) de Captura
 
 1. :
    ```sh
@@ -174,7 +201,7 @@ caso:
    ./stop.sh
    ```
 
-##
+###
 caso:
    Problemas ao executar shell scripts:
 
@@ -190,7 +217,7 @@ caso:
    sudo chmod +x stop.sh
    ```   
 
-##
+###
 caso:
 ```sh
    Error: [Errno 2] No such file or directory: 'path/orchestrator/bin/python'
@@ -199,5 +226,5 @@ caso:
    ```sh
    rm -rf "orchestrator"
    ```
-#
+##
 by Filipe Prates
