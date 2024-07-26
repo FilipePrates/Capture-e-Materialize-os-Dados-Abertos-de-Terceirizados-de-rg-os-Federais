@@ -38,8 +38,6 @@ Configure ambiente virtual python, variáveis de ambiente necessárias, e baixe 
 
 #### Execute o Servidor Prefect dentro de um container Docker local
 
-Construa a imagem docker:
-
 1. : 
    ```sh
    docker build -t terceirizados_pipeline .
@@ -49,8 +47,6 @@ Construa a imagem docker:
    sudo docker buildx create --name builder
    sudo docker buildx build . --tag terceirizados_pipeline
    ```
-Rode a imagem docker:
-
 2. : 
    ```sh
    docker run -it --privileged -v /var/run/docker.sock:/var/run/docker.sock -p 8080:8080 -p 8050:8050 -p 4200:4200 terceirizados_pipeline
