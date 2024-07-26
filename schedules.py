@@ -1,7 +1,6 @@
 """
 Modulo com os Schedules para os Flows
 """
-
 from datetime import datetime, timedelta
 from prefect.schedules import Schedule
 from prefect.schedules.clocks import CronClock, IntervalClock

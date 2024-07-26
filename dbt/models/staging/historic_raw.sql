@@ -22,4 +22,4 @@ select
     nm_orgao,
     cd_orgao_siafi,
     cd_orgao_siape
-from {{ source('adm_cgu_terceirizados__public', 'raw_historic') }}
+from {{ source('adm_cgu_terceirizados__public', 'historic_raw') }}

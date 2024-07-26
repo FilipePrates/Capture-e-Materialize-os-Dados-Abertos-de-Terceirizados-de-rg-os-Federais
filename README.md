@@ -3,18 +3,18 @@
 
 ## Execute:
 
-Configure ambiente virtual python e variáveis de ambiente necessárias:
+Configure ambiente virtual python, variáveis de ambiente necessárias, e baixe os requerimentos do sistema:
 
 0. :
    ```sh
-   python -m venv orchestrator && source orchestrator/bin/activate && cp .env.example .env
+   python -m venv orchestrator && source orchestrator/bin/activate && cp .env.example .env && p install -r requirements/start.txt 
    ```
 
-Baixe os requisitos e levante o Servidor Prefect:
+Execute o Servidor Prefect:
 
 1. :
    ```sh
-   pip install -r requirements/start.txt && prefect server start
+   prefect server start
    ```
 
 espere até a arte em ASCII:
@@ -35,19 +35,31 @@ Em outro terminal:
 
 2. :
    ```sh
-   prefect create project adm_cgu_terceirizados
+   prefect create project adm_cgu_terceirizados && python ./run/capture.py && python ./run/materialize.py && python ./run/historic_capture.py && python ./run/historic_materialize.py
    ```
+
+Em um terceiro terminal:
+
 3. :
    ```sh
-   python ./run/capture.py
-   python ./run/materialize.py
-   python ./run/historic_capture.py
-   python ./run/historic_materialized.py
+   pip install -r requirements/results.txt && python ./run/results.py
    ```
+Visite [http://localhost:8080/ (Prefect Server Dashboard)](http://localhost:8080/) no seu browser para acompanhar o cronograma de Flows.
+
+### App Dash (localhost:8050) para visualizar tabelas do PostgreSQL
+![dash_visualization_staging_transformed](images/dash_visualization_staging_transformed.png)
+
+### Para programar Schedule (Cronograma) de Captura
+
+1. :
    ```sh
-   pip install -r requirements/results.txt
-   python ./run/results.py
+   python ./run/scheduler.py
    ```
+
+Visite [htpt://localhost:8050/ (Dash App)](http://localhost:8050/) no seu browser para visualizar algumas das tabelas resultantes dos Flows iniciais armazenadas no PostgreSQL.
+
+### Dashboard Prefect (localhost:8080) para acompanhar Scheduler e Flows
+![prefect_dashboard_capture_flow_visualization](images/prefect_dashboard_capture_flow_visualization.png)
 
 
 #### Ou então, rode o Bash Script:
@@ -62,19 +74,12 @@ Execute:
 
 1. :
    ```sh
-   ./start.sh
+   script/start.sh
    ```
 
-Acompanhe a Captura e Materialização dos Dados:
+2. : Acompanhe a Captura e Materialização dos Dados
 
-2. :
-   Visite [htpt://localhost:8050/ (Dash App)](http://localhost:8050/) no seu browser
-    para visualizar algumas das tabelas resultantes dos Flows iniciais armazenadas no PostgreSQL.
-
-### App Dash (localhost:8050) para visualizar tabelas do PostgreSQL
-![dash_visualization_staging_transformed](images/dash_visualization_staging_transformed.png)
-
-### Para parar o Servidor e Agente(s) Prefect
+#### Para parar o Servidor e Agente(s) Prefect
 
 0. :
    ```sh
@@ -86,17 +91,28 @@ Acompanhe a Captura e Materialização dos Dados:
    ./scripts/stop.sh
    ```
 
-### Para programar Schedule (Cronograma) de Captura
+Este serviço provê dois flows principais:
 
-1. :
-   ```sh
-   python ./run/scheduler.py
-   ```
-2. :
-   Visite [http://localhost:8080/ (Prefect Server Dashboard)](http://localhost:8080/) no seu browser para acompanhar o cronograma de Flows.
+### Captura de Dados
+**SETUP**:
+ -> Configurar Arquivo de Log -> Limpar Arquivo de Log ->
+**EXTRACT**:
+ -> Baixar Dados -> Salvar Dados Brutos Localmente ->
+**CLEAN**:
+ -> Analisar Dados em DataFrames -> Salvar Dados como CSV Localmente ->
+**LOAD**:
+ -> Carregar CSV para o Banco de Dados -> Carregar Logs para o Banco de Dados.
 
-### Dashboard Prefect (localhost:8080) para acompanhar Scheduler e Flows
-![prefect_dashboard_capture_flow_visualization](images/prefect_dashboard_capture_flow_visualization.png)
+### Materialização dos Dados
+**SETUP**:
+    Configurar Arquivo de Log -> Limpar Arquivo de Log ->
+**TRANSFORM (DBT)**:
+    staging.raw (Dados Brutos) -> staging.cleaned (Dados com valor nulo padrão) -> 
+    staging.renamed (Colunas renomeadas seguindo manuais de estilo do [Escritório de Dados](https://docs.dados.rio/guia-desenvolvedores/manual-estilo/#nome-e-ordem-das-colunas) e [Base dos Dados](https://basedosdados.github.io/mais/style_data/)) -> staging.transformed (Colunas com tipos definidos.)
+**LOAD**:
+    Carregar CSV para o Banco de Dados -> Carregar Logs para o Banco de Dados
+
+ambos podem ser executados para capturar/materializar todos os dados históricos disponíveis no [Portal de Dados Abertos - Terceirizados de Órgãos Federais](https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/terceirizados), ou apenas o mais recente disponível.
 
 #### Opção 3: Rode dentro de um container Docker (WIP)
 

@@ -70,6 +70,6 @@ select
 --Código SIAPE (Sistema de Administração de Pessoal)
 --do órgão onde o terceirizado trabalha:
     cd_orgao_siape as codigo_siape_orgao_trabalho
-from {{ ref('cleaned_historic') }}
+from {{ ref('historic_cleaned') }}
 
 

@@ -12,7 +12,7 @@ table_configs = [
     {"schema": "public", "table": "raw", "label": "raw"},
     
     {"schema": "public", "table": "historic_transformed", "label": "staging.historic_transformed"},
-    {"schema": "public", "table": "raw_historic", "label": "raw_historic"},
+    {"schema": "public", "table": "historic_raw", "label": "historic_raw"},
 
     {"schema": "public", "table": "logs__historic_capture", "label": "logs__historic_capture"},
     {"schema": "public", "table": "logs__historic_materialize", "label": "logs__historic_materialize"},
@@ -49,6 +49,13 @@ def fetch_table_data(engine, table_schema, table_name):
 
     return data
 
+# Função para capturar o número de linhas em cada tabela
+def fetch_table_count(engine, table_schema, table_name):
+    query = f'SELECT COUNT(*) FROM {table_schema}.{table_name}'
+    count = pd.read_sql(query, engine)
+    print(count)
+    return count
+fetch_table_count(engine, 'staging', 'historic_raw')
 # Crie o app Dash
 app = dash.Dash(__name__)
 

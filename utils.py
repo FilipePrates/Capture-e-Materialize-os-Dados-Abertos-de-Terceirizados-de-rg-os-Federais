@@ -1,20 +1,16 @@
 """
 Modulo com as funções auxiliares para os Flows
 """
-
-
 import prefect
 import psycopg2
 import requests
 import os
-
 from prefect import Client
 from prefect.engine.signals import FAIL
 from prefect.engine.state import Failed
 from prefect.schedules import Schedule
 from prefect.schedules.clocks import CronClock
 from prefect.agent.local import LocalAgent
-
 from bs4 import BeautifulSoup
 from datetime import timedelta, datetime
 from psycopg2 import sql

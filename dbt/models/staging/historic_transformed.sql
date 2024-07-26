@@ -33,4 +33,4 @@ select
     nome_contratado,
 
     current_timestamp as timestamp_captura
-from {{ ref('renamed_historic') }}
+from {{ ref('historic_renamed') }}

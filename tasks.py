@@ -1,10 +1,10 @@
 """
 Modulo com as Tarefas (@tasks) para os Flows
 """
+import os
 import psycopg2
 import logging
 import requests
-import os
 import subprocess
 import pandas as pd
 from prefect import task
@@ -80,6 +80,7 @@ def clean_log_file(logFilePath: dict) -> dict:
         path = logFilePath['logFilePath']
         with open(path, 'w') as _file:
             pass
+        log(f' <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <> ')
     except Exception as e:
         error = f"Falha na limpeza do arquivo de log local {path}: {e}"
         log_and_fail_task(error, cleanStart)
@@ -451,6 +452,7 @@ def upload_logs_to_database(status: dict, logFilePath: str, tableName: str) -> d
         return logStatus
     
     try:
+        log(f' <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <> ')
         # Leia o arquivo de log e insira os registros na tabela
         insert_log_data(conn,cur,tableName,logFilePath)
         log(f"Dados de logs do Flow inseridos em {tableName} com sucesso!")
@@ -464,9 +466,9 @@ def upload_logs_to_database(status: dict, logFilePath: str, tableName: str) -> d
     log(f"Feito upload do arquivo de log local {logFilePath} na tabela {tableName} PostgreSQL com sucesso!")
     logStatus['tables'].append(tableName)
     return logStatus
-        
-@task
-def run_dbt(cleanStart: dict, historic:bool) -> dict:
+
+@task 
+def run_dbt(cleanStart: dict, historic: bool) -> dict:
     """
     Realiza transformações com DBT no schema staging do PostgreSQL:
     Args:
@@ -480,8 +482,11 @@ def run_dbt(cleanStart: dict, historic:bool) -> dict:
                 'tables': Nome das tabelas atualizadas no banco de dados,
                 ?'error': Possíveis erros propagados (string)
     """
-    if isinstance(cleanStart, Failed): return Failed(result=cleanStart)
+    if isinstance(cleanStart, Failed):
+        return Failed(result=cleanStart)
+    
     dbtResult = {}
+    result = None
 
     try:
         # Acesse as variáveis de ambiente
@@ -491,22 +496,32 @@ def run_dbt(cleanStart: dict, historic:bool) -> dict:
     except Exception as e:
         error = f"Falha ao acessar variáveis de ambiente. {e}"
         log_and_fail_task(error, dbtResult)
+        return Failed(result=dbtResult)
 
     try:
         os.chdir(f'{originalDir}/{dbtDir}')
-        result = subprocess.run(["dbt", "run"
-        , "--vars", f"database: {DB_NAME}"], capture_output=True, text=True)
+        if historic:
+            models_to_run = "staging.historic_raw staging.historic_cleaned staging.historic_renamed staging.historic_transformed"
+        else:
+            models_to_run = "staging.raw staging.cleaned staging.renamed staging.transformed"
+# , 
+#             "--select", models_to_run
+        result = subprocess.run([
+            "dbt", "run", 
+            "--vars", f"database: {DB_NAME}"
+        ], capture_output=True, text=True, bufsize=1)
+        
         if result.returncode != 0:
             raise Exception(result.stderr)
+        dbtResult['result'] = result
     except Exception as e:
-        error = f"Falha na transformação (DBT): {e} {result} "
+        error = f"Falha na transformação (DBT): {e} {result}"
         log_and_fail_task(error, dbtResult)
+        return Failed(result=dbtResult)
     finally:
         os.chdir(originalDir)
     
-    if "error" in dbtResult: return Failed(result=dbtResult)
     log(f'Transformação realizada com sucesso. {result.stdout}')
-    dbtResult['result'] = result
     return dbtResult
 
 def check_flow_state(capture_flow_state):

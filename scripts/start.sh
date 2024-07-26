@@ -3,8 +3,7 @@
 # by Filipe for Escritório de Dados.
 
 # Pergunte ao usuário se deseja baixar requisitos para realizar captura
-read -p "<> Deseja criar ambiente virtual e baixar os requisitos:
-prefect & dbt-core & dbt-postgres & requests & bs4 & pandas & openpyxl & datetime & psycopg2-binary & python-dotenv
+read -p "<> Deseja criar ambiente virtual e baixar os requisitos?
 <> para realizar a captura e materialização dos Dados Abertos de Terceirizados de Órgãos Federais <> ? (y/n): " run
 if [[ "$run" == "y" || "$run" == "Y" || "$run" == "yes" || "$run" == "Yes" || "$run" == "s" || "$run" == "S" || "$run" == "sim" || "$run" == "Sim" ]]; then
 

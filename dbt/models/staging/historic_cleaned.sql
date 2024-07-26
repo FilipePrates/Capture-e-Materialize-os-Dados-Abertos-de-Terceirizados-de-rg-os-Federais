@@ -41,4 +41,4 @@ select
     nullif(trim(both ' ' from replace(nm_orgao, '<N/I>', 'Não Informado')), 'NULL') as nm_orgao,
     nullif(nullif(trim(both ' ' from replace(cd_orgao_siafi, '<N/I>', 'Não Informado')), 'NULL'), '-2') as cd_orgao_siafi,
     nullif(nullif(trim(both ' ' from replace(cd_orgao_siape, '<N/I>', 'Não Informado')), 'NULL'), '-2') as cd_orgao_siape
-from {{ ref('raw_historic') }}
+from {{ ref('historic_raw') }}
