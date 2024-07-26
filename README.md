@@ -64,21 +64,25 @@ Permita execução dos scripts necessários e configuração docker:
 
 0. :
    ```sh
-   sudo chmod +x scripts/docker_start.sh && scripts/stop.sh && scripts/stop.sh
+   sudo chmod +x scripts/docker_start.sh scripts/stop.sh && scripts/stop.sh
    ```
 
 Construa a imagem docker:
 
 1. : 
    ```sh
-   docker build -t adm_cgu_terceirizados_pipeline .
+   docker build -t terceirizados_pipeline .
    ```
-
+   ou
+   ```sh
+   sudo docker buildx create --name builder
+   sudo docker buildx build . --tag adm_cgu
+   ```
 Rode a imagem docker:
 
 2. : 
    ```sh
-   docker run -it --privileged -v /var/run/docker.sock:/var/run/docker.sock -p 8080:8080 -p 4200:4200 -p 8050:8050 adm_cgu_terceirizados_pipeline
+   docker run -it --privileged -v /var/run/docker.sock:/var/run/docker.sock -p 8080:8080 -p 4200:4200 -p 8050:8050 terceirizados_pipeline
    ```
 
 3. :
