@@ -89,6 +89,7 @@ Em um terceiro terminal, visualize os resultados:
 
 ### App Dash (localhost:8050) para visualizar tabelas do PostgreSQL
 ![dash_visualization_staging_transformed](images/dash_visualization_staging_historic_transformed.png)
+![dash_logs_FAIL_historic_capture](images/dash_logs_FAIL_historic_capture.png)
 
 ---
 ### Programe Cronograma para Captura :
