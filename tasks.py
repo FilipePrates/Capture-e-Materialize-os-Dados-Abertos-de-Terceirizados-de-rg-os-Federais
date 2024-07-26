@@ -476,7 +476,7 @@ def run_dbt(cleanStart: dict, historic: bool) -> dict:
                 'logFilePath': Caminho para o arquivo de log (string),
                 ?'error': Possíveis erros propagados (string)
         historic (bool): Flag para definir se deve baixar todos os dados históricos (True)
-            ou apenas os dados mais recentes (False). Default é False.
+            ou apenas os dados mais recentes (False).
     Returns:
         dict: Dicionário contendo chaves-valores:
                 'tables': Nome das tabelas atualizadas no banco de dados,
@@ -486,7 +486,10 @@ def run_dbt(cleanStart: dict, historic: bool) -> dict:
         return Failed(result=cleanStart)
     
     dbtResult = {}
-    result = None
+    if historic:
+        models_to_run = "staging.raw_historic+"
+    else:
+        models_to_run = "staging.raw+"
 
     try:
         # Acesse as variáveis de ambiente
@@ -523,6 +526,7 @@ def run_dbt(cleanStart: dict, historic: bool) -> dict:
     
     log(f'Transformação realizada com sucesso. {result.stdout}')
     return dbtResult
+
 
 def check_flow_state(capture_flow_state):
     # Not working
