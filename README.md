@@ -72,7 +72,7 @@ Em um terceiro terminal:
    ```
 
 ### App Dash (localhost:8050) para visualizar tabelas do PostgreSQL
-![dash_visualization_staging_transformed](images/dash_visualization_staging_transformed.png)
+![dash_visualization_staging_transformed](images/dash_visualization_staging_historic_transformed.png)
 
 ### Para programar Schedule (Cronograma) de Captura
 

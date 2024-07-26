@@ -16,6 +16,9 @@ RUN apt-get update && \
 RUN pip3 install --no-cache-dir -r requirements/start.txt
 RUN pip3 install --no-cache-dir -r requirements/results.txt
 
+# Expose necessary ports
+EXPOSE 8080 4200 8050
+
 # Ensure the script is executable
 RUN chmod +x /app/scripts/docker_start.sh
 
