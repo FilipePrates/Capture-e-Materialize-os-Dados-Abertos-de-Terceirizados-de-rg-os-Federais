@@ -1,20 +1,12 @@
-[2024-07-26 11:40:37,232] INFO - prefect.clean_log_file | 
- <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <> 
-[2024-07-26 11:40:37,232] INFO - prefect.clean_log_file | 
- <> Limpeza do arquivo de log local logs/logs__historic_capture.txt realizada com sucesso.
-[2024-07-26 11:40:37,235] INFO - prefect.TaskRunner | Task 'clean_log_file': Finished task run for task with final state: 'Success'
-[2024-07-26 11:40:37,243] INFO - prefect.TaskRunner | Task 'download_cgu_terceirizados_data': Starting task run...
-[2024-07-26 11:40:37,569] INFO - prefect.download_cgu_terceirizados_data | 
+[2024-07-26 15:19:21,679] INFO - prefect.setup_log_file | 
+ <> Configuração do arquivo de log logs/logs__historic_capture.txt realizada com sucesso.
+[2024-07-26 15:19:21,696] INFO - prefect.TaskRunner | Task 'setup_log_file': Finished task run for task with final state: 'Success'
+[2024-07-26 15:19:21,736] INFO - prefect.TaskRunner | Task 'download_cgu_terceirizados_data': Starting task run...
+[2024-07-26 15:19:22,310] INFO - prefect.download_cgu_terceirizados_data | 
  <> 20 links para dados brutos capturados do portal de Dados Abertos da Controladoria Geral da União com sucesso!
-[2024-07-26 11:40:37,569] INFO - prefect.download_cgu_terceirizados_data | 
+[2024-07-26 15:19:22,310] INFO - prefect.download_cgu_terceirizados_data | 
  <> Realizando o download do arquivo... 
  https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/terceirizados/arquivos/terceirizados202405.xlsx
-[2024-07-26 11:40:41,408] INFO - prefect.download_cgu_terceirizados_data | 
+[2024-07-26 15:19:27,076] INFO - prefect.download_cgu_terceirizados_data | 
  <> Realizando o download do arquivo... 
  https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/terceirizados/arquivos/terceirizados202401.xlsx
-[2024-07-26 11:40:46,995] INFO - prefect.download_cgu_terceirizados_data | 
- <> Realizando o download do arquivo... 
- https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/terceirizados/arquivos/terceirizados202309.csv
-[2024-07-26 11:40:59,877] INFO - prefect.download_cgu_terceirizados_data | 
- <> Realizando o download do arquivo... 
- https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/terceirizados/arquivos/terceirizados202305.csv

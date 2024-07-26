@@ -1,61 +1,59 @@
-[2024-07-26 11:39:48,125] INFO - prefect.clean_log_file | 
- <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <> 
-[2024-07-26 11:39:48,125] INFO - prefect.clean_log_file | 
- <> Limpeza do arquivo de log local logs/logs__capture.txt realizada com sucesso.
-[2024-07-26 11:39:48,128] INFO - prefect.TaskRunner | Task 'clean_log_file': Finished task run for task with final state: 'Success'
-[2024-07-26 11:39:48,133] INFO - prefect.TaskRunner | Task 'download_cgu_terceirizados_data': Starting task run...
-[2024-07-26 11:39:48,440] INFO - prefect.download_cgu_terceirizados_data | 
+[2024-07-26 15:15:21,927] INFO - prefect.setup_log_file | 
+ <> Configuração do arquivo de log logs/logs__capture.txt realizada com sucesso.
+[2024-07-26 15:15:21,939] INFO - prefect.TaskRunner | Task 'setup_log_file': Finished task run for task with final state: 'Success'
+[2024-07-26 15:15:21,964] INFO - prefect.TaskRunner | Task 'download_cgu_terceirizados_data': Starting task run...
+[2024-07-26 15:15:22,537] INFO - prefect.download_cgu_terceirizados_data | 
  <> 1 links para dados brutos capturados do portal de Dados Abertos da Controladoria Geral da União com sucesso!
-[2024-07-26 11:39:48,440] INFO - prefect.download_cgu_terceirizados_data | 
+[2024-07-26 15:15:22,538] INFO - prefect.download_cgu_terceirizados_data | 
  <> Realizando o download do arquivo... 
  https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/terceirizados/arquivos/terceirizados202405.xlsx
-[2024-07-26 11:39:52,256] INFO - prefect.download_cgu_terceirizados_data | 
+[2024-07-26 15:15:26,819] INFO - prefect.download_cgu_terceirizados_data | 
  <> Dados referentes a 1 meses baixados com sucesso!
-[2024-07-26 11:39:52,262] INFO - prefect.TaskRunner | Task 'download_cgu_terceirizados_data': Finished task run for task with final state: 'Success'
-[2024-07-26 11:39:52,268] INFO - prefect.TaskRunner | Task 'save_raw_data_locally': Starting task run...
-[2024-07-26 11:39:52,268] INFO - prefect.save_raw_data_locally | 
+[2024-07-26 15:15:26,845] INFO - prefect.TaskRunner | Task 'download_cgu_terceirizados_data': Finished task run for task with final state: 'Success'
+[2024-07-26 15:15:26,877] INFO - prefect.TaskRunner | Task 'save_raw_data_locally': Starting task run...
+[2024-07-26 15:15:26,878] INFO - prefect.save_raw_data_locally | 
  <> Arquivos e diretórios para armazenar localmente os dados brutos criados com sucesso!
-[2024-07-26 11:39:52,345] INFO - prefect.save_raw_data_locally | 
+[2024-07-26 15:15:26,914] INFO - prefect.save_raw_data_locally | 
  <> Dados salvos localmente em adm_cgu_terceirizados_local/year=2024/raw_data_0.xlsx com sucesso!
-[2024-07-26 11:39:52,346] INFO - prefect.save_raw_data_locally | 
+[2024-07-26 15:15:26,914] INFO - prefect.save_raw_data_locally | 
  <> Dados salvos localmente com sucesso!
-[2024-07-26 11:39:52,346] INFO - prefect.save_raw_data_locally | 
+[2024-07-26 15:15:26,915] INFO - prefect.save_raw_data_locally | 
  <> {'rawFilePaths': ['adm_cgu_terceirizados_local/year=2024/raw_data_0.xlsx']}
-[2024-07-26 11:39:52,355] INFO - prefect.TaskRunner | Task 'save_raw_data_locally': Finished task run for task with final state: 'Success'
-[2024-07-26 11:39:52,375] INFO - prefect.TaskRunner | Task 'parse_data_into_dataframes': Starting task run...
-[2024-07-26 11:40:04,047] INFO - prefect.parse_data_into_dataframes | 
+[2024-07-26 15:15:26,931] INFO - prefect.TaskRunner | Task 'save_raw_data_locally': Finished task run for task with final state: 'Success'
+[2024-07-26 15:15:26,966] INFO - prefect.TaskRunner | Task 'parse_data_into_dataframes': Starting task run...
+[2024-07-26 15:16:24,377] INFO - prefect.parse_data_into_dataframes | 
  <> dados brutos adm_cgu_terceirizados_local/year=2024/raw_data_0.xlsx convertidos em pd.DataFrame com sucesso!
-[2024-07-26 11:40:04,047] INFO - prefect.parse_data_into_dataframes | 
+[2024-07-26 15:16:24,377] INFO - prefect.parse_data_into_dataframes | 
  <> Dados interpretados localmente como DataFrame com sucesso!
-[2024-07-26 11:40:04,051] INFO - prefect.TaskRunner | Task 'parse_data_into_dataframes': Finished task run for task with final state: 'Success'
-[2024-07-26 11:40:04,058] INFO - prefect.TaskRunner | Task 'save_data_as_csv_locally': Starting task run...
-[2024-07-26 11:40:05,114] INFO - prefect.save_data_as_csv_locally | 
+[2024-07-26 15:16:24,389] INFO - prefect.TaskRunner | Task 'parse_data_into_dataframes': Finished task run for task with final state: 'Success'
+[2024-07-26 15:16:24,410] INFO - prefect.TaskRunner | Task 'save_data_as_csv_locally': Starting task run...
+[2024-07-26 15:16:27,887] INFO - prefect.save_data_as_csv_locally | 
  <> Dados tratados em CSV salvos localmente com sucesso!
-[2024-07-26 11:40:05,125] INFO - prefect.TaskRunner | Task 'save_data_as_csv_locally': Finished task run for task with final state: 'Success'
-[2024-07-26 11:40:05,146] INFO - prefect.TaskRunner | Task 'upload_csv_to_database': Starting task run...
-[2024-07-26 11:40:05,154] INFO - prefect.upload_csv_to_database | 
+[2024-07-26 15:16:27,898] INFO - prefect.TaskRunner | Task 'save_data_as_csv_locally': Finished task run for task with final state: 'Success'
+[2024-07-26 15:16:27,920] INFO - prefect.TaskRunner | Task 'upload_csv_to_database': Starting task run...
+[2024-07-26 15:16:27,931] INFO - prefect.upload_csv_to_database | 
  <> Conectado com PostgreSQL com sucesso!
-[2024-07-26 11:40:05,668] INFO - prefect.upload_csv_to_database | 
+[2024-07-26 15:16:29,648] INFO - prefect.upload_csv_to_database | 
  <> Tabela raw criada no PostgreSQL com sucesso!
-[2024-07-26 11:40:05,670] INFO - prefect.upload_csv_to_database | 
+[2024-07-26 15:16:29,652] INFO - prefect.upload_csv_to_database | 
  <> Tabela raw limpa no PostgreSQL com sucesso!
-[2024-07-26 11:40:06,046] INFO - prefect.upload_csv_to_database | 
+[2024-07-26 15:16:31,061] INFO - prefect.upload_csv_to_database | 
  <> Inserindo 73870 novas linhas do arquivo adm_cgu_terceirizados_local/year=2024/raw_data_0.xlsx_parsed.csv em raw...
-[2024-07-26 11:40:30,350] INFO - prefect.upload_csv_to_database | 
+[2024-07-26 15:18:56,560] INFO - prefect.upload_csv_to_database | 
  <> Dados inseridos em raw com sucesso!
-[2024-07-26 11:40:30,351] INFO - prefect.upload_csv_to_database | 
+[2024-07-26 15:18:56,561] INFO - prefect.upload_csv_to_database | 
  <> Feito upload de dados de 73870 linha(s) de 1 arquivo(s) na tabela raw no PostgreSQL com sucesso!
-[2024-07-26 11:40:30,358] INFO - prefect.TaskRunner | Task 'upload_csv_to_database': Finished task run for task with final state: 'Success'
-[2024-07-26 11:40:30,365] INFO - prefect.TaskRunner | Task 'upload_logs_to_database': Starting task run...
-[2024-07-26 11:40:30,368] INFO - prefect.upload_logs_to_database | 
+[2024-07-26 15:18:56,603] INFO - prefect.TaskRunner | Task 'upload_csv_to_database': Finished task run for task with final state: 'Success'
+[2024-07-26 15:18:56,640] INFO - prefect.TaskRunner | Task 'upload_logs_to_database': Starting task run...
+[2024-07-26 15:18:56,654] INFO - prefect.upload_logs_to_database | 
  <> Conectado com PostgreSQL com sucesso!
-[2024-07-26 11:40:30,375] INFO - prefect.upload_logs_to_database | 
+[2024-07-26 15:18:56,679] INFO - prefect.upload_logs_to_database | 
  <> Tabela de logs logs__capture criada no PostgreSQL com sucesso!
-[2024-07-26 11:40:30,375] INFO - prefect.upload_logs_to_database | 
+[2024-07-26 15:18:56,680] INFO - prefect.upload_logs_to_database | 
  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <> 
-[2024-07-26 11:40:30,383] INFO - prefect.upload_logs_to_database | 
+[2024-07-26 15:18:56,734] INFO - prefect.upload_logs_to_database | 
  <> Dados de logs do Flow inseridos em logs__capture com sucesso!
-[2024-07-26 11:40:30,384] INFO - prefect.upload_logs_to_database | 
+[2024-07-26 15:18:56,735] INFO - prefect.upload_logs_to_database | 
  <> Feito upload do arquivo de log local logs/logs__capture.txt na tabela logs__capture PostgreSQL com sucesso!
-[2024-07-26 11:40:30,386] INFO - prefect.TaskRunner | Task 'upload_logs_to_database': Finished task run for task with final state: 'Success'
-[2024-07-26 11:40:30,387] INFO - prefect.FlowRunner | Flow run SUCCESS: all reference tasks succeeded
+[2024-07-26 15:18:56,748] INFO - prefect.TaskRunner | Task 'upload_logs_to_database': Finished task run for task with final state: 'Success'
+[2024-07-26 15:18:56,752] INFO - prefect.FlowRunner | Flow run SUCCESS: all reference tasks succeeded

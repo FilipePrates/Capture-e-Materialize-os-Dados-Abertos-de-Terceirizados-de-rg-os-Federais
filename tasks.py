@@ -29,11 +29,11 @@ from utils import (
     determine_dbt_models_to_run
 )
 load_dotenv()
-
 @task
-def setup_log_file(logFilePath: str) -> dict:
+
+def clean_log_file(logFilePath: str) -> dict:
     """
-    Configura o arquivo de log dos flows.
+    Limpa o arquivo de log para começar um novo flow.
 
     Args:
         logFilePath: Caminho para o arquivo de log (string)
@@ -42,53 +42,53 @@ def setup_log_file(logFilePath: str) -> dict:
                 'logFilePath': Caminho para o arquivo de log (string),
                 ?'error': Possíveis erros propagados (string)
     """
-    logs = {}
+    cleanedLogFile = {}
 
-    # Salve os logs do prefect e utils.log() no arquivo .txt em logFilePath
+    # Abra o arquivo logFilePath em modo escrita ('w'), apagando-o
     try:
-        logging.basicConfig(level=logging.INFO,
-                    format='[%(asctime)s] %(levelname)s - %(name)s | %(message)s',
-                    handlers=[logging.FileHandler(logFilePath)])
+        with open(logFilePath, 'w') as _file:
+            pass
+        log(f' <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <> ')
     except Exception as e:
-        error = f"Falha na configuração do arquivo de log {logFilePath}: {e}"
+        error = f"Falha na limpeza do arquivo de log local {logFilePath}: {e}"
         log_and_fail_task(error, logs)
-    
-    if "error" in logs: return Failed(result=logs)
-    log(f'Configuração do arquivo de log {logFilePath} realizada com sucesso.')
-    logs['logFilePath'] = logFilePath
-    return logs
+
+    if "error" in cleanedLogFile: return Failed(result=cleanedLogFile)
+    cleanedLogFile['logFilePath'] = logFilePath
+    log(f"Limpeza do arquivo de log local {cleanedLogFile['logFilePath']} realizada com sucesso.")
+    return cleanedLogFile
+
 
 @task
-def clean_log_file(logFilePath: dict) -> dict:
+def setup_log_file(context: dict) -> dict:
     """
-    Limpa o arquivo de log para começar um novo flow.
+    Configura o arquivo de log dos flows.
 
     Args:
-        logFilePath: Dicionário contendo chaves-valores:
-                        'logFilePath': Caminho para o arquivo de log (string),
-                        ?'error': Possíveis erros propagados (string)
+        context: Dicionário contendo chaves-valores:
+                    'logFilePath': Caminho para o arquivo de log (string),
+                    ?'error': Possíveis erros propagados (string)
     Returns:
         dict: Dicionário contendo chaves-valores:
                 'logFilePath': Caminho para o arquivo de log (string),
                 ?'error': Possíveis erros propagados (string)
     """
-    if isinstance(logFilePath, Failed): return Failed(result=logFilePath)
-    cleanStart = {}
+    if isinstance(context, Failed): return Failed(result=context)
+    settedUpLogFile = {}
 
-    # Abra o arquivo logFilePath em modo escrita ('w'), apagando-o
+    # Salve os logs do prefect e utils.log() no arquivo .txt em logFilePath
     try:
-        path = logFilePath['logFilePath']
-        with open(path, 'w') as _file:
-            pass
-        log(f' <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <> ')
+        logging.basicConfig(level=logging.INFO,
+                    format='[%(asctime)s] %(levelname)s - %(name)s | %(message)s',
+                    handlers=[logging.FileHandler(context["logFilePath"])])
     except Exception as e:
-        error = f"Falha na limpeza do arquivo de log local {path}: {e}"
-        log_and_fail_task(error, cleanStart)
-
-    if "error" in cleanStart: return Failed(result=cleanStart)
-    log(f'Limpeza do arquivo de log local {path} realizada com sucesso.')
-    cleanStart['logFilePath'] = path
-    return cleanStart
+        error = f"Falha na configuração do arquivo de log: {e}"
+        log_and_fail_task(error, settedUpLogFile)
+    
+    if "error" in settedUpLogFile: return Failed(result=settedUpLogFile)
+    settedUpLogFile['logFilePath'] = context['logFilePath']
+    log(f"Configuração do arquivo de log {context['logFilePath']} realizada com sucesso.")
+    return settedUpLogFile
 
 @task
 def download_cgu_terceirizados_data(cleanStart: dict, historic: bool = False) -> dict:

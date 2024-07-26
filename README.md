@@ -3,28 +3,28 @@
 
 ### Flow de Captura de Dados
 **SETUP**:
-(🔧) Configurar Arquivo de Log -> (🧹) Limpar Arquivo de Log ->
+   (🧹) Limpar Arquivo de Log -> (🔧) Configurar Arquivo de Log ->
 
 **EXTRACT**:
- -> (⬇️) Baixar Dados -> (💾) Salvar Dados Brutos Localmente ->
+   -> (⬇️) Baixar Dados -> (🧠) Salvar Dados Brutos em Memória ->
 
 **CLEAN**:
- -> (🔍) Interpretar Dados em DataFrames -> (📥) Salvar Dados como CSVs Localmente ->
+   -> (🔍) Interpretar Dados em DataFrames -> (📥) Salvar Dados como CSVs Localmente ->
 
 **LOAD**:
- -> (📦) Carregar CSVs para o Banco de Dados brutos -> (⬆️) Carregar Logs para o Banco de Dados
+   -> (📦) Carregar CSVs para o Banco de Dados brutos -> (⬆️) Carregar Logs para o Banco de Dados
 
 ### Flow de Materialização dos Dados
 
 **SETUP**:
-    (🔧) Configurar Arquivo de Log -> (🧹) Limpar Arquivo de Log  ->
+   (🧹) Limpar Arquivo de Log  -> (🔧) Configurar Arquivo de Log ->
 
 **TRANSFORM (DBT)**:
-    -> (📦) staging.raw (Dados Brutos) -> (🧼) staging.cleaned (Dados com valor nulo padrão) -> 
+   -> (📦) staging.raw (Dados Brutos) -> (🧼) staging.cleaned (Dados com valor nulo padrão) -> 
     (📝) staging.renamed (Colunas renomeadas seguindo manuais de estilo do [Escritório de Dados](https://docs.dados.rio/guia-desenvolvedores/manual-estilo/#nome-e-ordem-das-colunas) e [Base dos Dados](https://basedosdados.github.io/mais/style_data/)) -> (🔶) staging.transformed (Colunas com tipos definidos.) ->
 
 **LOAD**:
-    -> (⬆️) Carregar Logs para o Banco de Dados
+   -> (⬆️) Carregar Logs para o Banco de Dados
 
 ---
 
@@ -70,7 +70,10 @@ Em outro terminal, execute as funcionalidades do serviço:
 
 2. :
    ```
-   prefect server create-tenant --name tenant && prefect create project adm_cgu_terceirizados && python ./run/capture.py && python ./run/materialize.py && python ./run/historic_capture.py && python ./run/historic_materialize.py
+   prefect server create-tenant --name tenant && prefect create project adm_cgu_terceirizados
+   ```
+   ```
+   python ./run/capture.py && python ./run/materialize.py && python ./run/historic_capture.py && python ./run/historic_materialize.py
    ```
 
 Em um terceiro terminal, visualize os resultados:
