@@ -20,6 +20,7 @@ table_configs = [
     {"schema": "public", "table": "logs__materialize", "label": "logs__materialize"},
 ]
 LIMIT = 300
+LOG_TIMESTAMP_COLUMN = "timestamp_log_load"
 
 # Defina os parâmetros de conexão com o banco de dados
 DB_HOST = os.getenv("DB_HOST")
@@ -35,7 +36,7 @@ engine = create_engine(f'postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT
 def fetch_table_data(engine, table_schema, table_name):
     randomSample = ''; orderBy = '';
     if table_schema == 'marts': randomSample = "TABLESAMPLE SYSTEM (1)"
-    if table_name.startswith("logs__"): orderBy = "ORDER BY timestamp_log_load DESC"
+    if table_name.startswith("logs__"): orderBy = f"ORDER BY {LOG_TIMESTAMP_COLUMN} DESC"
     query = f'SELECT * FROM {table_schema}.{table_name} {randomSample} {orderBy} LIMIT {LIMIT}'
     data = pd.read_sql(query, engine)
     print(f' <> {table_schema}.{table_name} \n', data.head(3))
