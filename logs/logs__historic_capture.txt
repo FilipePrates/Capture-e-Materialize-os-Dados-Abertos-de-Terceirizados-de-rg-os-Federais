@@ -1,12 +1,282 @@
-[2024-07-26 16:18:08,331] INFO - prefect.setup_log_file | 
- <> Configuração do arquivo de log logs/logs__historic_capture.txt realizada com sucesso. server_time:2024-07-26 16:18:08.331499
-[2024-07-26 16:18:08,334] INFO - prefect.TaskRunner | Task 'setup_log_file': Finished task run for task with final state: 'Success'
-[2024-07-26 16:18:08,339] INFO - prefect.TaskRunner | Task 'download_cgu_terceirizados_data': Starting task run...
-[2024-07-26 16:18:08,639] INFO - prefect.download_cgu_terceirizados_data | 
- <> 20 links para dados brutos capturados do portal de Dados Abertos da Controladoria Geral da União com sucesso! server_time:2024-07-26 16:18:08.639876
-[2024-07-26 16:18:08,640] INFO - prefect.download_cgu_terceirizados_data | 
+[2024-07-26 16:38:42,164] INFO - prefect.setup_log_file | 
+ <> Configuração do arquivo de log logs/logs__historic_capture.txt realizada com sucesso. server_time:2024-07-26 16:38:42.164088
+[2024-07-26 16:38:42,166] INFO - prefect.TaskRunner | Task 'setup_log_file': Finished task run for task with final state: 'Success'
+[2024-07-26 16:38:42,174] INFO - prefect.TaskRunner | Task 'download_cgu_terceirizados_data': Starting task run...
+[2024-07-26 16:38:42,477] INFO - prefect.download_cgu_terceirizados_data | 
+ <> 20 links para dados brutos capturados do portal de Dados Abertos da Controladoria Geral da União com sucesso! server_time:2024-07-26 16:38:42.477085
+[2024-07-26 16:38:42,477] INFO - prefect.download_cgu_terceirizados_data | 
  <> Realizando o download do arquivo... 
- https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/terceirizados/arquivos/terceirizados202405.xlsx server_time:2024-07-26 16:18:08.640077
-[2024-07-26 16:18:12,691] INFO - prefect.download_cgu_terceirizados_data | 
+ https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/terceirizados/arquivos/terceirizados202405.xlsx server_time:2024-07-26 16:38:42.477270
+[2024-07-26 16:38:46,685] INFO - prefect.download_cgu_terceirizados_data | 
  <> Realizando o download do arquivo... 
- https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/terceirizados/arquivos/terceirizados202401.xlsx server_time:2024-07-26 16:18:12.691431
+ https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/terceirizados/arquivos/terceirizados202401.xlsx server_time:2024-07-26 16:38:46.685374
+[2024-07-26 16:38:50,754] INFO - prefect.download_cgu_terceirizados_data | 
+ <> Realizando o download do arquivo... 
+ https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/terceirizados/arquivos/terceirizados202309.csv server_time:2024-07-26 16:38:50.754548
+[2024-07-26 16:39:05,257] INFO - prefect.download_cgu_terceirizados_data | 
+ <> Realizando o download do arquivo... 
+ https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/terceirizados/arquivos/terceirizados202305.csv server_time:2024-07-26 16:39:05.257902
+[2024-07-26 16:39:15,011] INFO - prefect.download_cgu_terceirizados_data | 
+ <> Realizando o download do arquivo... 
+ https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/terceirizados/arquivos/terceirizados202301.csv server_time:2024-07-26 16:39:15.011320
+[2024-07-26 16:39:25,075] INFO - prefect.download_cgu_terceirizados_data | 
+ <> Realizando o download do arquivo... 
+ https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/terceirizados/arquivos/terceirizados202209.csv server_time:2024-07-26 16:39:25.075285
+[2024-07-26 16:39:35,999] INFO - prefect.download_cgu_terceirizados_data | 
+ <> Realizando o download do arquivo... 
+ https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/terceirizados/arquivos/terceirizados202205.csv server_time:2024-07-26 16:39:35.999746
+[2024-07-26 16:39:51,427] INFO - prefect.download_cgu_terceirizados_data | 
+ <> Realizando o download do arquivo... 
+ https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/terceirizados/arquivos/terceirizados202201.csv server_time:2024-07-26 16:39:51.427602
+[2024-07-26 16:40:04,870] INFO - prefect.download_cgu_terceirizados_data | 
+ <> Realizando o download do arquivo... 
+ https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/terceirizados/arquivos/terceirizados202209.csv server_time:2024-07-26 16:40:04.869978
+[2024-07-26 16:40:19,450] INFO - prefect.download_cgu_terceirizados_data | 
+ <> Realizando o download do arquivo... 
+ https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/terceirizados/arquivos/terceirizados202205.csv server_time:2024-07-26 16:40:19.450601
+[2024-07-26 16:40:35,625] INFO - prefect.download_cgu_terceirizados_data | 
+ <> Realizando o download do arquivo... 
+ https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/terceirizados/arquivos/terceirizados202201.csv server_time:2024-07-26 16:40:35.625862
+[2024-07-26 16:40:46,658] INFO - prefect.download_cgu_terceirizados_data | 
+ <> Realizando o download do arquivo... 
+ https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/terceirizados/arquivos/terceirizados202109.csv server_time:2024-07-26 16:40:46.658936
+[2024-07-26 16:40:58,018] INFO - prefect.download_cgu_terceirizados_data | 
+ <> Realizando o download do arquivo... 
+ https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/terceirizados/arquivos/terceirizados-202105.csv server_time:2024-07-26 16:40:58.018454
+[2024-07-26 16:41:08,709] INFO - prefect.download_cgu_terceirizados_data | 
+ <> Realizando o download do arquivo... 
+ https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/terceirizados/arquivos/terceirizados_202101.csv server_time:2024-07-26 16:41:08.709629
+[2024-07-26 16:41:20,925] INFO - prefect.download_cgu_terceirizados_data | 
+ <> Realizando o download do arquivo... 
+ https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/terceirizados/arquivos/terceirizados_202009.csv server_time:2024-07-26 16:41:20.925798
+[2024-07-26 16:41:31,408] INFO - prefect.download_cgu_terceirizados_data | 
+ <> Realizando o download do arquivo... 
+ https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/terceirizados/arquivos/terceirizados_202005.csv server_time:2024-07-26 16:41:31.408677
+[2024-07-26 16:41:48,346] INFO - prefect.download_cgu_terceirizados_data | 
+ <> Realizando o download do arquivo... 
+ https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/terceirizados/arquivos/terceirizados_202001.csv server_time:2024-07-26 16:41:48.346819
+[2024-07-26 16:42:00,748] INFO - prefect.download_cgu_terceirizados_data | 
+ <> Realizando o download do arquivo... 
+ https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/terceirizados/arquivos/terceirizados_201909.csv server_time:2024-07-26 16:42:00.748374
+[2024-07-26 16:42:13,131] INFO - prefect.download_cgu_terceirizados_data | 
+ <> Realizando o download do arquivo... 
+ https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/terceirizados/arquivos/terceirizados_201905.csv server_time:2024-07-26 16:42:13.131557
+[2024-07-26 16:42:27,958] INFO - prefect.download_cgu_terceirizados_data | 
+ <> Realizando o download do arquivo... 
+ https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos/arquivos/terceirizados/arquivos/terceirizados-201901_1.csv server_time:2024-07-26 16:42:27.958652
+[2024-07-26 16:42:46,877] INFO - prefect.download_cgu_terceirizados_data | 
+ <> Dados referentes a 20 meses baixados com sucesso! server_time:2024-07-26 16:42:46.877852
+[2024-07-26 16:42:46,881] INFO - prefect.TaskRunner | Task 'download_cgu_terceirizados_data': Finished task run for task with final state: 'Success'
+[2024-07-26 16:42:46,887] INFO - prefect.TaskRunner | Task 'save_raw_data_locally': Starting task run...
+[2024-07-26 16:42:46,887] INFO - prefect.save_raw_data_locally | 
+ <> 1 arquivos e seus diretórios criados com sucesso! server_time:2024-07-26 16:42:46.887777
+[2024-07-26 16:42:46,887] INFO - prefect.save_raw_data_locally | 
+ <> 2 arquivos e seus diretórios criados com sucesso! server_time:2024-07-26 16:42:46.887941
+[2024-07-26 16:42:46,888] INFO - prefect.save_raw_data_locally | 
+ <> 3 arquivos e seus diretórios criados com sucesso! server_time:2024-07-26 16:42:46.888119
+[2024-07-26 16:42:46,888] INFO - prefect.save_raw_data_locally | 
+ <> 4 arquivos e seus diretórios criados com sucesso! server_time:2024-07-26 16:42:46.888250
+[2024-07-26 16:42:46,888] INFO - prefect.save_raw_data_locally | 
+ <> 5 arquivos e seus diretórios criados com sucesso! server_time:2024-07-26 16:42:46.888376
+[2024-07-26 16:42:46,888] INFO - prefect.save_raw_data_locally | 
+ <> Falha ao criar diretórios locais para armazenar os dados brutos. Dados de ano inválido ! server_time:2024-07-26 16:42:46.888484
+[2024-07-26 16:42:46,888] INFO - prefect.save_raw_data_locally | 
+ <> Falha ao criar diretórios locais para armazenar os dados brutos. Dados de ano inválido ! server_time:2024-07-26 16:42:46.888587
+[2024-07-26 16:42:46,888] INFO - prefect.save_raw_data_locally | 
+ <> Falha ao criar diretórios locais para armazenar os dados brutos. Dados de ano inválido ! server_time:2024-07-26 16:42:46.888690
+[2024-07-26 16:42:46,888] INFO - prefect.save_raw_data_locally | 
+ <> 6 arquivos e seus diretórios criados com sucesso! server_time:2024-07-26 16:42:46.888847
+[2024-07-26 16:42:46,888] INFO - prefect.save_raw_data_locally | 
+ <> 7 arquivos e seus diretórios criados com sucesso! server_time:2024-07-26 16:42:46.888971
+[2024-07-26 16:42:46,889] INFO - prefect.save_raw_data_locally | 
+ <> 8 arquivos e seus diretórios criados com sucesso! server_time:2024-07-26 16:42:46.889097
+[2024-07-26 16:42:46,889] INFO - prefect.save_raw_data_locally | 
+ <> 9 arquivos e seus diretórios criados com sucesso! server_time:2024-07-26 16:42:46.889241
+[2024-07-26 16:42:46,889] INFO - prefect.save_raw_data_locally | 
+ <> 10 arquivos e seus diretórios criados com sucesso! server_time:2024-07-26 16:42:46.889371
+[2024-07-26 16:42:46,889] INFO - prefect.save_raw_data_locally | 
+ <> 11 arquivos e seus diretórios criados com sucesso! server_time:2024-07-26 16:42:46.889494
+[2024-07-26 16:42:46,889] INFO - prefect.save_raw_data_locally | 
+ <> 12 arquivos e seus diretórios criados com sucesso! server_time:2024-07-26 16:42:46.889637
+[2024-07-26 16:42:46,889] INFO - prefect.save_raw_data_locally | 
+ <> 13 arquivos e seus diretórios criados com sucesso! server_time:2024-07-26 16:42:46.889768
+[2024-07-26 16:42:46,889] INFO - prefect.save_raw_data_locally | 
+ <> 14 arquivos e seus diretórios criados com sucesso! server_time:2024-07-26 16:42:46.889891
+[2024-07-26 16:42:46,890] INFO - prefect.save_raw_data_locally | 
+ <> 15 arquivos e seus diretórios criados com sucesso! server_time:2024-07-26 16:42:46.890035
+[2024-07-26 16:42:46,890] INFO - prefect.save_raw_data_locally | 
+ <> 16 arquivos e seus diretórios criados com sucesso! server_time:2024-07-26 16:42:46.890158
+[2024-07-26 16:42:46,890] INFO - prefect.save_raw_data_locally | 
+ <> 17 arquivos e seus diretórios criados com sucesso! server_time:2024-07-26 16:42:46.890280
+[2024-07-26 16:42:46,898] INFO - prefect.save_raw_data_locally | 
+ <> Dados salvos localmente em adm_cgu_terceirizados_local/year=2024/raw_data_0.xlsx com sucesso! server_time:2024-07-26 16:42:46.898398
+[2024-07-26 16:42:46,905] INFO - prefect.save_raw_data_locally | 
+ <> Dados salvos localmente em adm_cgu_terceirizados_local/year=2024/raw_data_1.xlsx com sucesso! server_time:2024-07-26 16:42:46.905004
+[2024-07-26 16:42:46,920] INFO - prefect.save_raw_data_locally | 
+ <> Dados salvos localmente em adm_cgu_terceirizados_local/year=2023/raw_data_2.csv com sucesso! server_time:2024-07-26 16:42:46.920823
+[2024-07-26 16:42:46,936] INFO - prefect.save_raw_data_locally | 
+ <> Dados salvos localmente em adm_cgu_terceirizados_local/year=2023/raw_data_3.csv com sucesso! server_time:2024-07-26 16:42:46.936768
+[2024-07-26 16:42:46,953] INFO - prefect.save_raw_data_locally | 
+ <> Dados salvos localmente em adm_cgu_terceirizados_local/year=2023/raw_data_4.csv com sucesso! server_time:2024-07-26 16:42:46.953407
+[2024-07-26 16:42:46,953] INFO - prefect.save_raw_data_locally | 
+ <> Falha ao salvar os dados brutos localmente. 'filePath' server_time:2024-07-26 16:42:46.953680
+[2024-07-26 16:42:46,953] INFO - prefect.save_raw_data_locally | 
+ <> Falha ao salvar os dados brutos localmente. 'filePath' server_time:2024-07-26 16:42:46.953853
+[2024-07-26 16:42:46,953] INFO - prefect.save_raw_data_locally | 
+ <> Falha ao salvar os dados brutos localmente. 'filePath' server_time:2024-07-26 16:42:46.953967
+[2024-07-26 16:42:46,971] INFO - prefect.save_raw_data_locally | 
+ <> Dados salvos localmente em adm_cgu_terceirizados_local/year=2022/raw_data_8.csv com sucesso! server_time:2024-07-26 16:42:46.971767
+[2024-07-26 16:42:46,992] INFO - prefect.save_raw_data_locally | 
+ <> Dados salvos localmente em adm_cgu_terceirizados_local/year=2022/raw_data_9.csv com sucesso! server_time:2024-07-26 16:42:46.992046
+[2024-07-26 16:42:47,007] INFO - prefect.save_raw_data_locally | 
+ <> Dados salvos localmente em adm_cgu_terceirizados_local/year=2022/raw_data_10.csv com sucesso! server_time:2024-07-26 16:42:47.007270
+[2024-07-26 16:42:47,023] INFO - prefect.save_raw_data_locally | 
+ <> Dados salvos localmente em adm_cgu_terceirizados_local/year=2021/raw_data_11.csv com sucesso! server_time:2024-07-26 16:42:47.023164
+[2024-07-26 16:42:47,037] INFO - prefect.save_raw_data_locally | 
+ <> Dados salvos localmente em adm_cgu_terceirizados_local/year=2021/raw_data_12.csv com sucesso! server_time:2024-07-26 16:42:47.037811
+[2024-07-26 16:42:47,058] INFO - prefect.save_raw_data_locally | 
+ <> Dados salvos localmente em adm_cgu_terceirizados_local/year=2021/raw_data_13.csv com sucesso! server_time:2024-07-26 16:42:47.058226
+[2024-07-26 16:42:47,077] INFO - prefect.save_raw_data_locally | 
+ <> Dados salvos localmente em adm_cgu_terceirizados_local/year=2020/raw_data_14.csv com sucesso! server_time:2024-07-26 16:42:47.077829
+[2024-07-26 16:42:47,092] INFO - prefect.save_raw_data_locally | 
+ <> Dados salvos localmente em adm_cgu_terceirizados_local/year=2020/raw_data_15.csv com sucesso! server_time:2024-07-26 16:42:47.092795
+[2024-07-26 16:42:47,109] INFO - prefect.save_raw_data_locally | 
+ <> Dados salvos localmente em adm_cgu_terceirizados_local/year=2020/raw_data_16.csv com sucesso! server_time:2024-07-26 16:42:47.109156
+[2024-07-26 16:42:47,127] INFO - prefect.save_raw_data_locally | 
+ <> Dados salvos localmente em adm_cgu_terceirizados_local/year=2019/raw_data_17.csv com sucesso! server_time:2024-07-26 16:42:47.127084
+[2024-07-26 16:42:47,145] INFO - prefect.save_raw_data_locally | 
+ <> Dados salvos localmente em adm_cgu_terceirizados_local/year=2019/raw_data_18.csv com sucesso! server_time:2024-07-26 16:42:47.145241
+[2024-07-26 16:42:47,166] INFO - prefect.save_raw_data_locally | 
+ <> Dados salvos localmente em adm_cgu_terceirizados_local/year=2019/raw_data_19.csv com sucesso! server_time:2024-07-26 16:42:47.166811
+[2024-07-26 16:42:47,167] INFO - prefect.save_raw_data_locally | 
+ <> Dados salvos localmente com sucesso! server_time:2024-07-26 16:42:47.167024
+[2024-07-26 16:42:47,167] INFO - prefect.save_raw_data_locally | 
+ <> {'rawFilePaths': ['adm_cgu_terceirizados_local/year=2024/raw_data_0.xlsx', 'adm_cgu_terceirizados_local/year=2024/raw_data_1.xlsx', 'adm_cgu_terceirizados_local/year=2023/raw_data_2.csv', 'adm_cgu_terceirizados_local/year=2023/raw_data_3.csv', 'adm_cgu_terceirizados_local/year=2023/raw_data_4.csv', 'adm_cgu_terceirizados_local/year=2022/raw_data_8.csv', 'adm_cgu_terceirizados_local/year=2022/raw_data_9.csv', 'adm_cgu_terceirizados_local/year=2022/raw_data_10.csv', 'adm_cgu_terceirizados_local/year=2021/raw_data_11.csv', 'adm_cgu_terceirizados_local/year=2021/raw_data_12.csv', 'adm_cgu_terceirizados_local/year=2021/raw_data_13.csv', 'adm_cgu_terceirizados_local/year=2020/raw_data_14.csv', 'adm_cgu_terceirizados_local/year=2020/raw_data_15.csv', 'adm_cgu_terceirizados_local/year=2020/raw_data_16.csv', 'adm_cgu_terceirizados_local/year=2019/raw_data_17.csv', 'adm_cgu_terceirizados_local/year=2019/raw_data_18.csv', 'adm_cgu_terceirizados_local/year=2019/raw_data_19.csv']} server_time:2024-07-26 16:42:47.167127
+[2024-07-26 16:42:47,170] INFO - prefect.TaskRunner | Task 'save_raw_data_locally': Finished task run for task with final state: 'Success'
+[2024-07-26 16:42:47,176] INFO - prefect.TaskRunner | Task 'parse_data_into_dataframes': Starting task run...
+[2024-07-26 16:43:00,966] INFO - prefect.parse_data_into_dataframes | 
+ <> Dados brutos adm_cgu_terceirizados_local/year=2024/raw_data_0.xlsx convertidos em pd.DataFrame com sucesso! server_time:2024-07-26 16:43:00.966796
+[2024-07-26 16:43:15,560] INFO - prefect.parse_data_into_dataframes | 
+ <> Dados brutos adm_cgu_terceirizados_local/year=2024/raw_data_1.xlsx convertidos em pd.DataFrame com sucesso! server_time:2024-07-26 16:43:15.560310
+[2024-07-26 16:43:15,946] INFO - prefect.parse_data_into_dataframes | 
+ <> Dados brutos adm_cgu_terceirizados_local/year=2023/raw_data_2.csv convertidos em pd.DataFrame com sucesso! server_time:2024-07-26 16:43:15.946656
+[2024-07-26 16:43:16,318] INFO - prefect.parse_data_into_dataframes | 
+ <> Dados brutos adm_cgu_terceirizados_local/year=2023/raw_data_3.csv convertidos em pd.DataFrame com sucesso! server_time:2024-07-26 16:43:16.318396
+[2024-07-26 16:43:16,734] INFO - prefect.parse_data_into_dataframes | 
+ <> Dados brutos adm_cgu_terceirizados_local/year=2023/raw_data_4.csv convertidos em pd.DataFrame com sucesso! server_time:2024-07-26 16:43:16.734663
+[2024-07-26 16:43:16,739] INFO - prefect.parse_data_into_dataframes | 
+ <> Falha ao interpretar adm_cgu_terceirizados_local/year=2022/raw_data_8.csv como pd.DataFrame: 'utf-8' codec can't decode byte 0xba in position 252227: invalid start byte 
+Arquivo adm_cgu_terceirizados_local/year=2022/raw_data_8.csv corrompido. server_time:2024-07-26 16:43:16.739150
+[2024-07-26 16:43:16,740] INFO - prefect.parse_data_into_dataframes | 
+ <> Falha ao interpretar adm_cgu_terceirizados_local/year=2022/raw_data_9.csv como pd.DataFrame: 'utf-8' codec can't decode byte 0xba in position 166763: invalid start byte 
+Arquivo adm_cgu_terceirizados_local/year=2022/raw_data_9.csv corrompido. server_time:2024-07-26 16:43:16.740004
+[2024-07-26 16:43:16,740] INFO - prefect.parse_data_into_dataframes | 
+ <> Falha ao interpretar adm_cgu_terceirizados_local/year=2022/raw_data_10.csv como pd.DataFrame: 'utf-8' codec can't decode byte 0xdd in position 135133: invalid continuation byte 
+Arquivo adm_cgu_terceirizados_local/year=2022/raw_data_10.csv corrompido. server_time:2024-07-26 16:43:16.740799
+[2024-07-26 16:43:17,193] INFO - prefect.parse_data_into_dataframes | 
+ <> Dados brutos adm_cgu_terceirizados_local/year=2021/raw_data_11.csv convertidos em pd.DataFrame com sucesso! server_time:2024-07-26 16:43:17.193033
+[2024-07-26 16:43:17,594] INFO - prefect.parse_data_into_dataframes | 
+ <> Dados brutos adm_cgu_terceirizados_local/year=2021/raw_data_12.csv convertidos em pd.DataFrame com sucesso! server_time:2024-07-26 16:43:17.594394
+[2024-07-26 16:43:18,020] INFO - prefect.parse_data_into_dataframes | 
+ <> Dados brutos adm_cgu_terceirizados_local/year=2021/raw_data_13.csv convertidos em pd.DataFrame com sucesso! server_time:2024-07-26 16:43:18.020600
+[2024-07-26 16:43:18,511] INFO - prefect.parse_data_into_dataframes | 
+ <> Dados brutos adm_cgu_terceirizados_local/year=2020/raw_data_14.csv convertidos em pd.DataFrame com sucesso! server_time:2024-07-26 16:43:18.511022
+[2024-07-26 16:43:18,858] INFO - prefect.parse_data_into_dataframes | 
+ <> Dados brutos adm_cgu_terceirizados_local/year=2020/raw_data_15.csv convertidos em pd.DataFrame com sucesso! server_time:2024-07-26 16:43:18.858697
+[2024-07-26 16:43:19,325] INFO - prefect.parse_data_into_dataframes | 
+ <> Dados brutos adm_cgu_terceirizados_local/year=2020/raw_data_16.csv convertidos em pd.DataFrame com sucesso! server_time:2024-07-26 16:43:19.325366
+[2024-07-26 16:43:19,829] INFO - prefect.parse_data_into_dataframes | 
+ <> Dados brutos adm_cgu_terceirizados_local/year=2019/raw_data_17.csv convertidos em pd.DataFrame com sucesso! server_time:2024-07-26 16:43:19.829329
+[2024-07-26 16:43:20,284] INFO - prefect.parse_data_into_dataframes | 
+ <> Dados brutos adm_cgu_terceirizados_local/year=2019/raw_data_18.csv convertidos em pd.DataFrame com sucesso! server_time:2024-07-26 16:43:20.284656
+[2024-07-26 16:43:20,749] INFO - prefect.parse_data_into_dataframes | 
+ <> Dados brutos adm_cgu_terceirizados_local/year=2019/raw_data_19.csv convertidos em pd.DataFrame com sucesso! server_time:2024-07-26 16:43:20.749827
+[2024-07-26 16:43:20,750] INFO - prefect.parse_data_into_dataframes | 
+ <> Dados salvos localmente em pd.DataFrames com sucesso! server_time:2024-07-26 16:43:20.750060
+[2024-07-26 16:43:20,753] INFO - prefect.TaskRunner | Task 'parse_data_into_dataframes': Finished task run for task with final state: 'Success'
+[2024-07-26 16:43:20,759] INFO - prefect.TaskRunner | Task 'save_data_as_csv_locally': Starting task run...
+[2024-07-26 16:43:32,316] INFO - prefect.save_data_as_csv_locally | 
+ <> Dados tratados em CSV salvos localmente com sucesso! server_time:2024-07-26 16:43:32.316053
+[2024-07-26 16:43:32,318] INFO - prefect.TaskRunner | Task 'save_data_as_csv_locally': Finished task run for task with final state: 'Success'
+[2024-07-26 16:43:32,323] INFO - prefect.TaskRunner | Task 'upload_csv_to_database': Starting task run...
+[2024-07-26 16:43:32,326] INFO - prefect.upload_csv_to_database | 
+ <> Conectado com PostgreSQL com sucesso! server_time:2024-07-26 16:43:32.326501
+[2024-07-26 16:43:32,711] INFO - prefect.upload_csv_to_database | 
+ <> Tabela historic_raw criada no PostgreSQL com sucesso! server_time:2024-07-26 16:43:32.711337
+[2024-07-26 16:43:32,712] INFO - prefect.upload_csv_to_database | 
+ <> Tabela historic_raw limpa no PostgreSQL com sucesso! server_time:2024-07-26 16:43:32.712533
+[2024-07-26 16:43:33,123] INFO - prefect.upload_csv_to_database | 
+ <> Inserindo 73870 novas linhas do arquivo adm_cgu_terceirizados_local/year=2024/raw_data_0.xlsx_parsed.csv em historic_raw... server_time:2024-07-26 16:43:33.123158
+[2024-07-26 16:43:56,658] INFO - prefect.upload_csv_to_database | 
+ <> Dados inseridos em historic_raw com sucesso! server_time:2024-07-26 16:43:56.658918
+[2024-07-26 16:43:57,102] INFO - prefect.upload_csv_to_database | 
+ <> Inserindo 82581 novas linhas do arquivo adm_cgu_terceirizados_local/year=2024/raw_data_1.xlsx_parsed.csv em historic_raw... server_time:2024-07-26 16:43:57.102063
+[2024-07-26 16:44:22,269] INFO - prefect.upload_csv_to_database | 
+ <> Dados inseridos em historic_raw com sucesso! server_time:2024-07-26 16:44:22.269450
+[2024-07-26 16:44:22,655] INFO - prefect.upload_csv_to_database | 
+ <> Inserindo 81941 novas linhas do arquivo adm_cgu_terceirizados_local/year=2023/raw_data_2.csv_parsed.csv em historic_raw... server_time:2024-07-26 16:44:22.655278
+[2024-07-26 16:44:51,262] INFO - prefect.upload_csv_to_database | 
+ <> Dados inseridos em historic_raw com sucesso! server_time:2024-07-26 16:44:51.262064
+[2024-07-26 16:44:51,617] INFO - prefect.upload_csv_to_database | 
+ <> Inserindo 73515 novas linhas do arquivo adm_cgu_terceirizados_local/year=2023/raw_data_3.csv_parsed.csv em historic_raw... server_time:2024-07-26 16:44:51.617298
+[2024-07-26 16:45:18,722] INFO - prefect.upload_csv_to_database | 
+ <> Dados inseridos em historic_raw com sucesso! server_time:2024-07-26 16:45:18.722886
+[2024-07-26 16:45:19,118] INFO - prefect.upload_csv_to_database | 
+ <> Inserindo 78480 novas linhas do arquivo adm_cgu_terceirizados_local/year=2023/raw_data_4.csv_parsed.csv em historic_raw... server_time:2024-07-26 16:45:19.118181
+[2024-07-26 16:45:48,350] INFO - prefect.upload_csv_to_database | 
+ <> Dados inseridos em historic_raw com sucesso! server_time:2024-07-26 16:45:48.350355
+[2024-07-26 16:45:48,704] INFO - prefect.upload_csv_to_database | 
+ <> Inserindo 75921 novas linhas do arquivo adm_cgu_terceirizados_local/year=2021/raw_data_11.csv_parsed.csv em historic_raw... server_time:2024-07-26 16:45:48.704750
+[2024-07-26 16:46:13,988] INFO - prefect.upload_csv_to_database | 
+ <> Dados inseridos em historic_raw com sucesso! server_time:2024-07-26 16:46:13.988148
+[2024-07-26 16:46:14,319] INFO - prefect.upload_csv_to_database | 
+ <> Inserindo 75406 novas linhas do arquivo adm_cgu_terceirizados_local/year=2021/raw_data_12.csv_parsed.csv em historic_raw... server_time:2024-07-26 16:46:14.319696
+[2024-07-26 16:46:42,995] INFO - prefect.upload_csv_to_database | 
+ <> Dados inseridos em historic_raw com sucesso! server_time:2024-07-26 16:46:42.995116
+[2024-07-26 16:46:43,316] INFO - prefect.upload_csv_to_database | 
+ <> Inserindo 68705 novas linhas do arquivo adm_cgu_terceirizados_local/year=2021/raw_data_13.csv_parsed.csv em historic_raw... server_time:2024-07-26 16:46:43.316783
+[2024-07-26 16:47:10,500] INFO - prefect.upload_csv_to_database | 
+ <> Dados inseridos em historic_raw com sucesso! server_time:2024-07-26 16:47:10.500892
+[2024-07-26 16:47:10,871] INFO - prefect.upload_csv_to_database | 
+ <> Inserindo 70468 novas linhas do arquivo adm_cgu_terceirizados_local/year=2020/raw_data_14.csv_parsed.csv em historic_raw... server_time:2024-07-26 16:47:10.871108
+[2024-07-26 16:47:35,753] INFO - prefect.upload_csv_to_database | 
+ <> Dados inseridos em historic_raw com sucesso! server_time:2024-07-26 16:47:35.753477
+[2024-07-26 16:47:36,108] INFO - prefect.upload_csv_to_database | 
+ <> Inserindo 77372 novas linhas do arquivo adm_cgu_terceirizados_local/year=2020/raw_data_15.csv_parsed.csv em historic_raw... server_time:2024-07-26 16:47:36.107923
+[2024-07-26 16:48:01,772] INFO - prefect.upload_csv_to_database | 
+ <> Dados inseridos em historic_raw com sucesso! server_time:2024-07-26 16:48:01.772882
+[2024-07-26 16:48:02,131] INFO - prefect.upload_csv_to_database | 
+ <> Inserindo 80884 novas linhas do arquivo adm_cgu_terceirizados_local/year=2020/raw_data_16.csv_parsed.csv em historic_raw... server_time:2024-07-26 16:48:02.131023
+[2024-07-26 16:48:29,337] INFO - prefect.upload_csv_to_database | 
+ <> Dados inseridos em historic_raw com sucesso! server_time:2024-07-26 16:48:29.337438
+[2024-07-26 16:48:29,723] INFO - prefect.upload_csv_to_database | 
+ <> Inserindo 88740 novas linhas do arquivo adm_cgu_terceirizados_local/year=2019/raw_data_17.csv_parsed.csv em historic_raw... server_time:2024-07-26 16:48:29.723795
+[2024-07-26 16:48:59,055] INFO - prefect.upload_csv_to_database | 
+ <> Dados inseridos em historic_raw com sucesso! server_time:2024-07-26 16:48:59.055823
+[2024-07-26 16:48:59,452] INFO - prefect.upload_csv_to_database | 
+ <> Inserindo 89986 novas linhas do arquivo adm_cgu_terceirizados_local/year=2019/raw_data_18.csv_parsed.csv em historic_raw... server_time:2024-07-26 16:48:59.452777
+[2024-07-26 16:49:37,460] INFO - prefect.upload_csv_to_database | 
+ <> Dados inseridos em historic_raw com sucesso! server_time:2024-07-26 16:49:37.460433
+[2024-07-26 16:49:37,951] INFO - prefect.upload_csv_to_database | 
+ <> Inserindo 97827 novas linhas do arquivo adm_cgu_terceirizados_local/year=2019/raw_data_19.csv_parsed.csv em historic_raw... server_time:2024-07-26 16:49:37.951573
+[2024-07-26 16:49:38,005] INFO - prefect.upload_csv_to_database | 
+ <> Falha ao inserir dados do arquivo adm_cgu_terceirizados_local/year=2019/raw_data_19.csv_parsed.csv na tabela historic_raw no PostgreSQL: column "7070352" of relation "historic_raw" does not exist
+LINE 2:             INSERT INTO "historic_raw" ("7070352", "M.J", "2...
+                                                ^
+ server_time:2024-07-26 16:49:38.005671
+[2024-07-26 16:49:38,019] INFO - prefect.upload_csv_to_database | 
+ <> Feito upload de dados de 1017869 linha(s) de 14 arquivo(s) na tabela historic_raw no PostgreSQL com sucesso! server_time:2024-07-26 16:49:38.019058
+[2024-07-26 16:49:38,035] INFO - prefect.TaskRunner | Task 'upload_csv_to_database': Finished task run for task with final state: 'Success'
+[2024-07-26 16:49:38,043] INFO - prefect.TaskRunner | Task 'upload_logs_to_database': Starting task run...
+[2024-07-26 16:49:38,047] INFO - prefect.upload_logs_to_database | 
+ <> Conectado com PostgreSQL com sucesso! server_time:2024-07-26 16:49:38.047401
+[2024-07-26 16:49:38,070] INFO - prefect.upload_logs_to_database | 
+ <> Tabela de logs logs__historic_capture criada no PostgreSQL com sucesso! server_time:2024-07-26 16:49:38.070298
+[2024-07-26 16:49:38,070] INFO - prefect.upload_logs_to_database | 
+ <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  server_time:2024-07-26 16:49:38.070865
+[2024-07-26 16:49:38,128] INFO - prefect.upload_logs_to_database | 
+ <> Dados de logs do Flow inseridos em logs__historic_capture com sucesso! server_time:2024-07-26 16:49:38.127968
+[2024-07-26 16:49:38,128] INFO - prefect.upload_logs_to_database | 
+ <> Feito upload do arquivo de log local logs/logs__historic_capture.txt na tabela logs__historic_capture PostgreSQL com sucesso! server_time:2024-07-26 16:49:38.128221
+[2024-07-26 16:49:38,131] INFO - prefect.TaskRunner | Task 'upload_logs_to_database': Finished task run for task with final state: 'Success'
+[2024-07-26 16:49:38,132] INFO - prefect.FlowRunner | Flow run SUCCESS: all reference tasks succeeded

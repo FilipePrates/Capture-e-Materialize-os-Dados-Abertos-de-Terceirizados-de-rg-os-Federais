@@ -107,7 +107,7 @@ A Captura e Materialização dos dados mais recentes é programada para ocorrer 
 - **Captura dos dados mais recentes** (`python run/capture.py`)
 - **Materialização dos dados mais recentes** (`python run/materialize.py`)
 - **Captura dos dados históricos** - Todos os dados já disponibilizados (`python run/historic_capture.py`)
-- **Materialização dos dados históricos** (`python run/historic_materialize.py`)
+- **Materialização dos dados históricos** - 🚧 Não trata erro de offset de colunas em dados históricos (`python run/historic_materialize.py`)
 - **Scheduler** - Definição de cronograma de execução de flows Prefect de captura e materialização (`python run/scheduler.py`)
 - **Results** - App Dash para visualizar tabelas resultantes armazenadas no banco de dados PostgreSQL (`python run/results.py`)
 
