@@ -1,15 +1,16 @@
 import sys
 import os
-from prefect import Flow
 import threading
+
+from datetime import timedelta
+from prefect import Flow
 from prefect.schedules import Schedule
 from prefect.schedules.clocks import IntervalClock #, CronClock
 from prefect.tasks.prefect import (
     create_flow_run,
     wait_for_flow_run
 )
-from datetime import timedelta
-# Adicionando módulos do diretório pai
+
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, parent_dir)
 from schedules import (

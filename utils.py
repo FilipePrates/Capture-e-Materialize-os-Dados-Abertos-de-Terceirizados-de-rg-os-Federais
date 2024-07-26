@@ -25,7 +25,7 @@ def log(message) -> None:
     """Ao ser chamada dentro de um Flow, realiza um log da message"""
     prefect.context.logger.info(f"\n <> {message}")
 
-def log_and_propagate_error(message, returnObj) -> None:
+def log_and_fail_task(message, returnObj) -> None:
     """Log e propaga falhas por erros"""
     returnObj['error'] = message
     log(message)
@@ -111,16 +111,6 @@ def clean_table(cur, conn, tableName):
     cur.execute(cleanTableQuery)
     conn.commit()
 
-def download_file(file_url, attempts, monthText, year):
-    for attempt in range(attempts):
-        response = requests.get(file_url)
-        if response.status_code == 200:
-            content_type = response.headers.get('Content-Type', '')
-            return response.content, content_type
-        else:
-            log(f"""Tentativa {attempt +1}: Falha ao baixar dados referentes à {monthText}/{year}. \n
-                Status code: {response.status_code}""")
-    raise Exception(f"Falha ao baixar dados do link {file_url}.")
 
 def get_file_extension(content_type):
     if 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' in content_type:
@@ -129,6 +119,50 @@ def get_file_extension(content_type):
         return 'csv'
     else:
         raise ValueError('Formato do arquivo cru fora do esperado (.csv, .xlsx).')
+
+def download_file(file_url, attempts, monthText, year):
+    for attempt in range(attempts):
+        response = requests.get(file_url)
+        if response.status_code == 200:
+            content_type = response.headers.get('Content-Type', '')
+            file_extension = get_file_extension(content_type)
+            return response.content, file_extension
+        else:
+            log(f"""Tentativa {attempt +1}: Falha ao baixar dados referentes à {monthText}/{year}. \n
+                Status code: {response.status_code}""")
+    raise Exception(f"Falha ao baixar dados do link {file_url}.")
+
+def get_historic_raw_data_download_links(soup, urls):
+    headers = soup.find_all('h3')
+    if headers:
+        for header in headers:
+            year = header.get_text()
+            ul = header.find_next('ul')
+            if ul:
+                links = ul.find_all('a')
+                if links:
+                    for link in links:
+                        monthText = link.get_text()
+                        file_url = link['href']
+                        urls.append({'file_url': file_url,
+                                    'year': year,
+                                    'monthText': monthText})
+                            
+def get_most_recent_raw_data_download_links(soup, urls):
+    headers = soup.find_all('h3')
+    if headers:
+        header = headers[0]
+        year = header.get_text()
+        ul = header.find_next('ul')
+        if ul:
+            links = ul.find_all('a')
+            if links:
+                link = links[0]
+                monthText = link.get_text()
+                file_url = link['href']
+                urls.append({'file_url': file_url,
+                                'year': year,
+                                'monthText': monthText})
 
 def standard_schedule__adm_cgu_terceirizados():
     """Determina o cronograma padrão de disponibilização

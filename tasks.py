@@ -1,7 +1,6 @@
 """
 Modulo com as Tarefas (@tasks) para os Flows
 """
-
 import psycopg2
 import logging
 import requests
@@ -12,26 +11,24 @@ from prefect import task
 from prefect.engine.signals import FAIL
 from prefect.engine.state import Failed
 from prefect.triggers import all_finished
-
 from bs4 import BeautifulSoup
 from psycopg2 import sql
 from dotenv import load_dotenv
 from utils import (
-    download_file,
-    get_file_extension,
-
     log,
-    log_and_propagate_error,
+    log_and_fail_task,
+    download_file,
     create_table,
     create_log_table,
     clean_table,
     insert_data,
     insert_log_data,
-    connect_to_postgresql
+    connect_to_postgresql,
+
+    get_most_recent_raw_data_download_links,
+    get_historic_raw_data_download_links,
 )
 load_dotenv()
-
-# 
 
 @task
 def setup_log_file(logFilePath: str) -> dict:
@@ -54,7 +51,7 @@ def setup_log_file(logFilePath: str) -> dict:
                     handlers=[logging.FileHandler(logFilePath)])
     except Exception as e:
         error = f"Falha na configuração do arquivo de log {logFilePath}: {e}"
-        log_and_propagate_error(error, logs)
+        log_and_fail_task(error, logs)
     
     if "error" in logs: return Failed(result=logs)
     log(f'Configuração do arquivo de log {logFilePath} realizada com sucesso.')
@@ -85,7 +82,7 @@ def clean_log_file(logFilePath: dict) -> dict:
             pass
     except Exception as e:
         error = f"Falha na limpeza do arquivo de log local {path}: {e}"
-        log_and_propagate_error(error, cleanStart)
+        log_and_fail_task(error, cleanStart)
 
     if "error" in cleanStart: return Failed(result=cleanStart)
     log(f'Limpeza do arquivo de log local {path} realizada com sucesso.')
@@ -93,73 +90,74 @@ def clean_log_file(logFilePath: dict) -> dict:
     return cleanStart
 
 @task
-def download_new_cgu_terceirizados_data(cleanStart: dict) -> dict:
+def download_cgu_terceirizados_data(cleanStart: dict, historic: bool = False) -> dict:
     """
-    Baixa os Dados Abertos mais recentes dos Terceirizados de Órgãos Federais,
-      disponibilizado pela Controladoria Geral da União.
+    Baixa os Dados Abertos dos Terceirizados de Órgãos Federais,
+    disponibilizado pela Controladoria Geral da União.
 
     Args:
-        dict: Dicionário contendo chaves-valores:
-                'logFilePath': caminho dos arquivo local de log (string),
-                ?'error': Possíveis erros propagados (string)
+        cleanStart (dict): Dicionário contendo chaves-valores:
+            'logFilePath': caminho dos arquivo local de log (string),
+            ?'error': Possíveis erros propagados (string)
+        historic (bool): Flag para definir se deve baixar todos os dados históricos (True)
+            ou apenas os dados mais recentes (False). Default é False.
     Returns:
         dict: Dicionário contendo chaves-valores:
-                'rawData': Dicionário contendo chaves-valores:
-                    'content': Conteúdo do arquivo (bytes),
-                    'type': Extensão do arquivo (.csv, .xlsx),
-                    'year': Ano do arquivo para particionamento,
-                ?'error': Possíveis erros propagados (string)    
+            'rawData': Lista contendo dicionários com chaves-valores:
+                'content': Conteúdo do arquivo (bytes),
+                'type': Extensão do arquivo (.csv, .xlsx),
+                'year': Ano do arquivo para particionamento,
+            ?'error': Possíveis erros propagados (string)
     """
-    if isinstance(cleanStart, Failed): return Failed(result=cleanStart)
-    rawData = {}
+    if isinstance(cleanStart, Failed):
+        return Failed(result=cleanStart)
+    rawData = { 'rawData' : [] }
 
     try:
-        # Acesse as variáveis de ambiente em busca da url atualizada do portal da CGU
+        # Acesse as variáveis de ambiente em busca da URL atualizada do portal da CGU
         URL = os.getenv("URL_FOR_DATA_DOWNLOAD")
         DOWNLOAD_ATTEMPTS = int(os.getenv("DOWNLOAD_ATTEMPTS"))
     except Exception as e:
         error = f"Falha ao acessar variáveis de ambiente. {e}"
-        log_and_propagate_error(error, rawData)
+        log_and_fail_task(error, rawData)
 
     try:
-        # Capture o link de download através do portal de dados públicos da CGU
-        def fetch_download_url_from_dados_abertos_cgu(url):
-            response = requests.get(url)
-            soup = BeautifulSoup(response.content, 'html.parser')
-            headers = soup.find_all('h3')
-            if headers:
-                header = headers[0]
-                year = header.get_text()
-                ul = header.find_next('ul')
-                if ul:
-                    links = ul.find_all('a')
-                    if links:
-                        link = links[0]
-                        monthText = link.get_text()
-                        file_url = link['href']
-                        return file_url, year, monthText
-                        
-        file_url, year, monthText = fetch_download_url_from_dados_abertos_cgu(URL)
-        log(f"Link {file_url} para dados crus capturado do portal de Dados Abertos da Controladoria Geral da União com sucesso!")
+        # Função para capturar links de download através do portal de dados públicos da CGU
+        rawDataLinks = []
+        response = requests.get(URL)
+        soup = BeautifulSoup(response.content, 'html.parser')
+        if historic:
+            get_historic_raw_data_download_links(soup,rawDataLinks)
+        else:
+            get_most_recent_raw_data_download_links(soup,rawDataLinks)   
+        if len(rawDataLinks) == 0:
+            raise ValueError('Zero link de download encontrado!')
+        log(f"{len(rawDataLinks)} links para dados crus capturados do portal de Dados Abertos da Controladoria Geral da União com sucesso!")
     except Exception as e:
-        error = f"""Falha ao capturar link para dados crus do portal de Dados Abertos da Controladoria Geral da União {URL}.\n
-            Possível mudança de layout. {e}"""
-        log_and_propagate_error(error, rawData)
+        error = f"""Falha ao capturar links para dados crus do portal de Dados Abertos da Controladoria Geral da União {URL}.\n
+                    Possível mudança de layout. {e}"""
+        log_and_fail_task(error, rawData)
 
-    try:
-        # Baixe o arquivo no link e armazene na memória principal
-        content, content_type = download_file(file_url, DOWNLOAD_ATTEMPTS, monthText, year)
-        rawData['rawData'] = {
-            'content': content,
-            'type': get_file_extension(content_type),
-            'year': year
-        }
-    except Exception as e:
-        error = f"Falha ao baixar os dados. Foram realizadas {DOWNLOAD_ATTEMPTS} tentativas. {e}"
-        log_and_propagate_error(error, rawData)
-        
-    if 'errors' in rawData: return Failed(result=rawData)
-    log(f'Dados referentes ao mês de {monthText} baixados com sucesso!')
+    for rawDataFile in rawDataLinks:
+        try:
+            # Baixe o arquivo no link e armazene na memória principal
+            log(f"Realizando o download do arquivo... \n {rawDataFile['file_url']}")
+            content, file_extension = download_file(rawDataFile['file_url'],
+                                                   DOWNLOAD_ATTEMPTS,
+                                                     rawDataFile['monthText'],
+                                                       rawDataFile['year'])
+            rawData['rawData'].append({
+                'content': content,
+                'type': file_extension,
+                'year': rawDataFile['year']
+            })
+        except Exception as e:
+            error = f"Falha ao baixar os dados. Foram realizadas {DOWNLOAD_ATTEMPTS} tentativas. {e}"
+            log_and_fail_task(error, rawData)
+
+    if 'errors' in rawData:
+        return Failed(result=rawData)
+    log(f'Dados referentes a {len(rawData.get("rawData", []))} meses baixados com sucesso!')
     return rawData
 
 @task
@@ -168,100 +166,128 @@ def save_raw_data_locally(rawData: dict) -> dict:
     Salva os dados crus localmente em adm_cgu_terceirizados_local/ particionado por ano.
 
     Args:
-        dict: Dicionário contendo chaves-valores:
-                'rawData': Dicionário contendo chaves-valores:
-                    'content': Conteúdo do arquivo (bytes),
-                    'type': Extensão do arquivo (.csv, .xlsx),
-                    'year': Ano do arquivo para particionamento.,
-                ?'error': Possíveis erros propagados (string)    
+        rawData (dict): Dicionário contendo chaves-valores:
+            'rawData': Lista de dicionários contendo chaves-valores:
+                'content': Conteúdo do arquivo (bytes),
+                'type': Extensão do arquivo (.csv, .xlsx),
+                'year': Ano do arquivo para particionamento.
+            ?'error': Possíveis erros propagados (string)
     Returns:
         dict: Dicionário contendo chaves-valores:
-                'rawFilePaths': caminhos dos arquivos locais salvos (list de strings),
-                ?'error': Possíveis erros propagados (string)
+            'rawFilePaths': Caminhos dos arquivos locais salvos (list de strings),
+            ?'error': Possíveis erros propagados (string)
     """
-    if isinstance(rawData, Failed): return Failed(result=rawData)
-    rawFilePaths = { 'rawFilePaths': [] }
+    if isinstance(rawData, Failed):
+        return Failed(result=rawData)
+    rawFilePaths = {'rawFilePaths': []}
 
     # Crie os diretórios no padrão de particionamento por ano
     try:
-        for _key, content in rawData.items(): 
-            download_dir = os.path.join(f'adm_cgu_terceirizados_local/', f"year={content['year']}/")
+        for i, content in enumerate(rawData['rawData']):
+            if len(content['year']) != 4 :
+                log(f"Dados de ano inválido {content['year']}! - Ignorando.")
+                continue
+            download_dir = os.path.join('adm_cgu_terceirizados_local', f"year={content['year']}")
             os.makedirs(download_dir, exist_ok=True)
-            log(f'Diretório para armazenar localmente os dados crus {download_dir} criado com sucesso!')
-            filePath = os.path.join(download_dir, f"raw_data.{content['type']}".lower())
-            log(f'Arquivo para armazenar localmente os dados crus {filePath} criado com sucesso!')
+            filePath = os.path.join(download_dir, f"raw_data_{i}.{content['type']}".lower())
+            rawFilePaths['rawFilePaths'].append(filePath)
     except Exception as e:
-        error = f"Falha ao criar diretótios locais para armazenar os dados crus. {e}"
-        log_and_propagate_error(error, rawFilePaths)
+        error = f"Falha ao criar diretórios locais para armazenar os dados crus. {e}"
+        log_and_fail_task(error, rawFilePaths)
+    log(f'Arquivos e diretórios para armazenar localmente os dados crus criados com sucesso!')
 
     # Salve localmente os dados baixados
     try:
-        with open(filePath, 'wb') as file:
-            file.write(content['content'])
+        for index, content in enumerate(rawData['rawData']):
+            with open(rawFilePaths['rawFilePaths'][index], 'wb') as file:
+                file.write(content['content'])
+            log(f"Dados salvos localmente em {rawFilePaths['rawFilePaths'][index]} com sucesso!")
     except Exception as e:
         error = f"Falha ao salvar os dados crus localmente. {e}"
-        log_and_propagate_error(error, rawFilePaths)
-
-    if 'errors' in rawFilePaths: return Failed(result=rawFilePaths)
-    log(f"Dados salvos localmente em {filePath} com sucesso!")
-    rawFilePaths['rawFilePaths'].append(filePath)
+        log_and_fail_task(error, rawFilePaths)
+    
+    if 'error' in rawFilePaths:
+        return Failed(result=rawFilePaths)
+    log("Dados salvos localmente com sucesso!")
+    log(rawFilePaths)
     return rawFilePaths
 
 @task
-def parse_data_into_dataframes(rawFilePaths: dict) -> pd.DataFrame:
+def parse_data_into_dataframes(rawFilePaths: dict, lenient: bool) -> dict:
     """
     Transforma os dados crus em um DataFrame.
 
     Args:
         rawFilePaths (dict): Dicionário contendo chaves-valores:
-                'rawFilePaths': caminhos dos arquivos locais salvos (list de strings),
-                ?'error': Possíveis erros propagados (string)
+            'rawFilePaths': Caminhos dos arquivos locais salvos (list de strings),
+            ?'error': Possíveis erros propagados (string),
+        lenient (bool): Indica se Falha a Tarefa caso um dos arquivos falhe
     Returns:
         dict: Dicionário com chaves sendo os caminhos dos arquivos locais crus, e valores
-          sendo dicionários contendo chaves-valores:
-                'content': pd.DataFrame,
-                ?'error': Possíveis erros propagados (string)
+            sendo dicionários contendo chaves-valores:
+            'dataframe': pd.DataFrame,
+            ?'error': Possíveis erros propagados (string)
     """
-    if isinstance(rawFilePaths, Failed): return Failed(result=rawFilePaths)
+    if isinstance(rawFilePaths, Failed):
+        return Failed(result=rawFilePaths)
+    
     parsedData = {}
 
-    for rawfilePath in rawFilePaths['rawFilePaths']: 
+    for rawfilePath in rawFilePaths['rawFilePaths']:
         parsedData[rawfilePath] = {}
-        # Determine o tipo do arquivo cru e leia seu o conteúdo como pd.DataFrame
         if rawfilePath.endswith('.xlsx'):
             try:
                 df = pd.read_excel(rawfilePath, engine='openpyxl')
-                log("Dados crus .xlsx convertidos em DataFrames com sucesso!")
-                parsedData[rawfilePath]['dataframe'] = df
+                log(f"Dados crus {rawfilePath} convertidos em pd.DataFrame com sucesso!")
+                parsedData[rawfilePath]['content'] = df
             except Exception as e:
-                error = f"Falha ao interpretar como .xlsx os dados crus {rawfilePath}: {e}"
-                log_and_propagate_error(error, parsedData)
+                error = f"Falha ao interpretar {rawfilePath} como pd.DataFrame: {e} \nArquivo {rawfilePath} corrompido."
+                if lenient:
+                        log(error)
+                        del parsedData[rawfilePath]
+                        continue
+                else:
+                    log_and_fail_task(error)
+                    return parsedData
 
         elif rawfilePath.endswith('.csv'):
             try:
                 df = pd.read_csv(rawfilePath)
-                log("Dados crus .csv convertidos em DataFrames com sucesso!")
-                parsedData[rawfilePath]['dataframe'] = df
+                log(f"Dados crus {rawfilePath} convertidos em pd.DataFrame com sucesso!")
+                parsedData[rawfilePath]['content'] = df
             except Exception as e:
-                error = f"Falha ao interpretar como .csv os dados crus {rawfilePath}: {e}"
-                log_and_propagate_error(error, parsedData)
+                try:
+                    df = pd.read_csv(rawfilePath, delimiter=';')
+                    log(f"Dados crus {rawfilePath} convertidos em pd.DataFrame com sucesso!")
+                    parsedData[rawfilePath]['content'] = df
+                except Exception as e:
+                    error = f"Falha ao interpretar {rawfilePath} como pd.DataFrame: {e} \nArquivo {rawfilePath} corrompido."
+                    if lenient:
+                            log(error)
+                            del parsedData[rawfilePath]
+                            continue
+                    else:
+                        log_and_fail_task(error)
+                        return parsedData
         else:
-            raise ValueError('Formato de arquivo cru fora do esperado (.csv, .xlsx).')
+            log(f"Formato de arquivo cru fora do esperado (.csv, .xlsx) para o arquivo {rawfilePath}.")
+            del parsedData[rawfilePath]
+            continue
 
-    if 'errors' in parsedData: return Failed(result=parsedData)
-    log(f"Dados interpretados localmente como DataFrame com sucesso!")
+    log("Dados interpretados localmente como DataFrame com sucesso!")
     return parsedData
 
 @task
-def save_parsed_data_as_csv_locally(parsedData: dict) -> dict:
+def save_data_as_csv_locally(parsedData: dict, lenient: bool) -> dict:
     """
     Salva DataFrames em um arquivo CSV local.
 
     Args:
-        dict: Dicionário com chaves sendo os caminhos dos arquivos locais crus, e valores
+        parsedData (dict): Dicionário com chaves sendo os caminhos dos arquivos locais crus, e valores
           sendo dicionários contendo chaves-valores:
-                'content': pd.DataFrame,
-                ?'error': Possíveis erros propagados (string)
+                'content': Dados (pd.DataFrame),
+                ?'error': Possíveis erros propagados (string),
+        lenient (bool): Indica se Falha a Tarefa caso um dos arquivos falhe
     Returns:
         dict: Dicionário contendo chaves-valores:
                 'parsedFilePaths': [caminhos para CSV locais (strings)],
@@ -269,107 +295,134 @@ def save_parsed_data_as_csv_locally(parsedData: dict) -> dict:
     """
     if isinstance(parsedData, Failed): return Failed(result=parsedData)
     parsedFilePaths = { 'parsedFilePaths': [] }
-    
-    try:
-        for rawFilePath, data in parsedData.items(): 
+
+    # Para cada arquivo:
+    for rawFilePath, data in parsedData.items(): 
+        # Salve-o como .csv
+        try:
+            if 'content' not in data.keys(): raise ValueError(f'{parsedFilePath} sem contúdo para salvar!')
             parsedFilePath = f'{rawFilePath}_parsed.csv'.lower()
-            data['dataframe'].to_csv(parsedFilePath, index=False)
-    except Exception as e:
-        error = f"Falha ao salvar dados tratados localmente como .csv {rawFilePath}: {e}"
-        log_and_propagate_error(error, parsedData)
+            data['content'].to_csv(parsedFilePath, index=False)
+            parsedFilePaths['parsedFilePaths'].append(parsedFilePath)
+        except Exception as e:
+            error = f"Falha ao salvar localmente {parsedFilePath} como CSV: {e} \n Arquivo {parsedFilePath} corrompido."
+            if lenient:
+                    log(error)
+                    continue
+            else:
+                log_and_fail_task(error)
+                return parsedFilePaths
+
 
     if 'error' in parsedFilePaths: return Failed(result=parsedFilePaths)
-    log(f"Dados tratados em CSV salvos localmente em {parsedFilePath} com sucesso!")
-    parsedFilePaths['parsedFilePaths'].append(parsedFilePath)
+    log(f"Dados tratados em CSV salvos localmente com sucesso!")
     return parsedFilePaths
 
 @task
-def upload_csv_to_database(parsedFilePaths: dict, tableName: str) -> dict:
+def upload_csv_to_database(parsedFilePaths: dict, tableName: str, lenient: bool) -> dict:
     """
     Faz o upload dos arquivos tratados, localizados em parsedFilePaths,
         para a tabela tableName no banco de dados PostgreSQL.
 
     Args:
-        dict: Dicionário contendo chaves-valores:
+        parsedFilePaths (dict): Dicionário contendo chaves-valores:
                 'parsedFilePaths': [Caminhos para CSV locais (strings)],
                 ?'error': Possíveis erros propagados (string)
+        tableName (string): Nome da tabela no PostgreSQL para receber os dados,
+        lenient (bool): Indica se Falha a Tarefa caso um dos arquivos falhe no upload.
     Returns:
         dict: Dicionário contendo chaves-valores:
-                'tables': [Nome das tabelas atualizadas no banco de dados (strings)],
+                'inserts': [Dicionário contendo chaves-valores]:
+                    'tableName': Nome da tabela no PostgreSQL que recebeu os dados (string),
+                    'localFilePath': Caminho do arquivo inserido (string),
                 ?'error': Possíveis erros propagados (string)
     """
     if isinstance(parsedFilePaths, Failed): return Failed(result=parsedFilePaths)
-    status = {'tables': [] }
+    status = {'inserts': [], 'totalInsertedLines': 0 }
 
+    # Conecte com o PostgreSQL
     try:
-        # Conecte com o PostgreSQL
         conn, cur = connect_to_postgresql()
         log(f"Conectado com PostgreSQL com sucesso!")
     except Exception as e:
-        conn.rollback(); cur.close(); conn.close()
         error = f"Falha ao conectar com o PostgreSQL: {e}"
-        log_and_propagate_error(error, status)
+        conn.rollback(); cur.close(); conn.close()
+        log_and_fail_task(error, status)
         return status
     
+    # Crie a tabela tableName no PostgreSQL, caso não exista
+    try:
+        df = pd.read_csv(parsedFilePaths['parsedFilePaths'][0]) # Padrão de colunas escolhido do primeiro arquivo (mais recente)
+        create_table(cur, conn, df, tableName)
+        log(f"Tabela {tableName} criada no PostgreSQL com sucesso!")
+    except Failed as e:
+        error = f"Falha ao criar tabela {tableName} no PostgreSQL: {e}"
+        conn.rollback(); cur.close(); conn.close()
+        log_and_fail_task(error)
+        return status
+    
+    # Limpe a tabela
+    try:
+        clean_table(cur, conn, tableName)
+        log(f"Tabela {tableName} limpa no PostgreSQL com sucesso!")
+    except Exception as e:
+        error = f"Falha ao limpar tabela {tableName} no PostgreSQL: {e}"
+        conn.rollback(); cur.close(); conn.close()
+        log_and_fail_task(error)
+        return status
 
-    for parsedFile in parsedFilePaths['parsedFilePaths']:
+    # Para cada arquivo:
+    for fileNumber, parsedFilePath in enumerate(parsedFilePaths['parsedFilePaths'], start=1):
+        # Leia-o
         try: 
-            # Leia o arquivo
-            df = pd.read_csv(parsedFile) # low_memory=False
+            df = pd.read_csv(parsedFilePath) # low_memory=False
         except Exception as e:
-            conn.rollback(); cur.close(); conn.close()
-            error = f"Falha ao ler o arquivo {parsedFile}: {e}"
-            log_and_propagate_error(error, status)
-            return status
-        
+            error = f"Falha ao ler o arquivo {parsedFilePath}: {e} \n Arquivo {parsedFilePath} corrompido."
+            if lenient:
+                log(error)
+                continue
+            else:
+                conn.rollback(); cur.close(); conn.close()
+                log_and_fail_task(error)
+                return status
+            
+        # Insira seus dados na tabela tableName
         try:
-            # Crie a tabela tableName no PostgreSQL, caso não exista
-            create_table(cur, conn, df, tableName)
-            log(f"Tabela {tableName} criada no PostgreSQL com sucesso!")
-        except Failed as e:
-            conn.rollback(); cur.close(); conn.close()
-            error = f"Falha ao criar tabela {tableName} no PostgreSQL: {e}"
-            log_and_propagate_error(error, status)
-            return status
-
-        try:
-            # Limpe a tabela
-            clean_table(cur, conn, tableName)
-            log(f"Tabela {tableName} limpa no PostgreSQL com sucesso!")
-        except Exception as e:
-            conn.rollback(); cur.close(); conn.close()
-            error = f"Falha ao limpar tabela {tableName} no PostgreSQL: {e}"
-            log_and_propagate_error(error, status)
-            return status
-
-        try:
-            # Insere os dados tratados na tabela tableName
-            log(f"Inserindo {df.shape[0]} linhas em {tableName}...")
+            log(f"Inserindo {df.shape[0]} novas linhas do arquivo {parsedFilePath} em {tableName}...")
             insert_data(cur, conn, df, tableName)
+            status['inserts'].append({'tableName':tableName, 'localFilePath': parsedFilePath })
+            status['totalInsertedLines'] += df.shape[0]
             log(f"Dados inseridos em {tableName} com sucesso!")
         except Exception as e:
             conn.rollback(); cur.close(); conn.close()
-            error = f"Falha ao inserir dados do arquivo {parsedFile} na tabela {tableName} no PostgreSQL: {e}"
-            log_and_propagate_error(error, status)
-            return status
+            error = f"Falha ao inserir dados do arquivo {parsedFilePath} na tabela {tableName} no PostgreSQL: {e}"
+            if lenient:
+                log(error)
+                continue
+            else:
+                conn.rollback(); cur.close(); conn.close()
+                log_and_fail_task(error)
+                return status
+
         
     cur.close(); conn.close()
     if 'error' in status: return Failed(result=status)
-    log(f"Feito upload de dados do arquivo {parsedFile} no PostgreSQL com sucesso!")
-    status['tables'].append(tableName)
+    log(f"Feito upload de dados de {status['totalInsertedLines']} linha(s) de {fileNumber} arquivo(s) na tabela {tableName} no PostgreSQL com sucesso!")
     return status
 
 @task(trigger=all_finished)
 def upload_logs_to_database(status: dict, logFilePath: str, tableName: str) -> dict:
     """
-    Faz o upload dos logs da pipeline para o PostgreSQL.
+    Faz o upload dos logs da pipeline para o PostgreSQL.        
 
     Args:
-        status: Dicionário contendo chaves-valores:
-                'tables': [Nome das tabelas atualizadas no banco de dados (strings)],
-                ?'error': Possíveis erros propagados (string)
-        logFilePath: Caminho para o arquivo de log (string)
-        tableName: Nome da tabela de log no PostgreSQL (string)    
+    status (dict): Dicionário contendo chaves-valores:
+                'inserts': [Dicionário contendo chaves-valores]:
+                    'tableName': Nome da tabela no PostgreSQL que recebeu os dados (string),
+                    'localFilePath': Caminho do arquivo inserido (string),
+                ?'error': Possíveis erros propagados (string),
+    logFilePath: Caminho do arquivo de log do Flow  (string),
+    tableName: Nome da tabela no PostgreSQL que recebeu os dados (string)
     Returns:
         dict: Dicionário contendo chaves-valores:
                 'tables': Nome das tabelas atualizadas no banco de dados,
@@ -383,7 +436,7 @@ def upload_logs_to_database(status: dict, logFilePath: str, tableName: str) -> d
         log(f"Conectado com PostgreSQL com sucesso!")
     except Exception as e:
         error = f"Falha ao conectar com o PostgreSQL: {e}"
-        log_and_propagate_error(error, status)
+        log_and_fail_task(error, status)
         conn.rollback(); cur.close(); conn.close()
         return status
 
@@ -393,7 +446,7 @@ def upload_logs_to_database(status: dict, logFilePath: str, tableName: str) -> d
         log(f"Tabela de logs {tableName} criada no PostgreSQL com sucesso!")
     except Exception as e:
         error = f"Falha ao criar tabela de {tableName} no PostgreSQL: {e}"
-        log_and_propagate_error(error, logStatus)
+        log_and_fail_task(error, logStatus)
         conn.rollback(); cur.close(); conn.close()
         return logStatus
     
@@ -403,7 +456,7 @@ def upload_logs_to_database(status: dict, logFilePath: str, tableName: str) -> d
         log(f"Dados de logs do Flow inseridos em {tableName} com sucesso!")
     except Exception as e:
         error = f"Falha ao inserir logs na tabela de {tableName} no PostgreSQL: {e}"
-        log_and_propagate_error(error, logStatus)
+        log_and_fail_task(error, logStatus)
         conn.rollback(); cur.close(); conn.close()
         return logStatus
     
@@ -413,16 +466,15 @@ def upload_logs_to_database(status: dict, logFilePath: str, tableName: str) -> d
     return logStatus
         
 @task
-def run_dbt(cleanStart: dict) -> dict:
+def run_dbt(cleanStart: dict, historic:bool) -> dict:
     """
     Realiza transformações com DBT no schema staging do PostgreSQL:
-        1: standard_null: Define padrão de variáveis Nulas por coluna,
-        2: casted: Define tipos das colunas
-
     Args:
         cleanStart: Dicionário contendo chaves-valores:
                 'logFilePath': Caminho para o arquivo de log (string),
                 ?'error': Possíveis erros propagados (string)
+        historic (bool): Flag para definir se deve baixar todos os dados históricos (True)
+            ou apenas os dados mais recentes (False). Default é False.
     Returns:
         dict: Dicionário contendo chaves-valores:
                 'tables': Nome das tabelas atualizadas no banco de dados,
@@ -438,7 +490,7 @@ def run_dbt(cleanStart: dict) -> dict:
         DB_NAME = os.getenv("DB_NAME")
     except Exception as e:
         error = f"Falha ao acessar variáveis de ambiente. {e}"
-        log_and_propagate_error(error, dbtResult)
+        log_and_fail_task(error, dbtResult)
 
     try:
         os.chdir(f'{originalDir}/{dbtDir}')
@@ -448,7 +500,7 @@ def run_dbt(cleanStart: dict) -> dict:
             raise Exception(result.stderr)
     except Exception as e:
         error = f"Falha na transformação (DBT): {e} {result} "
-        log_and_propagate_error(error, dbtResult)
+        log_and_fail_task(error, dbtResult)
     finally:
         os.chdir(originalDir)
     
@@ -456,11 +508,6 @@ def run_dbt(cleanStart: dict) -> dict:
     log(f'Transformação realizada com sucesso. {result.stdout}')
     dbtResult['result'] = result
     return dbtResult
-
-
-# @task
-# def download_all_available_data() -> dict:
-    # """
 
 def check_flow_state(capture_flow_state):
     # Not working

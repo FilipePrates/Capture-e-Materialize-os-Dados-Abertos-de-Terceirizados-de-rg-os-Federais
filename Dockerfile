@@ -17,11 +17,11 @@ RUN pip3 install --no-cache-dir -r requirements/start.txt
 RUN pip3 install --no-cache-dir -r requirements/results.txt
 
 # Ensure the script is executable
-RUN chmod +x /app/docker_start.sh
+RUN chmod +x /app/scripts/docker_start.sh
 
 # Set environment variables for Prefect server
 ENV PREFECT__BACKEND=server
 ENV PREFECT__SERVER__HOST=http://localhost
 
 # Entry point to start the services
-CMD ["./docker_start.sh"]
+CMD ["./scripts/docker_start.sh"]

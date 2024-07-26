@@ -1,5 +1,5 @@
 name: 'adm_cgu_terceirizados'
-version: 1.0.0 # Versão do Projeto
+version: 1.2.1 # Versão do Projeto
 config-version: 2  # Versão da Configuração
 
 profile: local_profile
@@ -13,5 +13,3 @@ models:
     staging:
       +database: "{{ var('database') }}"
       materialized: view
-    marts:
-      materialized: table

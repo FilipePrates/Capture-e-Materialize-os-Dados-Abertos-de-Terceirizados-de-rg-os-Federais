@@ -7,11 +7,7 @@ Permissões e limpeza do sistema host:
 
 0. :
    ```sh
-   sudo chmod +x start.sh docker_start.sh stop.sh
-   ```
-1. :
-   ```sh
-   ./stop.sh
+   sudo chmod +x start.sh scripts/docker_start.sh scripts/stop.sh && scripts/stop.sh
    ```
 
 #### Opção 1: Rode Localmente com Bash Script
@@ -21,16 +17,16 @@ Permissões e limpeza do sistema host:
    ```
 
 #### Opção 2: Rode dentro de um container Docker
-1. :
+0. :
    ```sh
-   ./stop.sh
+   sudo docker service start
    ```
-2. : 
+1. : 
    ```sh
    docker build -t adm_cgu_terceirizados_pipeline .
    ```
    <!-- É esperado que "Installing build dependencies: finished with status 'done'" e "Running setup install for numpy" demore um pouquinho. -->
-3. : 
+2. : 
    ```sh
    docker run -it --privileged -v /var/run/docker.sock:/var/run/docker.sock -p 8080:8080 -p 4200:4200 -p 8050:8050 adm_cgu_terceirizados_pipeline
    ```
@@ -114,12 +110,12 @@ Em outro terminal:
 
 0. :
    ```sh
-   sudo chmod +x stop.sh
+   sudo chmod +x scripts/stop.sh
    ```
 
 1. :
    ```sh
-   ./stop.sh
+   ./scripts/stop.sh
    ```
    
 ### Para visualizar os dados após Captura e Materialização
@@ -176,7 +172,7 @@ Escreva a senha: "test-password"
 ### #help
 caso:
 ```sh
-   (orchestrator) user@machine:~/path$ ./start.sh
+   (orchestrator) user@machine:~/path$ start.sh
    Pulling postgres ... done
    Pulling hasura   ... done
    Pulling graphql  ... done
@@ -198,24 +194,16 @@ caso:
    se erro permanecer, limpe todos os processos relacionados com a pipeline:
 1. 
    ```sh
-   ./stop.sh
+   ./scripts/stop.sh
    ```
 
-###
+<!-- ###
 caso:
-   Problemas ao executar shell scripts:
+   Caso utilizando sistema operacional Windows:
 
 0. :
-   Caso utilizando sistema operacional Windows - tente através do WSL.
+   Caso utilizando sistema operacional Windows - utilize através do WSL. -->
 
-1. :
-   ```sh
-   sudo chmod +x start.sh
-   ```   
-2. :
-   ```sh
-   sudo chmod +x stop.sh
-   ```   
 
 ###
 caso:

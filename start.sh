@@ -77,7 +77,8 @@ if [[ "$run" == "y" || "$run" == "Y" || "$run" == "yes" || "$run" == "Yes" || "$
     }
     stop_port_8050_process
     python ./run/results.py &
-    while true; do
+
+    show_view_results() {
         echo " <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <> "
         echo " <>                                                                              <> "
         echo " <>  Visualize os resultados!                                                    <> "
@@ -88,6 +89,22 @@ if [[ "$run" == "y" || "$run" == "Y" || "$run" == "yes" || "$run" == "Yes" || "$
         echo " <>     \"python ./run/scheduler.py\" para programar as próximas capturas.       <> "
         echo " <>                                                                              <> "
         echo " <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <> "
-        sleep 15
-    done
+    }
+    show_view_results
+    sleep 10
+    # Realize a Captura Histórica
+    echo " <>  <>  <>  <>  <>  <>  <>  <>  <>   <> "
+    echo " <> Começando Captura Histórica!...   <> "
+    echo " <>  <>  <>  <>  <>  <>  <>  <>  <>   <> "
+    python ./run/historic_capture.py
+    echo " <> Captura Histórica finalizada!"
+    show_view_results
+    sleep 10
+    # Realize a Materialização Histórica
+    echo " <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <> "
+    echo " <> Começando Materialização Histórica!...   <> "
+    echo " <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <> "
+    python ./run/historic_materialize.py
+    echo " <> Materialização Histórica finalizada!"
+
 fi
