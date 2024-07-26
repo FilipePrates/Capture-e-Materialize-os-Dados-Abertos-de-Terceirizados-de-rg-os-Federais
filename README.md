@@ -12,7 +12,7 @@
  -> (🔍) Interpretar Dados em DataFrames -> (📥) Salvar Dados como CSVs Localmente ->
 
 **LOAD**:
- -> (➡️📦) Carregar CSVs para o Banco de Dados brutos -> (⬆️) Carregar Logs para o Banco de Dados
+ -> (📦) Carregar CSVs para o Banco de Dados brutos -> (⬆️) Carregar Logs para o Banco de Dados
 
 ### Flow de Materialização dos Dados
 
