@@ -55,7 +55,7 @@ def fetch_table_count(engine, table_schema, table_name):
     count = pd.read_sql(query, engine)
     print(count)
     return count
-fetch_table_count(engine, 'staging', 'historic_raw')
+# fetch_table_count(engine, 'staging', 'raw_historic')
 # Crie o app Dash
 app = dash.Dash(__name__)
 
