@@ -1,5 +1,5 @@
 Column Name,Data Type,Nullable,Default
-contratado_id,BIGINT,True,
+contratado_id,BIGINT,False,
 ano_disponibilizado,BIGINT,True,
 mes_disponibilizado,TEXT,True,
 sigla_orgao_superior_gestora,TEXT,True,
