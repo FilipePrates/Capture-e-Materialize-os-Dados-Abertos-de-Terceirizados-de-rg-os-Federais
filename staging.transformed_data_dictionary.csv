@@ -1,6 +1,6 @@
 Column Name,Data Type,Descrição
 contratado_id,BIGINT,Identificador do registro do terceirizado na base de dados,
-ano_disponibilizado,BIGINT,,
+ano_disponibilizado,BIGINT,
 mes_disponibilizado,TEXT,True,
 sigla_orgao_superior_gestora,TEXT,Sigla do órgão superior da unidade gestora do terceirizado,
 numero_siafi_gestora,BIGINT,Código da unidade gestora (proveniente do Sistema Integrado de Administração Financeira do Governo Federal - SIAFI) do terceirizado,
