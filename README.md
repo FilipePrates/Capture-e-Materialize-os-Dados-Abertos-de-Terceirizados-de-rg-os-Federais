@@ -1,6 +1,5 @@
 # Desafio Engenheiro de Dados @ Escritório de Dados
 ## Capture e Materialize os Dados Abertos de Terceirizados de Órgãos Federais
----
 ### Flow de Captura de Dados:
 - **SETUP**: 🧹 Limpar Arquivo de Log -> 🔧 Configurar Arquivo de Log ->
 
