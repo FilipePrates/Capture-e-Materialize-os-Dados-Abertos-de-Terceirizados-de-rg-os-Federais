@@ -33,7 +33,7 @@ select
     cast(valor_reais_mensal_custo as double precision) as valor_reais_mensal_custo,
 
     -- Contratado
-    contratado_cnpj,
+    contratado_cpf,
     contratado_nome,
 
     current_timestamp as timestamp_captura

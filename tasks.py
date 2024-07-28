@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Modulo com as Tarefas (@tasks) para os Flows
 """
@@ -142,7 +143,7 @@ def download_cgu_terceirizados_data(cleanStart: dict, historic: bool = False) ->
     for rawDataFile in rawDataLinks:
         try:
             # Baixe o arquivo no link e armazene na memória principal
-            log(f"Realizando o download do arquivo... \n {rawDataFile['file_url']}")
+            log(f"Realizando o download do arquivo... {rawDataFile['file_url']}")
             content, file_extension = download_file(rawDataFile['file_url'],
                                                    DOWNLOAD_ATTEMPTS,
                                                      rawDataFile['monthText'],
@@ -403,7 +404,7 @@ def upload_csv_to_database(parsedFilePaths: dict, tableName: str, lenient: bool)
             
         # Insira seus dados na tabela tableName
         try:
-            log(f"Inserindo {df.shape[0]} novas linhas do arquivo {parsedFilePath} em {tableName}...")
+            log(f"Arquivo {fileNumber}: Inserindo {df.shape[0]} novas linhas do arquivo {parsedFilePath} em {tableName}...")
             insert_data(cur, conn, df, tableName)
             status['inserts'].append({'tableName':tableName, 'localFilePath': parsedFilePath })
             status['totalInsertedLines'] += df.shape[0]

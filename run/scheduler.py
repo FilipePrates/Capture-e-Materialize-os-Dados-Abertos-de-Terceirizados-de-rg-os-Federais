@@ -5,7 +5,7 @@ import threading
 from datetime import timedelta
 from prefect import Flow
 from prefect.schedules import Schedule
-from prefect.schedules.clocks import IntervalClock #, CronClock
+from prefect.schedules.clocks import IntervalClock, CronClock
 from prefect.tasks.prefect import (
     create_flow_run,
     wait_for_flow_run
@@ -58,13 +58,16 @@ def start_schedule_flow(schedule, flowName):
     scheduleFlow.register(project_name="adm_cgu_terceirizados")
     return scheduleFlow
 
-# Executando o Flow de Cronograma.
+# Função para iniciar o fluxo
+def run_flow(flow):
+    flow.run()
 
+# Executando o Flow de Cronograma.
 version = input('Gostaria do progromaga de DEMO ou o de Produção? (d/p)')
 if version in ['d','D','demo','Demo','DEMO','Demonstração','0'] :
     demoFlowName = "Cronograma Demonstrativo"
     demoFlow = start_schedule_flow(every_5_minutes, demoFlowName)
-    schedule_thread = threading.Thread(target=demoFlow)
+    schedule_thread = threading.Thread(target=run_flow, args=(demoFlow,))
     schedule_thread.start()
 
     # Execute o Agente para Demonstração
@@ -73,5 +76,5 @@ if version in ['d','D','demo','Demo','DEMO','Demonstração','0'] :
 elif version in ['p','P','prod','Prod','produção','Produção','1']:
     prodFlowName = "Cronograma Padrão seguindo a Disponibilização dos Dados pela Controladoria Geral da União"
     prodFlow = start_schedule_flow(every_4_months_starting_may, prodFlowName)
-    schedule_thread = threading.Thread(target=prodFlow)
+    schedule_thread = threading.Thread(target=run_flow, args=(prodFlow,))
     schedule_thread.start()

@@ -26,7 +26,7 @@ select
     nm_razao_social as empresa_terceirizada_razao_social,
     
 --Cpf do terceirizado:
-    nr_cpf as contratado_cnpj,
+    nr_cpf as contratado_cpf,
     
 --Nome completo do terceirizado:
     nm_terceirizado as contratado_nome,

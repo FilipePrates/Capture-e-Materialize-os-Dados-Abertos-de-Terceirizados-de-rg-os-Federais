@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Modulo com as funções auxiliares para os Flows
 """
@@ -18,7 +19,7 @@ from prefect.agent.local import LocalAgent
 # 
 
 def log(message, error=False) -> None:
-    """Ao ser chamada dentro de um Flow, realiza um log da message"""
+    """Realiza um log da message"""
     if error:
         prefect.context.logger.info(f"\n </> {message} server_time:{datetime.now()}")
     else:
@@ -112,6 +113,7 @@ def clean_table(cur, conn, tableName):
 
 
 def get_file_extension(content_type):
+    """Recupera o formato do arquivo dada header da resposta HTTP content_type"""
     if 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' in content_type:
         return 'xlsx'
     elif 'text/csv' in content_type or 'application/vnd.ms-excel' in content_type:
@@ -120,6 +122,7 @@ def get_file_extension(content_type):
         raise ValueError('Formato do arquivo bruto fora do esperado (.csv, .xlsx).')
 
 def download_file(file_url, attempts, monthText, year):
+    """Tenta attempts vezes recuperar o arquivo armazenado em file_url"""
     for attempt in range(attempts):
         response = requests.get(file_url)
         if response.status_code == 200:
@@ -132,6 +135,7 @@ def download_file(file_url, attempts, monthText, year):
     raise Exception(f"Falha ao baixar dados do link {file_url}.")
 
 def get_historic_raw_data_download_links(soup, urls):
+    """Busca no HTML do portal de Dados Abertos de Terceirizados da CGU os links para os dados brutos"""
     headers = soup.find_all('h3')
     if headers:
         for header in headers:
@@ -148,6 +152,7 @@ def get_historic_raw_data_download_links(soup, urls):
                                     'monthText': monthText})
                             
 def get_most_recent_raw_data_download_links(soup, urls):
+    """Busca no HTML do portal de Dados Abertos de Terceirizados da CGU o link para os dados brutos"""
     headers = soup.find_all('h3')
     if headers:
         header = headers[0]
@@ -164,6 +169,7 @@ def get_most_recent_raw_data_download_links(soup, urls):
                                 'monthText': monthText})
                 
 def determine_dbt_models_to_run(historic, publish):
+    """Determina quais modelos dbt rodar dependendo do modo historic"""
     models_to_run = "staging.raw staging.cleaned staging.renamed staging.transformed"
     if historic:
         models_to_run = "staging.historic_raw staging.historic_cleaned staging.historic_renamed staging.historic_transformed"

@@ -19,9 +19,6 @@ RUN pip3 install --no-cache-dir -r requirements/results.txt
 # Expose necessary ports
 EXPOSE 8080 4200 8050
 
-# Ensure the script is executable
-RUN chmod +x /app/scripts/docker_start.sh
-
 # Set environment variables for Prefect server
 ENV PREFECT__BACKEND=server
 ENV PREFECT__SERVER__HOST=http://localhost

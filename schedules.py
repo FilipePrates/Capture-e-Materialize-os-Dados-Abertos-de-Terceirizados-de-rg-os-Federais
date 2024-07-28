@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Modulo com os Schedules para os Flows
 """
