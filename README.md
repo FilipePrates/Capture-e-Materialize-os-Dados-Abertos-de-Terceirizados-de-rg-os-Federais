@@ -1,6 +1,6 @@
 # Desafio Engenheiro de Dados @ Escritório de Dados
 ## Capture e Materialize os Dados Abertos de Terceirizados de Órgãos Federais
-
+---
 ### Flow de Captura de Dados:
 - **SETUP**: 🧹 Limpar Arquivo de Log -> 🔧 Configurar Arquivo de Log ->
 
@@ -24,15 +24,13 @@
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -> 🔶 staging.transformed (Dados com tipos definidos) ->
 
 - **LOAD**: -> ⬆️ Carregar Logs para o Banco de Dados
-
-###
-
+---
 ### Funcionalidades:
 - **Captura dos dados mais recentes** (`python run/capture.py`)
 - **Materialização dos dados mais recentes** (`python run/materialize.py`)
 - **Captura dos dados históricos** - Todos os dados já disponibilizados (`python run/historic_capture.py`)
 - **Materialização dos dados históricos** - 🚧 Não trata erro de offset de colunas em dados históricos (`python run/historic_materialize.py`)
-- **Scheduler** - Definição de cronograma de execução de flows Prefect de captura e materialização (`python run/scheduler.py`)
+- **Scheduler** - Define cronograma de execução dos flows Prefect de captura e materialização (`python run/scheduler.py`)
 - **Results** - App Dash para visualizar tabelas resultantes armazenadas no banco de dados PostgreSQL (`python run/results.py`)
 
 ---
@@ -45,7 +43,7 @@ Configure o ambiente virtual python (venv):
    python -m venv orchestrator && source orchestrator/bin/activate && cp .env.example .env && pip install --no-cache-dir -r requirements/start.txt
    ```
 
-**Param-se todos os containers docker**, além de processos do host que estejam utilizando as portas necessárias pelo servidor Prefect e as funcionalidades disponibilizadas:
+**Parar todos os containers docker**, além de processos do host que estejam utilizando as portas necessárias pelo servidor Prefect e as funcionalidades disponibilizadas:
 
 0. :
    ```sh
@@ -59,12 +57,12 @@ Construa a imagem docker local:
    ```sh
    docker build -t terceirizados_pipeline .
    ```
-   ou
+   ou:
    ```sh
    sudo docker buildx create --name builder
    sudo docker buildx build . --tag terceirizados_pipeline
    ```
-&nbsp;&nbsp;&nbsp;&nbsp;pode demorar alguns minutos... ☕ 
+&nbsp;&nbsp;&nbsp;&nbsp;pode demorar alguns minutos... ☕
 
 Execute o Servidor Prefect em um container docker local:
 
@@ -73,12 +71,11 @@ Execute o Servidor Prefect em um container docker local:
    docker run -it --privileged -v /var/run/docker.sock:/var/run/docker.sock -p 8080:8080 -p 8050:8050 -p 4200:4200 terceirizados_pipeline
    ```
 
-3. :
+3. : Espere até:
    ```sh
    apollo_1    | Server ready at http://0.0.0.0:4200 🚀
    ```
-O Servidor Prefect está online!
----
+#### O Servidor Prefect está online!
 ### Em outro terminal, execute as funcionalidades do serviço:
 
 4. :
@@ -90,8 +87,12 @@ O Servidor Prefect está online!
    ```
    python ./run/capture.py && python ./run/materialize.py && python ./run/historic_capture.py && python ./run/historic_materialize.py
    ```
-6. :
-   Observe os logs no terminal do Servidor Prefect.
+
+- **Captura dos dados mais recentes** (`python run/capture.py`)
+- **Materialização dos dados mais recentes** (`python run/materialize.py`)
+- **Captura dos dados históricos** - Todos os dados já disponibilizados (`python run/historic_capture.py`)
+- **Materialização dos dados históricos** - 🚧 Não trata erro de offset de colunas em dados históricos (`python run/historic_materialize.py`)
+6. : Observe os logs no terminal do Servidor Prefect.
 
 ### Em um terceiro terminal, visualize os resultados:
 
@@ -103,66 +104,59 @@ O Servidor Prefect está online!
    ```sh
    python ./run/results.py
    ```
+- **Results** - App Dash para visualizar tabelas resultantes armazenadas no banco de dados PostgreSQL (`python run/results.py`)
 
-#### **App Dash [localhost:8050](localhost:8050) para visualizar tabelas do PostgreSQL**
-[localhost:8050](localhost:8050)
+#### **App Dash [localhost:8050](localhost:8050)**
 ![dash_visualization_staging_transformed](images/dash_visualization_staging_historic_transformed.png)
 
 ---
-### Programe Cronograma para Captura de Dados:
+### Cronograma para Captura de Dados:
 
 8. :
    ```sh
    source orchestrator/bin/activate && python ./run/scheduler.py
    ```
+- **Scheduler** - Define cronograma de execução dos flows Prefect de captura e materialização (`python run/scheduler.py`)
 
 A Captura e Materialização dos dados mais recentes é programada para ocorrer **a cada 4 meses, começando em Maio**. Se ocorrer uma falha no Flow, uma nova tentativa ocorre diaramente até ser bem sucedida.
 
-#### Dashboard Prefect [localhost:8080](localhost:8080) para acompanhar os Flows:
-[localhost:8080](localhost:8080)
+#### Dashboard Prefect [localhost:8080](localhost:8080):
 ![prefect_dashboard_capture_flow_visualization](images/prefect_dashboard_capture_flow_visualization.png)
+
+---
 #### Alternativamente, tudo através de Bash Script:
 
-0. :
-   ```sh
-   sudo chmod +x start.sh stop.sh && stop.sh
-   ```
 1. :
    ```sh
    ./start.sh
    ```
-
+---
 #### Para parar o Servidor e Agente(s) Prefect
-
-0. :
-   ```sh
-   sudo chmod +x stop.sh
-   ```
 
 1. :
    ```sh
    ./stop.sh
    ```
 
-### Conectar diretamente ao PostgreSQL:
+#### Para conectar diretamente ao PostgreSQL:
 
-9. : 
+4. : 
    ```
    docker exec -it $(docker ps | grep 'postgres:11' | awk '{print $1}') bash
    ```
-10. :
+5. :
    ```sh
    psql -U prefect -d prefect_server -W
    ```
-11. :
+6. :
 Escreva a senha: "test-password"
-
+---
 ### #help
 ###
 caso:
-   ```sh
-   Error: [Errno 2] No such file or directory: 'path/orchestrator/bin/python'
-   ```
+```sh
+Error: [Errno 2] No such file or directory: 'path/orchestrator/bin/python'
+```
 
 1. :
    ```sh
@@ -197,12 +191,6 @@ caso:
    ```
 
 ###
-
-caso:
-&nbsp; Sistema Operacional host seja Windows:
-
-1. : Utilize o WSL
-
 caso:
 &nbsp; Falha (</>) em alguma _@task_ dos Flows:
 
@@ -217,6 +205,11 @@ caso:
 Visualize resultados parciais e logs de falha em [localhost:8050](localhost:8050):
 ![dash_logs_FAIL_historic_capture](images/dash_logs_FAIL_historic_capture.png)
 
+###
+caso:
+Sistema operacional Windows:
+
+1. : Utilize o WSL.
 ---
 #### Dicionário de Dados Materializados no PostgreSQL:
 ####
