@@ -136,7 +136,7 @@ A Captura e Materialização dos dados mais recentes é programada para ocorrer 
    ```sh
    ./stop.sh
    ```
-
+---
 #### Para conectar diretamente ao PostgreSQL:
 
 4. : 
