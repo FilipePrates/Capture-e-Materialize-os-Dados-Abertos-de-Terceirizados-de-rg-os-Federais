@@ -14,7 +14,8 @@ from prefect.tasks.prefect import (
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, parent_dir)
 from schedules import (
-    every_5_minutes,
+    # every_5_minutes, old DEMO
+    every_15_minutes,
     every_4_months_starting_may
 )
 from utils import start_agent
@@ -66,7 +67,7 @@ def run_flow(flow):
 version = input('Gostaria do progromaga de DEMO ou o de Produção? (d/p)')
 if version in ['d','D','demo','Demo','DEMO','Demonstração','0'] :
     demoFlowName = "Cronograma Demonstrativo"
-    demoFlow = start_schedule_flow(every_5_minutes, demoFlowName)
+    demoFlow = start_schedule_flow(every_15_minutes, demoFlowName)
     schedule_thread = threading.Thread(target=run_flow, args=(demoFlow,))
     schedule_thread.start()
 

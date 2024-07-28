@@ -28,6 +28,15 @@ every_day = Schedule(
     ]
 )
 
+every_15_minutes = Schedule(
+    clocks=[
+        IntervalClock(
+            interval=timedelta(minutes=15),
+            start_date=datetime(START_YEAR, 1, 1, 0, 0, 0, tzinfo=timezone(TIMEZONE)),
+        ),
+    ]
+)
+
 every_10_minutes = Schedule(
     clocks=[
         IntervalClock(

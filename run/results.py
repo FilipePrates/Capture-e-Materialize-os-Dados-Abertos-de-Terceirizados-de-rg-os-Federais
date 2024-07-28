@@ -88,7 +88,7 @@ def render_content(tab):
                 id='table',
                 columns=[{"name": i, "id": i} for i in data.columns],
                 data=data.to_dict('records'),
-                page_size=20,
+                page_size=60,
                 style_table={'overflowX': 'auto'},
                 style_cell={
                     'height': 'auto',

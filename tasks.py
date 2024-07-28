@@ -49,10 +49,10 @@ def clean_log_file(logFilePath: str) -> dict:
     try:
         with open(logFilePath, 'w') as _file:
             pass
-        log(f' <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <>  <> ')
+        log(f'Arquivo de log {logFilePath} limpo com sucesso!')
     except Exception as e:
         error = f"Falha na limpeza do arquivo de log local {logFilePath}: {e}"
-        log_and_fail_task(error, logs)
+        log_and_fail_task(error, cleanedLogFile)
 
     if "error" in cleanedLogFile: return Failed(result=cleanedLogFile)
     cleanedLogFile['logFilePath'] = logFilePath
